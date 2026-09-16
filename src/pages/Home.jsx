@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, ArrowDown, Check, Linkedin } from 'lucide-react';
 import SEO from '../components/SEO';
 import DepthRail from '../components/DepthRail';
-import LivingSoil from '../components/LivingSoil';
 import { SectionHeader, Counter, PartnersMarquee } from '../components/ui';
 import { useLang } from '../i18n/LangProvider';
 import { useSite, useImage, imgSrc } from '../site/SiteProvider';
@@ -28,8 +27,7 @@ function Hero() {
     gsap.timeline({ defaults: { ease: 'power3.out' } })
       .from(q('.h-line'), { yPercent: 110, opacity: 0, duration: 1, stagger: 0.09 }, 0.1)
       .from(q('.h-sub, .h-cta'), { y: 24, opacity: 0, duration: 0.8, stagger: 0.1 }, 0.5)
-      .from(q('.h-stat'), { y: 16, opacity: 0, duration: 0.6, stagger: 0.08 }, 0.8)
-      .from(q('.h-pois'), { x: 60, opacity: 0, duration: 0.9 }, 0.7);
+      .from(q('.h-stat'), { y: 16, opacity: 0, duration: 0.6, stagger: 0.08 }, 0.8);
     gsap.to(q('.h-bg'), { yPercent: 18, ease: 'none', scrollTrigger: { trigger: ref.current, start: 'top top', end: 'bottom top', scrub: true } });
     gsap.to(q('.h-content'), { yPercent: -8, opacity: 0.2, ease: 'none', scrollTrigger: { trigger: ref.current, start: '40% top', end: 'bottom top', scrub: true } });
   }, { scope: ref });
@@ -43,7 +41,7 @@ function Hero() {
       <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-fi-deep via-fi-deep/55 to-fi-deep/20" />
       <div aria-hidden className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-fi-bg to-transparent z-[1]" />
 
-      <div className="h-content wrap relative pb-24 pt-32 md:pb-36 md:pt-40 md:pr-[min(40vw,460px)]">
+      <div className="h-content wrap relative pb-24 pt-32 md:pb-36 md:pt-40">
         <p className="h-sub text-sm md:text-base font-medium text-fi-accent">{t('hero_kicker')}</p>
         <h1 className="mt-4 text-display-xl !text-white max-w-4xl">
           <span className="block overflow-hidden"><span className="h-line block">{l1}</span></span>
@@ -60,10 +58,6 @@ function Hero() {
         <a href="#services" className="h-stat mt-10 hidden md:inline-flex items-center gap-2 text-xs text-white/60 hover:text-white transition-colors">{t('hero_scroll')} <ArrowDown size={14} className="animate-bounce" aria-hidden /></a>
       </div>
 
-      {/* Sol vivant animé : pousse, racines, réseau mycorhizien, nutriments */}
-      <div className="h-pois absolute right-[max(1rem,calc((100vw-76rem)/2))] bottom-16 md:bottom-24 hidden md:block w-[min(38vw,440px)] pointer-events-none">
-        <LivingSoil className="w-full h-auto drop-shadow-[0_20px_50px_rgba(0,0,0,0.45)]" />
-      </div>
     </section>
   );
 }

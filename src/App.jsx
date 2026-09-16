@@ -1,12 +1,11 @@
-import { Suspense, lazy, useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Chatbot from './components/Chatbot';
-import Loader from './components/Loader';
 import { LangProvider } from './i18n/LangProvider';
-import { useSmoothScroll, setScrollLocked } from './hooks/useSmoothScroll';
+import { useSmoothScroll } from './hooks/useSmoothScroll';
 import { useScrollToTop } from './hooks/useScrollToTop';
 import Home from './pages/Home';
 
@@ -37,8 +36,6 @@ export const PAGES = [
 ];
 const PREFIXES = ['', '/en', '/es'];
 
-const VISITED_KEY = 'fi-visited';
-const isBrowser = typeof window !== 'undefined';
 
 function PageFallback() {
   return (
@@ -78,32 +75,11 @@ function AppContent() {
   );
 }
 
-export default function App({ ssr = false }) {
-  const [showLoader, setShowLoader] = useState(false);
-
-  // Loader « germination » : uniquement à la première visite de la session, côté client.
-  useEffect(() => {
-    document.documentElement.classList.add('js');
-    let visited = true;
-    try { visited = !!sessionStorage.getItem(VISITED_KEY); } catch { visited = true; }
-    if (!visited && !window.location.pathname.startsWith('/admin')) setShowLoader(true);
-  }, []);
-
-  useEffect(() => {
-    document.body.style.overflow = showLoader ? 'hidden' : '';
-    setScrollLocked(showLoader);
-    return () => { document.body.style.overflow = ''; };
-  }, [showLoader]);
-
-  const handleLoaderDone = () => {
-    try { sessionStorage.setItem(VISITED_KEY, '1'); } catch { /* ignoré */ }
-    setShowLoader(false);
-  };
-
+export default function App() {
+  useEffect(() => { document.documentElement.classList.add('js'); }, []);
   return (
     <MotionConfig reducedMotion="user">
       <LangProvider>
-        {isBrowser && showLoader && <Loader onDone={handleLoaderDone} />}
         <AppContent />
       </LangProvider>
     </MotionConfig>
