@@ -67,7 +67,7 @@ node scripts/chef-test.mjs "Quelles sont les demandes de la semaine ?"
 
 ## Déploiement
 
-1. **GitHub** : dépôt `Fertil-innov` (branche `main`) — l’ancien site statique est dans `Fertil-Innov-ancien-site`.
+1. **GitHub** : dépôt public `Fertil-innov` (branche `main`) — l’ancien site statique est dans `Fertil-Innov-ancien-site`. (Le plan Hobby de Vercel refuse les dépôts privés dont l’auteur du commit n’est pas le propriétaire du projet ; le dépôt est donc public — `.env.local` n’est jamais commité.)
 2. **Vercel** → *Add New Project* → importer le dépôt (Vite détecté ; build = `npm run build`, sortie = `dist`). Node 22 est demandé par `engines`.
 3. *Settings → Environment Variables* : copier toutes les variables de `.env.local` **plus** `PUBLIC_SITE_URL=https://<votre-domaine>`.
 4. Déployer. Puis, une seule fois, enregistrer le webhook Telegram :
