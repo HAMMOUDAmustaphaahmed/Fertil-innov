@@ -10,7 +10,7 @@ import { env } from './env.js';
 import { runTurn, looksLikeFakeAction, NUDGE_TEXT } from './llm.js';
 import { STATUS_LABEL, LEAD_STATUS, LEAD_TYPES, TYPE_LABEL } from './leads.js';
 import { sendCustomEmail } from './emails.js';
-import { getSettings, updateSettings, IMAGE_SLOTS, PALETTE_PRESETS, PALETTE_DEFAULT, FONT_PRESETS, LISTES, isHex, resolveImageUrl, triggerRedeploy } from './settings.js';
+import { getSettings, updateSettings, undoSettings, settingsHistory, IMAGE_SLOTS, PALETTE_PRESETS, PALETTE_DEFAULT, FONT_PRESETS, LISTES, isHex, resolveImageUrl, triggerRedeploy } from './settings.js';
 import { toMultilang } from './i18n.js';
 import { CONTENT, CONTENT_PAGES } from '../../src/data/content.js';
 import { L } from '../../src/data/site.js';
@@ -26,7 +26,7 @@ Règles :
 - Vérité : n'annonce une action que si l'outil répond ok:true. Sinon dis-le et corrige (bon outil, bons champs).
 - Confirmation « oui » explicite requise avant : envoyer un email à un client, supprimer un élément (service, article, membre…), marquer une demande perdue. Tout le reste se fait directement, puis résume en une phrase.
 - Le site est trilingue (français, anglais, espagnol). Le propriétaire écrit en français : tu passes le texte français aux outils, la traduction est automatique. Ne traduis pas toi-même.
-- Quel outil : nom/slogan/coordonnées/GPS/LinkedIn → set_info · n'importe quel texte d'interface (titres, paragraphes, boutons, message d'accueil de Petit Pois, descriptions Google…) → list_content pour trouver la clé puis set_content · services, activités, expertise, formations, FAQ, articles du blog, équipe, partenaires, réalisations, arguments « pourquoi nous » → manage_list (lister d'abord pour connaître les ids) · chiffres clés (projets, hectares, satisfaction, CO₂…) → set_chiffres · horaires → set_hours · couleurs → set_palette (list_palettes pour les palettes prêtes) · police → set_fonts · photo [PHOTO : url] → set_image (si l'emplacement n'est pas dit : list_image_slots puis propose 2-3 emplacements et attends) ou manage_list avec champ image pour illustrer un membre, un article, un partenaire ou une réalisation. Si le propriétaire veut changer une image sans l'avoir envoyée, demande-lui d'envoyer la photo directement dans la conversation (jamais « donne-moi une URL ») ; une URL reste acceptée s'il la propose · demandes clients → list_leads / get_lead / update_lead_status · réponse à un client → send_email_to_client · ce que demandent les visiteurs → customer_insights · statistiques → stats · après des changements de contenu importants, propose redeploy (met à jour les pages pré-rendues pour Google et les IA ; les visiteurs voient déjà les changements immédiatement).
+- Quel outil : nom/slogan/coordonnées/GPS/LinkedIn → set_info · n'importe quel texte d'interface (titres, paragraphes, boutons, message d'accueil de Petit Pois, descriptions Google…) → list_content pour trouver la clé puis set_content · services, activités, expertise, formations, FAQ, articles du blog, équipe, partenaires, réalisations, arguments « pourquoi nous » → manage_list (lister d'abord pour connaître les ids) · chiffres clés (projets, hectares, satisfaction, CO₂…) → set_chiffres · horaires → set_hours · couleurs → set_palette (list_palettes pour les palettes prêtes) · police → set_fonts · photo [PHOTO : url] → set_image (si l'emplacement n'est pas dit : list_image_slots puis propose 2-3 emplacements et attends) ou manage_list avec champ image pour illustrer un membre, un article, un partenaire ou une réalisation. Si le propriétaire veut changer une image sans l'avoir envoyée, demande-lui d'envoyer la photo directement dans la conversation (jamais « donne-moi une URL ») ; une URL reste acceptée s'il la propose · demandes clients → list_leads / get_lead / update_lead_status · réponse à un client → send_email_to_client · ce que demandent les visiteurs → customer_insights · statistiques → stats · « annule » / « reviens en arrière » → undo_last_change · après des changements de contenu importants, propose redeploy (met à jour les pages pré-rendues pour Google et les IA ; les visiteurs voient déjà les changements immédiatement).
 - Ne devine jamais un numéro de demande (list_leads).
 - Français, tutoiement, ton direct, messages courts avec tirets et quelques emojis (🌱📩✅⚠️). Pas de tableaux ni de titres #. Dates depuis le contexte fourni (heure de Paris).
 
@@ -54,6 +54,7 @@ export const CHEF_TOOLS = [
   { name: 'set_chiffres', description: 'Chiffres clés affichés (accueil + page Chiffres). Ne passer que ceux à changer : projets, projetsObjectif, hectares, hectaresObjectif, satisfaction, annees, co2Tonnes, arbresEquivalent, formations, partenaires, arbresPlantes, sites, projetsTotal, rendement, eau, biodiversite, co2Min, co2Max, progression [{annee,pct}].', input_schema: { type: 'object', properties: { valeurs: { type: 'object', additionalProperties: true } }, required: ['valeurs'], additionalProperties: false } },
   { name: 'list_image_slots', description: 'Emplacements d’images du site et image actuelle.', input_schema: { type: 'object', properties: {}, additionalProperties: false } },
   { name: 'set_image', description: 'Place une image (url reçue via [PHOTO : url]) dans un emplacement (slot), ou reinitialiser.', input_schema: { type: 'object', properties: { slot: { type: 'string' }, url: { type: 'string' }, reinitialiser: { type: 'boolean' } }, required: ['slot'], additionalProperties: false } },
+  { name: 'undo_last_change', description: 'Annule la dernière modification du site (5 niveaux). Sans confirmation si le propriétaire le demande explicitement.', input_schema: { type: 'object', properties: {}, additionalProperties: false } },
   { name: 'redeploy', description: 'Relance le déploiement du site pour régénérer les pages pré-rendues (SEO Google / IA) après des changements de contenu. Les visiteurs voient déjà les changements sans cela.', input_schema: { type: 'object', properties: {}, additionalProperties: false } },
 ];
 
@@ -338,6 +339,8 @@ export async function executeChefTool(name, input, ctx = {}) {
       await updateSettings({ images: { [slot]: url } });
       return J({ ok: true, slot, emplacement: IMAGE_SLOTS[slot].label, url, ...(source === 'page' ? { note: "L'adresse était une page web : j'ai pris sa photo principale." } : {}) });
     }
+    case 'undo_last_change':
+      return J(await undoSettings());
     case 'redeploy':
       return J(await triggerRedeploy('chef'));
     default:
@@ -364,11 +367,11 @@ export function chefContext(now = new Date()) {
 // Sous-ensemble d'outils selon le sujet du message (moins de tokens par requête).
 const TOOL_GROUPS = {
   demandes: ['list_leads', 'get_lead', 'update_lead_status', 'send_email_to_client', 'stats', 'customer_insights'],
-  site: ['get_settings', 'set_info', 'list_content', 'set_content', 'set_fonts', 'set_hours', 'list_palettes', 'set_palette', 'manage_list', 'set_chiffres', 'list_image_slots', 'set_image', 'redeploy'],
+  site: ['get_settings', 'set_info', 'list_content', 'set_content', 'set_fonts', 'set_hours', 'list_palettes', 'set_palette', 'manage_list', 'set_chiffres', 'list_image_slots', 'set_image', 'undo_last_change', 'redeploy'],
 };
 const TOPIC_WORDS = {
   demandes: /demande|devis|lead|client|prospect|fi-[a-z0-9]{4}|répond|repond|email|mail|stat|chiffre|combien|semaine|mois|hier|aujourd|visiteur|petit pois|synth|résum|resum|traite|gagn|perdu|en cours/i,
-  site: /site|texte|titre|slogan|nom|adresse|téléphone|telephone|mail|linkedin|horaire|ouvert|couleur|palette|police|typo|service|activit|expertise|formation|faq|question|blog|article|actualit|équipe|equipe|membre|partenaire|réalisation|realisation|pourquoi|chiffre|objectif|photo|image|logo|\[photo|accueil|page|bouton|paragraphe|ajoute|supprime|masque|modifie|change|remplace|déploi|deploi|google|seo|gps|labo/i,
+  site: /site|texte|titre|slogan|nom|adresse|téléphone|telephone|mail|linkedin|horaire|ouvert|couleur|palette|police|typo|service|activit|expertise|formation|faq|question|blog|article|actualit|équipe|equipe|membre|partenaire|réalisation|realisation|pourquoi|chiffre|objectif|photo|image|logo|\[photo|accueil|page|bouton|paragraphe|ajoute|supprime|masque|modifie|change|remplace|déploi|deploi|google|seo|gps|labo|annul|retour|défai|defai|erreur/i,
 };
 export function selectTools(text, history = '') {
   const probe = `${text} ${history}`;

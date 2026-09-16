@@ -10,6 +10,7 @@ import { env } from './env.js';
 import { store } from './store.js';
 import { uploadImage, getSettings, IMAGE_SLOTS } from './settings.js';
 import { horairesAffichage } from '../../src/data/infos.js';
+import { siteMenu, couleursMenu, policeMenu, horairesMenu, infoMenu, chiffresMenu, textesMenu, photosMenu, listeMenu, handleMenuCallback, LISTE_LABEL } from './telegram-menus.js';
 
 const API = () => `https://api.telegram.org/bot${env.telegramToken}`;
 
@@ -22,9 +23,9 @@ export async function tg(method, payload) {
 
 export const KEYBOARD = {
   keyboard: [
-    [{ text: '📩 Demandes à traiter' }, { text: '🗓 Cette semaine' }],
-    [{ text: '📊 Stats' }, { text: '💬 Ce que demandent les visiteurs' }],
-    [{ text: '🖼 Images' }, { text: '⚙️ Site' }],
+    [{ text: '📩 Demandes' }, { text: '🌐 Modifier le site' }],
+    [{ text: '🖼 Photos' }, { text: '↩️ Annuler' }],
+    [{ text: '📊 Stats' }, { text: '💬 Visiteurs' }],
     [{ text: '❓ Aide' }],
   ],
   resize_keyboard: true,
@@ -33,41 +34,53 @@ export const KEYBOARD = {
 };
 
 export const BOT_COMMANDS = [
-  { command: 'start', description: 'Démarrer et se connecter' },
-  { command: 'aide', description: 'Tout ce que le Chef sait faire' },
+  { command: 'start', description: 'Se connecter' },
+  { command: 'aide', description: 'Tout ce que je sais faire' },
+  { command: 'site', description: '🌐 Modifier le site (menu)' },
+  { command: 'demandes', description: '📩 Demandes clients à traiter' },
+  { command: 'semaine', description: '🗓 Demandes des 7 derniers jours' },
   { command: 'jour', description: 'Briefing du jour' },
-  { command: 'demandes', description: 'Demandes à traiter' },
-  { command: 'semaine', description: 'Demandes des 7 derniers jours' },
-  { command: 'stats', description: 'Statistiques de la semaine' },
-  { command: 'visiteurs', description: 'Ce que demandent les visiteurs à Petit Pois' },
-  { command: 'images', description: 'Emplacements des images' },
-  { command: 'site', description: 'Réglages du site' },
-  { command: 'deploy', description: 'Régénérer les pages SEO' },
+  { command: 'textes', description: '✍️ Textes du site' },
+  { command: 'couleurs', description: '🎨 Couleurs (palettes en 1 clic)' },
+  { command: 'police', description: '🔤 Police du site' },
+  { command: 'horaires', description: '🕒 Horaires' },
+  { command: 'coordonnees', description: '📞 Nom, adresse, téléphone…' },
+  { command: 'chiffres', description: '🔢 Chiffres clés' },
+  { command: 'services', description: '🧪 Services' },
+  { command: 'formations', description: '🎓 Formations' },
+  { command: 'faq', description: '❓ FAQ' },
+  { command: 'blog', description: '📰 Articles du blog' },
+  { command: 'equipe', description: '👥 Équipe' },
+  { command: 'partenaires', description: '🤝 Partenaires' },
+  { command: 'realisations', description: '🏗 Réalisations' },
+  { command: 'activites', description: '🔬 Activités' },
+  { command: 'photos', description: '🖼 Photos du site' },
+  { command: 'annuler', description: '↩️ Annuler la dernière modification' },
+  { command: 'stats', description: '📊 Statistiques' },
+  { command: 'visiteurs', description: '💬 Ce que demandent les visiteurs' },
+  { command: 'deploy', description: '🚀 Régénérer les pages SEO' },
   { command: 'reset', description: 'Nouvelle conversation' },
 ];
 
-export const AIDE = `🌱 Le Chef — votre assistant de gestion
+export const AIDE = `🌱 Le Chef — votre assistant
 
-Les boutons et commandes répondent instantanément. Pour tout le reste, parlez-moi normalement.
+<b>Le plus simple :</b> touchez « 🌐 Modifier le site » (ou /site) et laissez-vous guider par les boutons : couleurs et police en 1 clic, afficher / masquer / supprimer un service, une formation, un article, un membre… Pour un texte, je vous montre un exemple à écrire.
 
-📩 Demandes clients
-• « Les demandes de la semaine » / « les devis en cours »
-• « Marque FI-7K3P9Q en cours » (ou les boutons sous chaque demande)
-• « Réponds à FI-7K3P9Q : … » (je rédige, vous validez)
-• « Qu'est-ce que les visiteurs demandent à Petit Pois ? »
+<b>Sinon, parlez-moi normalement</b>, en français — je traduis en anglais et en espagnol :
+• « change le slogan en … » · « le téléphone devient … »
+• « ajoute une formation : … » · « masque le partenaire Yara »
+• « la réponse à la question sur les délais : … »
+• « 130 projets réalisés » · « ouvert le samedi matin 9h–12h »
+• « palette olive terre » · « un vert plus foncé »
 
-🌐 Le site — tout est modifiable, en français, traduit automatiquement en anglais et en espagnol
-• Nom, slogan, adresse, téléphone, email, LinkedIn, position GPS, laboratoire
-• N'importe quel texte : « change le titre de l'accueil en … », « la description Google de la page Services dit … »
-• Services, activités, expertise, formations, FAQ, blog, équipe, partenaires, réalisations : « ajoute une formation : … », « masque le partenaire Yara », « modifie la FAQ délais : … »
-• Chiffres clés : « 130 projets réalisés », « 400 hectares traités »
-• Horaires : « ouvert du lundi au vendredi 8h30–17h30 »
-• Couleurs : « palette olive terre », « un vert plus foncé »
-• Police : « mets la police Poppins »
-• Photos : envoyez simplement une photo 📷 dans la conversation (avec une légende comme « pour le hero » ou « photo de Johanna »), je vous propose où la mettre.
-• « Régénère les pages SEO » après de gros changements (/deploy)
+📷 <b>Photos</b> : envoyez une photo dans la conversation, avec une légende (« pour la grande image d’accueil », « photo de Johanna », « logo de Yara ») ou sans — je propose où la mettre.
 
-Commandes : /jour /demandes /semaine /stats /visiteurs /images /site /deploy /reset`;
+📩 <b>Clients</b> : « les demandes de la semaine », « réponds à FI-XXXX : … » (je rédige, vous validez), boutons sous chaque demande.
+
+↩️ <b>Annuler</b> : « annule » ou /annuler revient en arrière (5 niveaux).
+🚀 /deploy régénère les pages pour Google après de gros changements (les visiteurs voient déjà tout).
+
+Commandes : /site /demandes /semaine /textes /couleurs /police /horaires /coordonnees /chiffres /services /formations /faq /blog /equipe /partenaires /realisations /activites /photos /annuler /stats /visiteurs /deploy /reset`;
 
 export function toTelegramHtml(text) {
   let t = String(text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -179,6 +192,16 @@ async function handleCallback(cb) {
   const data = String(cb.data || '');
   if (!(await store().getChefChat(key))) return tg('answerCallbackQuery', { callback_query_id: cb.id, text: 'Non autorisé.' });
   try {
+    const menu = await handleMenuCallback(data);
+    if (menu) {
+      await tg('answerCallbackQuery', { callback_query_id: cb.id, text: menu.toast || undefined });
+      if (menu.edit && cb.message?.message_id) {
+        const r = await tg('editMessageText', { chat_id: chatId, message_id: cb.message.message_id, text: menu.text, parse_mode: 'HTML', reply_markup: menu.reply_markup });
+        if (r.ok || /not modified/i.test(r.description || '')) return;
+      }
+      await tg('sendMessage', { chat_id: chatId, text: menu.text, parse_mode: 'HTML', reply_markup: menu.reply_markup || KEYBOARD });
+      return;
+    }
     if (data.startsWith('ld:')) {
       const [, statut, numero] = data.split(':');
       const { executeChefTool } = await chef();
@@ -212,7 +235,7 @@ export async function handleUpdate(update) {
         await store().authorizeChefChat(key, name);
         await ensureCommandsRegistered();
         const s = await getSettings();
-        await send(chatId, `✅ Bienvenue ${name} ! Vous êtes connecté au Chef de ${s.nom}.\n\nJe gère les demandes clients, les réponses, les statistiques et tout le site web (en trois langues). Les boutons ci-dessous répondent instantanément ; pour le reste, parlez-moi.\n\n${AIDE}`);
+        await tg('sendMessage', { chat_id: chatId, text: `✅ Bienvenue ${name} ! Vous êtes connecté au Chef de ${s.nom}.\n\n${AIDE}`, parse_mode: 'HTML', reply_markup: KEYBOARD });
         return;
       }
       return send(chatId, `Re-bonjour ${name} 👋 Je suis prêt. /aide pour tout voir.`);
@@ -221,18 +244,25 @@ export async function handleUpdate(update) {
 
     const cmd = /^\/(\w+)/.exec(text)?.[1]?.toLowerCase();
     const is = (c, ...labels) => cmd === c || labels.includes(text);
-    if (is('aide', '❓ Aide') || cmd === 'help') return send(chatId, AIDE);
+    if (is('aide', '❓ Aide') || cmd === 'help') return tg('sendMessage', { chat_id: chatId, text: AIDE, parse_mode: 'HTML', reply_markup: KEYBOARD });
     if (is('reset')) { await store().clearChefMessages(key); return send(chatId, '🧹 Conversation remise à zéro. Je vous écoute.'); }
     if (is('jour')) { const { briefingDuJour } = await chef(); await send(chatId, await briefingDuJour()); return sendLeads(chatId, '📩 À traiter', 'toutes', { statut: 'nouvelle' }); }
-    if (is('demandes', '📩 Demandes à traiter')) return sendLeads(chatId, '📩 Demandes à traiter', 'toutes');
+    if (is('demandes', '📩 Demandes', '📩 Demandes à traiter')) return sendLeads(chatId, '📩 Demandes à traiter', 'toutes');
     if (is('semaine', '🗓 Cette semaine')) return sendLeads(chatId, '🗓 7 derniers jours', 'semaine', { tous_statuts: true });
     if (is('stats', '📊 Stats')) return sendStats(chatId);
-    if (is('images', '🖼 Images')) return sendImages(chatId);
-    if (is('site', '⚙️ Site')) return sendSite(chatId);
+    const menuOf = async (fn) => { const m = await fn(); return tg('sendMessage', { chat_id: chatId, text: m.text, parse_mode: 'HTML', reply_markup: m.reply_markup }); };
+    if (is('site', '🌐 Modifier le site', '⚙️ Site')) return menuOf(siteMenu);
+    if (is('textes')) return menuOf(textesMenu);
+    if (is('couleurs')) return menuOf(couleursMenu);
+    if (is('police')) return menuOf(policeMenu);
+    if (is('horaires')) return menuOf(horairesMenu);
+    if (is('coordonnees')) return menuOf(infoMenu);
+    if (is('chiffres')) return menuOf(chiffresMenu);
+    if (is('photos', '🖼 Photos', '🖼 Images') || cmd === 'images') return menuOf(photosMenu);
+    for (const l of Object.keys(LISTE_LABEL)) if (cmd === l) return menuOf(() => listeMenu(l));
+    if (is('annuler', '↩️ Annuler')) { const m = await handleMenuCallback('undo'); return tg('sendMessage', { chat_id: chatId, text: m.text, parse_mode: 'HTML', reply_markup: m.reply_markup || KEYBOARD }); }
     if (is('deploy')) { const { executeChefTool } = await chef(); const r = JSON.parse((await executeChefTool('redeploy', {})).result); return send(chatId, r.ok ? '🚀 Déploiement lancé : les pages SEO seront régénérées dans 1 à 2 minutes.' : `⚠️ ${r.raison}`); }
-    if (is('visiteurs', '💬 Ce que demandent les visiteurs')) { /* passe par le modèle pour la synthèse */ }
-
-    let prompt = text === '💬 Ce que demandent les visiteurs' || cmd === 'visiteurs' ? 'Fais une synthèse courte de ce que les visiteurs ont demandé à Petit Pois ces 7 derniers jours (customer_insights), avec les besoins récurrents.' : text;
+    let prompt = text === '💬 Visiteurs' || text === '💬 Ce que demandent les visiteurs' || cmd === 'visiteurs' ? 'Fais une synthèse courte de ce que les visiteurs ont demandé à Petit Pois ces 7 derniers jours (customer_insights), avec les besoins récurrents.' : text;
     if (msg.photo?.length || (msg.document && /^image\//.test(msg.document.mime_type || ''))) {
       await tg('sendChatAction', { chat_id: chatId, action: 'upload_photo' });
       const fileId = msg.document ? msg.document.file_id : msg.photo[msg.photo.length - 1].file_id;
@@ -256,7 +286,9 @@ export async function handleUpdate(update) {
     let reply;
     try { const { chefTurn } = await chef(); reply = await chefTurn(key, prompt); } finally { clearTimeout(timer); }
     if (waitMsg?.result?.message_id) await tg('deleteMessage', { chat_id: chatId, message_id: waitMsg.result.message_id });
-    await send(chatId, reply);
+    // Après une modification du site : boutons pour annuler ou revenir au menu.
+    const modifie = /✅|mis à jour|modifié|ajouté|supprimé|appliqué|masqué|affiché|enregistré/i.test(reply) && !/^⚠️/.test(reply);
+    await send(chatId, reply, modifie ? { reply_markup: { inline_keyboard: [[{ text: '↩️ Annuler cette modification', callback_data: 'undo' }, { text: '🌐 Menu du site', callback_data: 'm:site' }]] } } : {});
   } catch (e) {
     console.error('telegram handleUpdate', e);
     if (e?.status === 429) return send(chatId, '⏳ Le service IA est saturé pour l’instant (limite de tokens par minute). Réessayez dans une minute — les boutons rapides fonctionnent toujours.');

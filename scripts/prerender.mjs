@@ -21,8 +21,8 @@ const localePath = (p, l) => (l === 'fr' ? p : p === '/' ? `/${l}` : `/${l}${p}`
 let site = null;
 try {
   if (process.env.SUPABASE_URL) {
-    const { getSettings } = await import(pathToFileURL(path.resolve('api/_lib/settings.js')).href);
-    site = await getSettings({ fresh: true });
+    const { getSettings, publicSettings } = await import(pathToFileURL(path.resolve('api/_lib/settings.js')).href);
+    site = publicSettings(await getSettings({ fresh: true }));
     console.log(`[prerender] configuration du site chargée (v${site.version})`);
   }
 } catch (e) { console.warn('[prerender] configuration Supabase indisponible, défauts utilisés :', e.message); }

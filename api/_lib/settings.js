@@ -80,19 +80,41 @@ export async function getSettings({ fresh = false } = {}) {
   return value;
 }
 
-/** Applique une surcharge (fusion profonde) et renvoie la configuration effective. */
-export async function updateSettings(patch) {
+/** Applique une surcharge (fusion profonde), garde l'état précédent (5 niveaux d'annulation) et renvoie la configuration effective. */
+export async function updateSettings(patch, { label = '' } = {}) {
   const current = (await store().getSettings()) || {};
   const next = deepMerge(current, patch);
   next.version = (Number(current.version) || 0) + 1;
+  const history = Array.isArray(current.__history) ? current.__history : [];
+  const { __history, ...snapshot } = current;
+  next.__history = [{ at: new Date().toISOString(), label: String(label || Object.keys(patch).join(', ')).slice(0, 80), data: snapshot }, ...history].slice(0, 5);
   await store().saveSettings(next);
   cache = { at: 0, value: null };
   return getSettings({ fresh: true });
 }
 
+/** Annule la dernière modification (restaure l'état précédent). Retourne { ok, label } . */
+export async function undoSettings() {
+  const current = (await store().getSettings()) || {};
+  const history = Array.isArray(current.__history) ? current.__history : [];
+  if (!history.length) return { ok: false, raison: 'Aucune modification à annuler.' };
+  const [last, ...rest] = history;
+  const restored = { ...last.data, version: (Number(current.version) || 0) + 1, __history: rest };
+  await store().saveSettings(restored);
+  cache = { at: 0, value: null };
+  return { ok: true, label: last.label, at: last.at, restantes: rest.length };
+}
+
+/** Libellés des dernières modifications (pour /annuler). */
+export async function settingsHistory() {
+  const current = (await store().getSettings()) || {};
+  return (current.__history || []).map((h) => ({ at: h.at, label: h.label }));
+}
+
 /** Vue publique (front) : configuration complète, prête à afficher. */
 export function publicSettings(s) {
-  return s;
+  const { __history, ...rest } = s;
+  return rest;
 }
 
 // ---------------------------------------------------------------------------
