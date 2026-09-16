@@ -1,7 +1,7 @@
 // Rail de profondeur (accueil, écrans larges) : la page se lit comme un profil de sol.
 // Un repère descend avec le défilement ; l'horizon de la section visible est mis en avant.
-import { useRef, useState } from 'react';
-import { gsap, ScrollTrigger, useGSAP } from '../lib/gsap';
+import { useEffect, useRef, useState } from 'react';
+import { gsap, ScrollTrigger } from '../lib/gsap';
 import { useLang } from '../i18n/LangProvider';
 
 export const HORIZONS = [
@@ -17,17 +17,23 @@ export default function DepthRail({ scope }) {
   const [active, setActive] = useState('surface');
   const marker = useRef(null);
 
-  useGSAP(() => {
+  // useEffect (et non useGSAP/useLayoutEffect) : le rail est un enfant de la div dont il
+  // lit le ref ; les refs des parents ne sont attachés qu'après les layout effects des
+  // enfants, donc scope.current serait encore null (visible en production, masqué en dev par StrictMode).
+  useEffect(() => {
     const root = scope?.current;
-    if (!root || !marker.current) return;
-    ScrollTrigger.create({
-      trigger: root, start: 'top top', end: 'bottom bottom',
-      onUpdate: (self) => gsap.set(marker.current, { top: `${self.progress * 100}%` }),
-    });
-    root.querySelectorAll('[data-horizon]').forEach((el) => {
-      ScrollTrigger.create({ trigger: el, start: 'top 55%', end: 'bottom 55%', onToggle: (self) => { if (self.isActive) setActive(el.dataset.horizon); } });
-    });
-  }, { scope, dependencies: [scope] });
+    if (!root || !marker.current) return undefined;
+    const ctx = gsap.context(() => {
+      ScrollTrigger.create({
+        trigger: root, start: 'top top', end: 'bottom bottom',
+        onUpdate: (self) => gsap.set(marker.current, { top: `${self.progress * 100}%` }),
+      });
+      root.querySelectorAll('[data-horizon]').forEach((el) => {
+        ScrollTrigger.create({ trigger: el, start: 'top 55%', end: 'bottom 55%', onToggle: (self) => { if (self.isActive) setActive(el.dataset.horizon); } });
+      });
+    }, root);
+    return () => ctx.revert();
+  }, [scope]);
 
   return (
     <aside aria-hidden className="hidden xl:flex fixed left-6 top-1/2 -translate-y-1/2 z-30 h-[52vh] flex-col justify-between pointer-events-none mix-blend-difference text-white">
