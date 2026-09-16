@@ -61,7 +61,7 @@ export default function Navbar() {
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const dark = !scrolled; // toutes les pages ouvrent sur un bandeau sombre : header clair tant qu'on n'a pas défilé
+  const dark = false; // header toujours clair (fond menthe fixe)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -81,11 +81,11 @@ export default function Navbar() {
 
   return (
     <>
-    <header className={`fixed inset-x-0 top-0 z-40 transition-[background-color,box-shadow,backdrop-filter] duration-300 ${scrolled || open ? 'bg-fi-bg/90 backdrop-blur-md shadow-soft' : 'bg-transparent'}`} style={{ height: 'var(--header-h)' }}>
+    <header className={`fixed inset-x-0 top-0 z-40 bg-fi-mint border-b border-fi-light/70 transition-shadow duration-300 ${scrolled ? 'shadow-soft' : ''}`} style={{ height: 'var(--header-h)' }}>
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-white focus:px-4 focus:py-2 focus:text-fi-dark">{lang === 'fr' ? 'Aller au contenu' : lang === 'en' ? 'Skip to content' : 'Ir al contenido'}</a>
       <div className="wrap h-full flex items-center justify-between gap-4">
-        <Link to={p('/')} className={`flex items-center shrink-0 rounded-2xl px-2.5 py-1.5 transition-colors ${dark && !open ? 'bg-white/95 shadow-soft' : ''}`} aria-label={site.nom}>
-          <img {...img('logo')} alt={site.nom} width={150} height={52} className="h-9 sm:h-10 w-auto" />
+        <Link to={p('/')} className="flex items-center shrink-0" aria-label={site.nom}>
+          <img {...img('logo')} alt={site.nom} width={150} height={52} className="h-10 sm:h-11 w-auto" />
         </Link>
 
         <nav className="hidden xl:flex items-center gap-0.5" aria-label="Navigation principale">

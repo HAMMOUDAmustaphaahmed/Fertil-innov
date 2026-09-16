@@ -346,10 +346,10 @@ function Equipe() {
     <section ref={ref} data-horizon="roche" className="section">
       <div className="wrap">
         <SectionHeader kicker={t('equipe_kicker')} title={t('equipe_titre')} />
-        <ul className="mt-12 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+        <ul className="mt-12 grid gap-6 sm:grid-cols-2 2xl:grid-cols-4 max-w-4xl 2xl:max-w-none">
           {list.map((m) => (
             <li key={m.id} className="reveal card overflow-hidden group">
-              <div className="aspect-[4/4.4] overflow-hidden bg-fi-mint">
+              <div className="aspect-[4/4.2] overflow-hidden bg-fi-mint">
                 <img src={imgSrc(m.image)} alt={m.nom} width={600} height={690} loading="lazy" className="h-full w-full object-cover object-top group-hover:scale-[1.03] transition-transform duration-500" />
               </div>
               <div className="p-5">
