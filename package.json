@@ -1,0 +1,40 @@
+{
+  "name": "fertil-innov",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && vite build --ssr src/entry-server.jsx --outDir dist-ssr && node scripts/prerender.mjs",
+    "build:spa": "vite build",
+    "preview": "vite preview",
+    "telegram": "node scripts/telegram-dev.mjs",
+    "images": "node scripts/optimize-images.mjs"
+  },
+  "engines": { "node": "22.x" },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.125.0",
+    "@gsap/react": "^2.1.2",
+    "@supabase/supabase-js": "^2.116.0",
+    "framer-motion": "^11.11.17",
+    "groq-sdk": "^1.6.0",
+    "gsap": "^3.12.5",
+    "leaflet": "^1.9.4",
+    "lenis": "^1.1.13",
+    "lucide-react": "^0.454.0",
+    "nodemailer": "^7.0.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-helmet-async": "^2.0.5",
+    "react-router-dom": "^6.28.0",
+    "resend": "^6.28.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "sharp": "^0.33.5",
+    "tailwindcss": "^3.4.15",
+    "vite": "^5.4.19"
+  }
+}

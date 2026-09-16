@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------------------------------------------------------------------------
+   Jetons de couleur (RVB sans virgule → utilisables avec /opacité par Tailwind).
+   Le propriétaire peut les changer via le Chef ; SiteProvider les réécrit.
+--------------------------------------------------------------------------- */
+:root {
+  --fi-primary: 46 125 50;     /* #2E7D32 */
+  --fi-secondary: 76 175 80;   /* #4CAF50 */
+  --fi-accent: 139 195 74;     /* #8BC34A */
+  --fi-dark: 27 94 32;         /* #1B5E20 */
+  --fi-deep: 15 46 19;         /* #0F2E13 */
+  --fi-light: 200 230 201;     /* #C8E6C9 */
+  --fi-mint: 232 245 233;      /* #E8F5E9 */
+  --fi-bg: 249 251 248;        /* #F9FBF8 */
+  --fi-text: 38 50 56;         /* #263238 */
+  --fi-soil: 93 63 36;         /* brun terre du logo */
+  --fi-loam: 166 124 82;
+  --font-display: "Bricolage Grotesque";
+  --font-sans: "Manrope";
+  --header-h: 4.5rem;
+}
+
+@layer base {
+  html { scroll-behavior: auto; -webkit-text-size-adjust: 100%; }
+  body {
+    @apply bg-fi-bg text-fi-text font-sans antialiased;
+    font-feature-settings: "ss01", "cv11";
+    overflow-x: clip;
+  }
+  ::selection { background: rgb(var(--fi-accent) / 0.45); }
+  h1, h2, h3, h4 { @apply font-display text-fi-dark; text-wrap: balance; }
+  p { text-wrap: pretty; }
+  :focus-visible { outline: 3px solid rgb(var(--fi-accent)); outline-offset: 3px; border-radius: 4px; }
+  img { @apply max-w-full h-auto; }
+  button, [role="button"] { touch-action: manipulation; }
+}
+
+@layer components {
+  .wrap { @apply mx-auto w-full max-w-wrap px-4 sm:px-6 lg:px-8; }
+  .section { @apply py-20 md:py-28; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-[0.95rem] font-semibold transition-[transform,background-color,color,box-shadow] duration-200 active:scale-[0.98] min-h-[48px]; }
+  .btn-primary { @apply btn bg-fi-primary text-white hover:bg-fi-dark shadow-leaf; }
+  .btn-accent { @apply btn bg-fi-accent text-fi-deep hover:bg-fi-light; }
+  .btn-ghost { @apply btn border border-fi-dark/20 text-fi-dark hover:border-fi-primary hover:text-fi-primary bg-white/60; }
+  .btn-light { @apply btn bg-white/10 text-white border border-white/30 hover:bg-white hover:text-fi-deep backdrop-blur; }
+  .kicker { @apply text-[0.8rem] font-semibold tracking-wide text-fi-primary; }
+  .card { @apply rounded-2.5xl bg-white border border-fi-light/70 shadow-soft; }
+  .prose-fi p + p { @apply mt-4; }
+  .chalk { text-decoration: underline; text-decoration-color: rgb(var(--fi-accent)); text-decoration-thickness: 0.18em; text-underline-offset: 0.12em; }
+}
+
+/* Grain léger sur les sections sombres */
+.grain { position: relative; isolation: isolate; }
+.grain::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0.07; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Motif « sol » : lignes horizontales douces (horizons) */
+.horizons {
+  background-image: repeating-linear-gradient(180deg, transparent 0 46px, rgb(var(--fi-soil) / 0.06) 46px 47px);
+}
+
+/* Bandeau partenaires */
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.marquee-track { display: flex; width: max-content; animation: marquee var(--marquee-duration, 60s) linear infinite; }
+.marquee-track.reverse { animation-direction: reverse; }
+.marquee:hover .marquee-track { animation-play-state: paused; }
+
+/* Points de typing du chat */
+@keyframes bounce-dot { 0%, 80%, 100% { transform: translateY(0); opacity: .5 } 40% { transform: translateY(-4px); opacity: 1 } }
+.typing-dot { animation: bounce-dot 1.2s infinite ease-in-out; }
+.typing-dot:nth-child(2) { animation-delay: .15s } .typing-dot:nth-child(3) { animation-delay: .3s }
+
+/* Mascotte : léger flottement */
+@keyframes float { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+.float { animation: float 4s ease-in-out infinite; }
+
+/* Éléments révélés par GSAP : cachés avant l'animation (uniquement quand JS est actif) */
+.js .reveal { opacity: 0; }
+
+/* Barre de défilement discrète */
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-thumb { background: rgb(var(--fi-primary) / 0.35); border-radius: 999px; border: 2px solid rgb(var(--fi-bg)); }
+
+/* Leaflet */
+.leaflet-container { font-family: inherit; }
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track, .float, .typing-dot { animation: none !important; }
+  .js .reveal { opacity: 1; }
+  html { scroll-behavior: auto; }
+}
+
+@media print { header, footer, #petit-pois { display: none !important; } }
