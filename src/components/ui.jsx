@@ -45,10 +45,10 @@ export function PartnersMarquee() {
     <div className="space-y-4">
       {rows.map((row, r) => (
         <div key={r} className="marquee overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
-          <div className={`marquee-track gap-4 ${r ? 'reverse' : ''}`} style={{ '--marquee-duration': `${Math.max(30, row.length * 4)}s` }}>
+          <div className={`marquee-track gap-4 ${r ? 'reverse' : ''}`} style={{ "--marquee-duration": `${Math.max(40, row.length * 5)}s` }}>
             {[...row, ...row].map((p, i) => (
-              <div key={`${p.id}-${i}`} className="flex h-20 w-40 shrink-0 items-center justify-center rounded-2xl bg-white border border-fi-light/70 px-4" aria-hidden={i >= row.length}>
-                <img src={imgSrc(p.image)} alt={p.nom} width={128} height={56} loading="lazy" className="max-h-12 w-auto object-contain grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition" />
+              <div key={`${p.id}-${i}`} className="flex h-28 w-52 sm:h-32 sm:w-60 shrink-0 items-center justify-center rounded-2xl bg-white border border-fi-light/70 px-6" aria-hidden={i >= row.length}>
+                <img src={imgSrc(p.image)} alt={p.nom} width={200} height={90} loading="lazy" className="max-h-20 sm:max-h-24 w-auto max-w-full object-contain grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition" />
               </div>
             ))}
           </div>

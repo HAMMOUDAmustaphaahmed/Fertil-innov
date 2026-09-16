@@ -346,7 +346,7 @@ function Equipe() {
     <section ref={ref} data-horizon="roche" className="section">
       <div className="wrap">
         <SectionHeader kicker={t('equipe_kicker')} title={t('equipe_titre')} />
-        <ul className="mt-12 grid gap-6 sm:grid-cols-2 2xl:grid-cols-4 max-w-4xl 2xl:max-w-none">
+        <ul className="mt-12 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
           {list.map((m) => (
             <li key={m.id} className="reveal card overflow-hidden group">
               <div className="aspect-[4/4.2] overflow-hidden bg-fi-mint">
