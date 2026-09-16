@@ -6,6 +6,7 @@ import { useLang, LANG_LABEL, localePath } from '../i18n/LangProvider';
 import { useSite, useImage } from '../site/SiteProvider';
 import { LANGS } from '../data/infos';
 import { openPois } from '../lib/pois';
+import { setScrollLocked } from '../hooks/useSmoothScroll';
 
 const LINKS = [
   { to: '/services', key: 'nav_services' },
@@ -14,6 +15,7 @@ const LINKS = [
   { to: '/formations', key: 'nav_formations' },
   { to: '/chiffres', key: 'nav_chiffres' },
   { to: '/blog', key: 'nav_blog' },
+  { to: '/sols', key: 'nav_guide' },
   { to: '/faq', key: 'nav_faq' },
 ];
 
@@ -73,18 +75,20 @@ export default function Navbar() {
     const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
     document.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
-    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = ''; };
+    setScrollLocked(true);
+    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = ''; setScrollLocked(false); };
   }, [open]);
 
   return (
+    <>
     <header className={`fixed inset-x-0 top-0 z-40 transition-[background-color,box-shadow,backdrop-filter] duration-300 ${scrolled || open ? 'bg-fi-bg/90 backdrop-blur-md shadow-soft' : 'bg-transparent'}`} style={{ height: 'var(--header-h)' }}>
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-white focus:px-4 focus:py-2 focus:text-fi-dark">{lang === 'fr' ? 'Aller au contenu' : lang === 'en' ? 'Skip to content' : 'Ir al contenido'}</a>
       <div className="wrap h-full flex items-center justify-between gap-4">
-        <Link to={p('/')} className="flex items-center gap-2 shrink-0" aria-label={site.nom}>
-          <img {...img('logo')} alt={site.nom} width={150} height={52} className={`h-11 w-auto transition-[filter] ${dark && !open ? 'brightness-0 invert' : ''}`} />
+        <Link to={p('/')} className={`flex items-center shrink-0 rounded-2xl px-2.5 py-1.5 transition-colors ${dark && !open ? 'bg-white/95 shadow-soft' : ''}`} aria-label={site.nom}>
+          <img {...img('logo')} alt={site.nom} width={150} height={52} className="h-9 sm:h-10 w-auto" />
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-0.5" aria-label="Navigation principale">
+        <nav className="hidden xl:flex items-center gap-0.5" aria-label="Navigation principale">
           {LINKS.map(({ to, key }) => (
             <NavLink key={to} to={p(to)} className={({ isActive }) => `rounded-full px-3.5 py-2 text-[0.9rem] font-medium transition-colors ${isActive ? (dark ? 'bg-white/15 text-white' : 'bg-fi-mint text-fi-dark') : dark ? 'text-white/85 hover:text-white hover:bg-white/10' : 'text-fi-text/80 hover:text-fi-dark hover:bg-fi-mint'}`}>
               {t(key)}
@@ -94,19 +98,20 @@ export default function Navbar() {
 
         <div className="flex items-center gap-1.5">
           <LangSwitch dark={dark && !open} />
-          <Link to={p('/contact')} className={`hidden md:inline-flex ${dark ? 'btn-light' : 'btn-primary'} !py-2.5 !px-5 text-sm`}>{t('nav_bouton')}</Link>
+          <Link to={p("/contact")} className={`hidden md:inline-flex whitespace-nowrap ${dark ? "btn-light" : "btn-primary"} !py-2.5 !px-5 text-sm`}>{t('nav_bouton')}</Link>
           <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls="mobile-nav" aria-label="Menu"
-            className={`lg:hidden inline-flex h-11 w-11 items-center justify-center rounded-full ${dark && !open ? 'text-white hover:bg-white/10' : 'text-fi-dark hover:bg-fi-mint'}`}>
+            className={`xl:hidden inline-flex h-11 w-11 items-center justify-center rounded-full ${dark && !open ? 'text-white hover:bg-white/10' : 'text-fi-dark hover:bg-fi-mint'}`}>
             {open ? <X /> : <Menu />}
           </button>
         </div>
       </div>
 
+    </header>
       <AnimatePresence>
         {open && (
           <motion.nav id="mobile-nav" aria-label="Navigation mobile" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}
-            className="lg:hidden fixed inset-x-0 bottom-0 bg-fi-bg overflow-y-auto" style={{ top: 'var(--header-h)' }}>
-            <ul className="wrap py-4 flex flex-col">
+            className="xl:hidden fixed inset-x-0 bottom-0 z-40 bg-fi-bg overflow-y-auto" data-lenis-prevent style={{ top: 'var(--header-h)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+            <ul className="wrap py-4 flex flex-col xl:hidden">
               <li><NavLink to={p('/')} end className={({ isActive }) => `block rounded-2xl px-4 py-3.5 text-lg font-display font-semibold ${isActive ? 'bg-fi-mint text-fi-dark' : 'text-fi-text'}`}>{t('nav_accueil')}</NavLink></li>
               {LINKS.map(({ to, key }) => (
                 <li key={to}><NavLink to={p(to)} className={({ isActive }) => `block rounded-2xl px-4 py-3.5 text-lg font-display font-semibold ${isActive ? 'bg-fi-mint text-fi-dark' : 'text-fi-text'}`}>{t(key)}</NavLink></li>
@@ -117,6 +122,6 @@ export default function Navbar() {
           </motion.nav>
         )}
       </AnimatePresence>
-    </header>
+    </>
   );
 }

@@ -37,11 +37,18 @@ for (const f of readdirSync(SRC)) {
   try {
     if (name === 'logo' || name === 'logo-rond' || name === 'petit-pois' || name.startsWith('partenaire')) {
       // Logos : PNG/WebP sans perte de transparence
-      await sharp(input, { animated: false }).resize({ width, withoutEnlargement: true }).webp({ quality: 90, alphaQuality: 100 }).toFile(path.join(OUT, `${name}.webp`));
+      await sharp(input, { animated: false }).rotate().resize({ width, withoutEnlargement: true }).webp({ quality: 90, alphaQuality: 100 }).toFile(path.join(OUT, `${name}.webp`));
     } else {
-      await sharp(input, { animated: false }).resize({ width, withoutEnlargement: true }).webp({ quality: 78 }).toFile(path.join(OUT, `${name}.webp`));
+      await sharp(input, { animated: false }).rotate().resize({ width, withoutEnlargement: true }).webp({ quality: 78 }).toFile(path.join(OUT, `${name}.webp`));
     }
     done++;
   } catch (e) { console.warn('skip', f, e.message); }
 }
 console.log(`${done} images optimisées → ${OUT}`);
+
+// Favicons et icônes PWA depuis le logo rond (même icône que le logo du site).
+const logo = path.join(SRC, 'new_logo.png');
+for (const [name, size] of [['favicon-32.png', 32], ['favicon-16.png', 16], ['apple-touch-icon.png', 180], ['icon-192.png', 192], ['icon-512.png', 512]]) {
+  await sharp(logo).rotate().trim().resize({ width: size, height: size, fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } }).png().toFile(path.join(OUT, name));
+}
+console.log('favicons générés');

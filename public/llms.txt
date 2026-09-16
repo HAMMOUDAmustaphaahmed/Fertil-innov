@@ -5,7 +5,7 @@
 ## Chiffres clés vérifiés
 - +40 % de rendement agricole moyen · −70 % d'eau d'irrigation (mycorhizes) · −80 % de polluants en 24 mois
 - 5 000+ souches microbiennes certifiées (partenariat INRAE / CBS) · 15+ brevets · 500+ diagnostics réalisés
-- Diagnostic complet en 1 à 2 mois · 98 % de satisfaction en formation · Devis gratuit sous 24 h
+- Diagnostic complet en 1 à 2 mois · 98 % de satisfaction en formation · Devis sous 24 h
 
 ## Services
 - [Diagnostic microbiologique](https://www.fertilinnov-environnement.com/services#diagnostics) : analyse PCR/NGS de la flore microbienne, bilan matière organique, CEC, bioindicateurs, cartographie SIG.
@@ -21,6 +21,7 @@
 - [Expertise scientifique](https://www.fertilinnov-environnement.com/expertise)
 - [Chiffres et impact](https://www.fertilinnov-environnement.com/chiffres)
 - [Blog et actualités](https://www.fertilinnov-environnement.com/blog) : projets SONARES (mine de Carnoulès), ENDORSE (Interreg Sudoe, phosphore), Pollutec, biostimulants, plantes de montagne (ALTIFLORE).
+- [Guide des sols vivants](https://www.fertilinnov-environnement.com/sols) : fertiliser un sol naturellement, microbiologie du sol, analyse de sol, mycorhizes, dépollution des sols, sol vivant, biostimulants et biocontrôle, sols de vignoble.
 - [FAQ](https://www.fertilinnov-environnement.com/faq) : microorganismes utilisés, normes, terres polluées, indicateurs de succès, délais, devis.
 - [Contact](https://www.fertilinnov-environnement.com/contact)
 

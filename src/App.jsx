@@ -19,6 +19,7 @@ const Chiffres = lazy(() => import('./pages/Chiffres'));
 const Blog = lazy(() => import('./pages/Blog'));
 const Faq = lazy(() => import('./pages/Faq'));
 const Contact = lazy(() => import('./pages/Contact'));
+const Guide = lazy(() => import('./pages/Guide'));
 const Admin = lazy(() => import('./pages/Admin'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
@@ -31,6 +32,7 @@ export const PAGES = [
   { path: '/chiffres', Component: Chiffres },
   { path: '/blog', Component: Blog },
   { path: '/faq', Component: Faq },
+  { path: '/sols', Component: Guide },
   { path: '/contact', Component: Contact },
 ];
 const PREFIXES = ['', '/en', '/es'];

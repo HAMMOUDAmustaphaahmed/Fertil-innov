@@ -132,7 +132,7 @@ function ChefChat() {
         <p className="font-display font-semibold text-fi-dark">Le Chef</p>
         <button type="button" onClick={reset} className="inline-flex items-center gap-1 text-xs text-fi-text/60 hover:text-red-700"><Trash2 size={14} /> Nouvelle conversation</button>
       </div>
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-3 bg-fi-bg">
+      <div ref={scrollRef} data-lenis-prevent className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-3 bg-fi-bg">
         {!messages.length && <p className="text-sm text-fi-text/60">Exemples : « les demandes de la semaine », « change le slogan en … », « ajoute une formation : … », « mets la palette olive terre », « 130 projets réalisés ». Pour les photos, passez par Telegram.</p>}
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.from === 'user' ? 'justify-end' : ''}`}>

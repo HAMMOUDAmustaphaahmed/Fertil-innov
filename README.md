@@ -8,10 +8,10 @@ Le design, la palette verte, le logo, les images, la mascotte Petit Pois et tout
 
 | | |
 |---|---|
-| **Pages** | Accueil, Services, Activités, Expertise, Formations, Chiffres, Blog, FAQ, Contact — chacune en `/`, `/en/…`, `/es/…` (sélecteur de langue dans le header). |
+| **Pages** | Accueil, Services, Activités, Expertise, Formations, Chiffres, Blog, Guide des sols, FAQ, Contact — chacune en `/`, `/en/…`, `/es/…` (sélecteur de langue dans le header). |
 | **Petit Pois** | Assistant IA (Claude ou Groq) côté serveur : répond dans la langue du visiteur, consulte services / FAQ / formations, qualifie le besoin et **enregistre la demande de devis** (`create_lead`) → email à l'entreprise, accusé de réception au client, notification Telegram au propriétaire. Filtre de périmètre, quotas et budget de tokens (voir plus bas). |
 | **Le Chef** | Agent du propriétaire sur **Telegram (@Fertilinnov_bot)** et sur **`/admin`** : demandes clients (liste, statuts, réponse par email), statistiques, synthèse des questions des visiteurs, et **tout le contenu du site** : nom, slogan, coordonnées, horaires, textes, services, activités, expertise, formations, FAQ, blog, équipe, partenaires, réalisations, chiffres clés, couleurs (palettes prêtes ou codes hex), police, photos (envoyées dans Telegram). Le propriétaire écrit en français, **les traductions EN/ES sont automatiques**. |
-| **SEO / GEO** | Pré-rendu HTML de 27 pages (9 pages × 3 langues) au build, `hreflang`, canonical, Open Graph, JSON-LD (Organization/LocalBusiness, Service, Course, FAQPage, Blog, BreadcrumbList), `sitemap.xml`, `robots.txt` autorisant explicitement GPTBot, ClaudeBot, Google-Extended, PerplexityBot, DeepSeek, Kimi…, `llms.txt`. Images WebP optimisées (41 Mo → 2,7 Mo), lazy-loading, polices pré-connectées. |
+| **SEO / GEO** | Pré-rendu HTML de 30 pages (10 pages × 3 langues) au build, `hreflang`, canonical, Open Graph, JSON-LD (Organization/LocalBusiness, Service, Course, FAQPage, Blog, BreadcrumbList), `sitemap.xml`, `robots.txt` autorisant explicitement GPTBot, ClaudeBot, Google-Extended, PerplexityBot, DeepSeek, Kimi…, `llms.txt`. Images WebP optimisées (41 Mo → 2,7 Mo), lazy-loading, polices pré-connectées. |
 | **Formulaire de contact** | Mêmes demandes que Petit Pois (table `fi_leads`), honeypot anti-spam, 5 envois/IP/jour. |
 
 ## Architecture
@@ -67,7 +67,7 @@ node scripts/chef-test.mjs "Quelles sont les demandes de la semaine ?"
 
 ## Déploiement
 
-1. **GitHub** : dépôt `fertil-innov` (branche `main`).
+1. **GitHub** : dépôt `Fertil-innov` (branche `main`) — l’ancien site statique est dans `Fertil-Innov-ancien-site`.
 2. **Vercel** → *Add New Project* → importer le dépôt (Vite détecté ; build = `npm run build`, sortie = `dist`). Node 22 est demandé par `engines`.
 3. *Settings → Environment Variables* : copier toutes les variables de `.env.local` **plus** `PUBLIC_SITE_URL=https://<votre-domaine>`.
 4. Déployer. Puis, une seule fois, enregistrer le webhook Telegram :

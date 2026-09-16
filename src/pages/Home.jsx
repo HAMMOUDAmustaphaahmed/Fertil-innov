@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, ArrowDown, Check, Linkedin } from 'lucide-react';
 import SEO from '../components/SEO';
 import DepthRail from '../components/DepthRail';
+import LivingSoil from '../components/LivingSoil';
 import { SectionHeader, Counter, PartnersMarquee } from '../components/ui';
 import { useLang } from '../i18n/LangProvider';
 import { useSite, useImage, imgSrc } from '../site/SiteProvider';
@@ -42,7 +43,7 @@ function Hero() {
       <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-fi-deep via-fi-deep/55 to-fi-deep/20" />
       <div aria-hidden className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-fi-bg to-transparent z-[1]" />
 
-      <div className="h-content wrap relative pb-28 pt-40 md:pb-36">
+      <div className="h-content wrap relative pb-24 pt-32 md:pb-36 md:pt-40 md:pr-[min(40vw,460px)]">
         <p className="h-sub text-sm md:text-base font-medium text-fi-accent">{t('hero_kicker')}</p>
         <h1 className="mt-4 text-display-xl !text-white max-w-4xl">
           <span className="block overflow-hidden"><span className="h-line block">{l1}</span></span>
@@ -59,9 +60,10 @@ function Hero() {
         <a href="#services" className="h-stat mt-10 hidden md:inline-flex items-center gap-2 text-xs text-white/60 hover:text-white transition-colors">{t('hero_scroll')} <ArrowDown size={14} className="animate-bounce" aria-hidden /></a>
       </div>
 
-      <button type="button" onClick={() => openPois()} aria-label={t('pois_ouvrir')} className="h-pois absolute right-4 md:right-10 bottom-24 md:bottom-28 hidden sm:block">
-        <img {...img('petit_pois')} alt="" width={200} height={200} className="w-36 md:w-52 drop-shadow-[0_20px_40px_rgba(0,0,0,0.45)] float" />
-      </button>
+      {/* Sol vivant animé : pousse, racines, réseau mycorhizien, nutriments */}
+      <div className="h-pois absolute right-[max(1rem,calc((100vw-76rem)/2))] bottom-16 md:bottom-24 hidden md:block w-[min(38vw,440px)] pointer-events-none">
+        <LivingSoil className="w-full h-auto drop-shadow-[0_20px_50px_rgba(0,0,0,0.45)]" />
+      </div>
     </section>
   );
 }
@@ -344,10 +346,10 @@ function Equipe() {
     <section ref={ref} data-horizon="roche" className="section">
       <div className="wrap">
         <SectionHeader kicker={t('equipe_kicker')} title={t('equipe_titre')} />
-        <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="mt-12 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
           {list.map((m) => (
             <li key={m.id} className="reveal card overflow-hidden group">
-              <div className="aspect-[4/4.6] overflow-hidden bg-fi-mint">
+              <div className="aspect-[4/4.4] overflow-hidden bg-fi-mint">
                 <img src={imgSrc(m.image)} alt={m.nom} width={600} height={690} loading="lazy" className="h-full w-full object-cover object-top group-hover:scale-[1.03] transition-transform duration-500" />
               </div>
               <div className="p-5">
@@ -428,7 +430,7 @@ export default function Home() {
   const faq = vis(site.listes.faq);
   return (
     <div ref={scope}>
-      <SEO description={t('seo_accueil')} path="/" jsonLd={[{ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.slice(0, 6).map((f) => ({ '@type': 'Question', name: f.question?.fr, acceptedAnswer: { '@type': 'Answer', text: f.reponse?.fr } })) }]} />
+      <SEO title={t('seo_titre_accueil')} description={t('seo_accueil')} path="/" jsonLd={[{ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.slice(0, 6).map((f) => ({ '@type': 'Question', name: f.question?.fr, acceptedAnswer: { '@type': 'Answer', text: f.reponse?.fr } })) }]} />
       <DepthRail scope={scope} />
       <Hero />
       <Services />

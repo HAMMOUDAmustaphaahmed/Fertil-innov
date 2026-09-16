@@ -10,18 +10,18 @@ import { ENTREPRISE, HORAIRES_SEMAINE } from '../../src/data/infos.js';
 import { SERVICES, ACTIVITES, EXPERTISE, FORMATIONS, FAQ, BLOG, EQUIPE, PARTENAIRES, REALISATIONS, POURQUOI, PROCESSUS, CHIFFRES } from '../../src/data/site.js';
 
 export const PALETTE_DEFAULT = {
-  primary: '#2e7d32', secondary: '#4caf50', accent: '#8bc34a', dark: '#1b5e20', deep: '#0f2e13',
+  primary: '#2e7d32', secondary: '#4caf50', accent: '#8bc34a', dark: '#237a45', deep: '#0f2e13',
   light: '#c8e6c9', mint: '#e8f5e9', bg: '#f9fbf8', text: '#263238', soil: '#5d3f24', loam: '#a67c52',
 };
 
 // Palettes prêtes à l'emploi que le Chef peut proposer.
 export const PALETTE_PRESETS = {
   'vert nature': PALETTE_DEFAULT,
-  'vert profond': { ...PALETTE_DEFAULT, primary: '#1f6b3a', secondary: '#2e8b57', accent: '#7cc243', dark: '#144d2a', deep: '#0b2a17', light: '#cfe9d6', mint: '#e6f4ea', bg: '#f7faf7' },
-  'olive terre': { ...PALETTE_DEFAULT, primary: '#5f7a2c', secondary: '#7e9a3a', accent: '#b6c95a', dark: '#3f521c', deep: '#232e10', light: '#dfe6c4', mint: '#f0f3e3', bg: '#fafbf5', soil: '#6b4a2b', loam: '#b08a5e' },
-  'bleu lagon': { ...PALETTE_DEFAULT, primary: '#1f6f8b', secondary: '#2e9cb8', accent: '#6fd3e6', dark: '#134a5c', deep: '#0b2c37', light: '#cfe8ef', mint: '#e7f4f8', bg: '#f6fafb', soil: '#4f3f30', loam: '#9a7a5c' },
-  'terracotta': { ...PALETTE_DEFAULT, primary: '#b5472a', secondary: '#d0663f', accent: '#e8a26b', dark: '#7d2f1b', deep: '#3d160c', light: '#f3d9cd', mint: '#f9ede6', bg: '#fcf8f4', soil: '#5a3a22', loam: '#a8784f' },
-  'nuit forêt': { ...PALETTE_DEFAULT, primary: '#3e9b5f', secondary: '#5cb87c', accent: '#a5d86a', dark: '#22563a', deep: '#0a1a10', light: '#cfe6d6', mint: '#e5f1e9', bg: '#f5f8f6', text: '#1b2622' },
+  'vert profond': { ...PALETTE_DEFAULT, primary: '#1f6b3a', secondary: '#2e8b57', accent: '#7cc243', dark: '#1f6b45', deep: '#0b2a17', light: '#cfe9d6', mint: '#e6f4ea', bg: '#f7faf7' },
+  'olive terre': { ...PALETTE_DEFAULT, primary: '#5f7a2c', secondary: '#7e9a3a', accent: '#b6c95a', dark: '#5a6f2a', deep: '#232e10', light: '#dfe6c4', mint: '#f0f3e3', bg: '#fafbf5', soil: '#6b4a2b', loam: '#b08a5e' },
+  'bleu lagon': { ...PALETTE_DEFAULT, primary: '#1f6f8b', secondary: '#2e9cb8', accent: '#6fd3e6', dark: '#1d6a80', deep: '#0b2c37', light: '#cfe8ef', mint: '#e7f4f8', bg: '#f6fafb', soil: '#4f3f30', loam: '#9a7a5c' },
+  'terracotta': { ...PALETTE_DEFAULT, primary: '#b5472a', secondary: '#d0663f', accent: '#e8a26b', dark: '#9a3d22', deep: '#3d160c', light: '#f3d9cd', mint: '#f9ede6', bg: '#fcf8f4', soil: '#5a3a22', loam: '#a8784f' },
+  'nuit forêt': { ...PALETTE_DEFAULT, primary: '#3e9b5f', secondary: '#5cb87c', accent: '#a5d86a', dark: '#2e7a52', deep: '#0a1a10', light: '#cfe6d6', mint: '#e5f1e9', bg: '#f5f8f6', text: '#1b2622' },
 };
 
 // Emplacements d'images sur le site (le Chef s'en sert pour suggérer où placer une photo).

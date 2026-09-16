@@ -46,6 +46,7 @@ export default function Footer() {
               <li><Link to={p('/expertise')} className="hover:text-fi-accent transition-colors">{t('nav_expertise')}</Link></li>
               <li><Link to={p('/chiffres')} className="hover:text-fi-accent transition-colors">{t('nav_chiffres')}</Link></li>
               <li><Link to={p('/blog')} className="hover:text-fi-accent transition-colors">{t('nav_blog')}</Link></li>
+              <li><Link to={p('/sols')} className="hover:text-fi-accent transition-colors">{t('nav_guide')}</Link></li>
               <li><Link to={p('/faq')} className="hover:text-fi-accent transition-colors">{t('nav_faq')}</Link></li>
               <li><Link to={p('/contact')} className="hover:text-fi-accent transition-colors">{t('nav_contact')}</Link></li>
             </ul>

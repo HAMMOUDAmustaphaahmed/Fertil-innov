@@ -39,7 +39,8 @@ export default function SEO({ title, description, path = '/', image, jsonLd = []
   const site = useSite();
   const base = useSiteUrl();
   const url = `${base}${localePath(path, lang)}`;
-  const fullTitle = title ? `${title} | ${site.nomCourt}` : `${site.nom} | ${site.slogan?.[lang] || site.slogan?.fr}`;
+  const fullTitle = title ? (title.includes(site.nomCourt) ? title : `${title} | ${site.nomCourt}`) : `${site.nom} | ${site.slogan?.[lang] || site.slogan?.fr}`;
+  const keywords = site.listes.services.filter((s) => s.visible !== false).map((s) => s.titre?.[lang] || s.titre?.fr).join(', ');
   const img = image || site.images.og;
   const absImg = /^https?:/.test(img) ? img : `${base}${img}`;
   const graphs = [organizationJsonLd(site, base, lang), ...jsonLd];
@@ -50,6 +51,9 @@ export default function SEO({ title, description, path = '/', image, jsonLd = []
     <Helmet htmlAttributes={{ lang }}>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
+      <meta name="keywords" content={`microbiologie des sols, analyse de sol, biofertilisation, mycorhizes, dépollution des sols, phytoremédiation, ${keywords}`} />
+      <meta name="geo.region" content="FR-OCC" />
+      <meta name="geo.placename" content={site.entreprise.ville} />
       <link rel="canonical" href={url} />
       {LANGS.map((l) => <link key={l} rel="alternate" hrefLang={l} href={`${base}${localePath(path, l)}`} />)}
       <link rel="alternate" hrefLang="x-default" href={`${base}${localePath(path, 'fr')}`} />

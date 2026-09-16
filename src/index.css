@@ -10,7 +10,7 @@
   --fi-primary: 46 125 50;     /* #2E7D32 */
   --fi-secondary: 76 175 80;   /* #4CAF50 */
   --fi-accent: 139 195 74;     /* #8BC34A */
-  --fi-dark: 27 94 32;         /* #1B5E20 */
+  --fi-dark: 35 122 69;        /* #237A45 — vert émeraude (titres), plus clair que le #1B5E20 d'origine */
   --fi-deep: 15 46 19;         /* #0F2E13 */
   --fi-light: 200 230 201;     /* #C8E6C9 */
   --fi-mint: 232 245 233;      /* #E8F5E9 */
@@ -96,3 +96,6 @@
 }
 
 @media print { header, footer, #petit-pois { display: none !important; } }
+
+/* Le bouton Petit Pois se cache pendant que le menu mobile est ouvert */
+body:has(#mobile-nav) #petit-pois { display: none; }

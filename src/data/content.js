@@ -16,6 +16,7 @@ export const CONTENT = {
   nav_blog: K('global', 'Menu — Blog', 'Blog', 'News', 'Blog'),
   nav_faq: K('global', 'Menu — FAQ', 'FAQ', 'FAQ', 'FAQ'),
   nav_contact: K('global', 'Menu — Contact', 'Contact', 'Contact', 'Contacto'),
+  nav_guide: K('global', 'Menu — Guide des sols', 'Guide des sols', 'Soil guide', 'Guía de suelos'),
   nav_bouton: K('global', 'Bouton du menu (haut de page)', 'Demander un devis', 'Request a quote', 'Solicitar presupuesto'),
   nav_langue: K('global', 'Libellé du sélecteur de langue', 'Langue', 'Language', 'Idioma'),
 
@@ -64,7 +65,7 @@ export const CONTENT = {
   processus_titre: K('accueil', 'Processus — titre', 'Notre processus en 4 étapes', 'Our 4-step process', 'Nuestro proceso en 4 etapas'),
   processus_texte: K('accueil', 'Processus — texte', 'Du prélèvement au rapport d’impact, chaque étape produit des données que vous gardez.', 'From sampling to impact report, every step produces data you keep.', 'De la toma de muestras al informe de impacto, cada etapa genera datos que usted conserva.'),
   pourquoi_bouton_1: K('accueil', 'Pourquoi — bouton 1', 'Découvrir nos services', 'Discover our services', 'Descubrir nuestros servicios'),
-  pourquoi_bouton_2: K('accueil', 'Pourquoi — bouton 2', 'Obtenir un devis gratuit', 'Get a free quote', 'Obtener un presupuesto gratuito'),
+  pourquoi_bouton_2: K('accueil', 'Pourquoi — bouton 2', 'Obtenir un devis', 'Get a quote', 'Obtener un presupuesto'),
 
   // ---------- Accueil : performance ----------
   perf_kicker: K('accueil', 'Performance — petite ligne', 'Performance & impact', 'Performance & impact', 'Rendimiento e impacto'),
@@ -104,7 +105,7 @@ export const CONTENT = {
   activites_sidebar_1: K('activites', 'Activités — encart : point 1', 'Reconstruction de sols vivants — fertilité durable garantie', 'Rebuilding living soils — lasting fertility guaranteed', 'Reconstrucción de suelos vivos: fertilidad duradera garantizada'),
   activites_sidebar_2: K('activites', 'Activités — encart : point 2', 'Couverts végétaux haute performance — pérennité 5 ans et plus', 'High-performance plant covers — lasting 5 years and more', 'Cubiertas vegetales de alto rendimiento: durabilidad de 5 años o más'),
   activites_sidebar_3: K('activites', 'Activités — encart : point 3', 'Technologies adaptatives — compatibles avec tous les climats', 'Adaptive technologies — compatible with all climates', 'Tecnologías adaptativas: compatibles con todos los climas'),
-  activites_sidebar_bouton: K('activites', 'Activités — encart : bouton', 'Audit gratuit', 'Free audit', 'Auditoría gratuita'),
+  activites_sidebar_bouton: K('activites', 'Activités — encart : bouton', 'Demander un audit', 'Request an audit', 'Solicitar una auditoría'),
   activites_explorer: K('activites', 'Activités — « explorer »', 'Explorer', 'Explore', 'Explorar'),
   activites_devis: K('activites', 'Activités — bouton du détail', 'Demander un devis personnalisé', 'Request a tailored quote', 'Solicitar un presupuesto personalizado'),
 
@@ -161,7 +162,7 @@ export const CONTENT = {
 
   // ---------- Contact ----------
   contact_titre: K('contact', 'Page Contact — titre', 'Parlons de votre projet', 'Let’s talk about your project', 'Hablemos de su proyecto'),
-  contact_texte: K('contact', 'Page Contact — introduction', 'Notre équipe d’experts étudie vos besoins et vous répond sous 24 h ouvrées. Devis gratuit.', 'Our team of experts reviews your needs and replies within 24 working hours. Free quote.', 'Nuestro equipo de expertos estudia sus necesidades y le responde en 24 h laborables. Presupuesto gratuito.'),
+  contact_texte: K('contact', 'Page Contact — introduction', 'Notre équipe d’experts étudie vos besoins et vous répond sous 24 h ouvrées.', 'Our team of experts reviews your needs and replies within 24 working hours.', 'Nuestro equipo de expertos estudia sus necesidades y le responde en 24 h laborables.'),
   contact_nom: K('contact', 'Formulaire — nom', 'Votre nom', 'Your name', 'Su nombre'),
   contact_email: K('contact', 'Formulaire — email', 'Votre email', 'Your email', 'Su correo electrónico'),
   contact_telephone: K('contact', 'Formulaire — téléphone', 'Téléphone (optionnel)', 'Phone (optional)', 'Teléfono (opcional)'),
@@ -186,7 +187,7 @@ export const CONTENT = {
   contact_labo_titre: K('contact', 'Contact — bloc laboratoire', 'Laboratoire', 'Laboratory', 'Laboratorio'),
   contact_horaires_titre: K('contact', 'Contact — bloc horaires', 'Horaires', 'Opening hours', 'Horario'),
   contact_itineraire: K('contact', 'Contact — lien itinéraire', 'Itinéraire', 'Directions', 'Cómo llegar'),
-  contact_devis_24h: K('contact', 'Contact — mention devis', 'Devis gratuit sous 24 h', 'Free quote within 24 h', 'Presupuesto gratuito en 24 h'),
+  contact_devis_24h: K('contact', 'Contact — mention devis', 'Devis sous 24 h', 'Quote within 24 h', 'Presupuesto en 24 h'),
   ouvert: K('global', 'Statut — ouvert', 'Ouvert actuellement', 'Open now', 'Abierto ahora'),
   ferme: K('global', 'Statut — fermé', 'Fermé actuellement', 'Closed now', 'Cerrado ahora'),
 
@@ -210,14 +211,22 @@ export const CONTENT = {
   pois_quick_1: K('global', 'Question rapide 1', 'Qu’est-ce que le diagnostic microbiologique ?', 'What is microbiological diagnosis?', '¿Qué es el diagnóstico microbiológico?'),
   pois_quick_2: K('global', 'Question rapide 2', 'Comment fonctionne la biofertilisation ?', 'How does biofertilisation work?', '¿Cómo funciona la biofertilización?'),
   pois_quick_3: K('global', 'Question rapide 3', 'Quelles formations proposez-vous ?', 'What training do you offer?', '¿Qué formaciones ofrecen?'),
-  pois_quick_4: K('global', 'Question rapide 4', 'Je souhaite un devis gratuit', 'I would like a free quote', 'Quiero un presupuesto gratuito'),
+  pois_quick_4: K('global', 'Question rapide 4', 'Je souhaite obtenir un devis', 'I would like a quote', 'Quiero obtener un presupuesto'),
   pois_limite: K('global', 'Message de fin de conversation', 'Nous avons atteint la limite de cette conversation. Pour continuer, appelez-nous ou utilisez le formulaire de contact — l’équipe répond sous 24 h.', 'We have reached the limit of this conversation. To continue, call us or use the contact form — the team replies within 24 hours.', 'Hemos alcanzado el límite de esta conversación. Para continuar, llámenos o utilice el formulario de contacto; el equipo responde en 24 h.'),
   pois_contact_cta: K('global', 'Bouton vers le formulaire dans le chat', 'Ouvrir le formulaire de contact', 'Open the contact form', 'Abrir el formulario de contacto'),
   pois_indispo: K('global', 'Message si Petit Pois est indisponible', 'Petit Pois est indisponible pour le moment. Le formulaire de contact reste ouvert.', 'Petit Pois is unavailable right now. The contact form remains open.', 'Petit Pois no está disponible por el momento. El formulario de contacto sigue abierto.'),
   pois_reste: K('global', 'Compteur de messages restants', 'messages restants', 'messages left', 'mensajes restantes'),
 
+  // ---------- Guide des sols ----------
+  guide_titre: K('guide', 'Page Guide — titre', 'Guide des sols vivants : fertiliser, analyser, dépolluer', 'Living soils guide: fertilise, analyse, remediate', 'Guía de suelos vivos: fertilizar, analizar, descontaminar'),
+  guide_texte: K('guide', 'Page Guide — introduction', 'Comment fertiliser un sol naturellement, ce que mesure une analyse de sol, à quoi servent les mycorhizes, comment dépolluer une friche : nos réponses d’experts en microbiologie des sols, avec les chiffres mesurés sur nos sites.', 'How to fertilise soil naturally, what a soil analysis measures, what mycorrhizae do, how to clean a brownfield: our soil-microbiology experts’ answers, with figures measured on our sites.', 'Cómo fertilizar un suelo de forma natural, qué mide un análisis de suelo, para qué sirven las micorrizas, cómo descontaminar un terreno: las respuestas de nuestros expertos en microbiología de suelos, con cifras medidas en nuestros sitios.'),
+  guide_cta_titre: K('guide', 'Guide — bloc final : titre', 'Votre sol a-t-il tout ce qu’il faut ?', 'Does your soil have everything it needs?', '¿Tiene su suelo todo lo que necesita?'),
+  guide_cta_texte: K('guide', 'Guide — bloc final : texte', 'Un diagnostic microbiologique le dit en 1 à 2 mois, avec un plan d’action.', 'A microbiological diagnosis tells you in 1–2 months, with an action plan.', 'Un diagnóstico microbiológico lo dice en 1–2 meses, con un plan de acción.'),
+
   // ---------- SEO ----------
-  seo_accueil: K('global', 'Description Google — accueil', 'Fertil’Innov Environnement, JEI à Grabels (Montpellier) : diagnostic microbiologique des sols, biofertilisation, phytoremédiation et formations. +40 % de rendement, −80 % de polluants en 24 mois.', 'Fertil’Innov Environnement, innovative company near Montpellier: soil microbiological diagnosis, biofertilisation, phytoremediation and training. +40% yield, −80% pollutants in 24 months.', 'Fertil’Innov Environnement, empresa innovadora cerca de Montpellier: diagnóstico microbiológico de suelos, biofertilización, fitorremediación y formación. +40 % de rendimiento, −80 % de contaminantes en 24 meses.'),
+  seo_titre_accueil: K('global', 'Titre Google — accueil', 'Fertil’Innov Environnement | Microbiologie des sols, biofertilisation, analyse et dépollution des sols — Montpellier', 'Fertil’Innov Environnement | Soil microbiology, biofertilisation, soil analysis and remediation — Montpellier, France', 'Fertil’Innov Environnement | Microbiología de suelos, biofertilización, análisis y descontaminación de suelos — Montpellier'),
+  seo_guide: K('global', 'Description Google — guide', 'Fertiliser un sol naturellement, analyse de sol, microbiologie du sol, mycorhizes, dépollution des sols, biostimulants : le guide des sols vivants de Fertil’Innov, laboratoire près de Montpellier.', 'Fertilising soil naturally, soil analysis, soil microbiology, mycorrhizae, soil remediation, biostimulants: the living-soils guide from Fertil’Innov, a laboratory near Montpellier, France.', 'Fertilizar el suelo de forma natural, análisis de suelo, microbiología del suelo, micorrizas, descontaminación de suelos, bioestimulantes: la guía de suelos vivos de Fertil’Innov, laboratorio cerca de Montpellier.'),
+  seo_accueil: K('global', 'Description Google — accueil', 'Laboratoire de microbiologie des sols près de Montpellier : analyse de sol PCR/NGS, biofertilisation (mycorhizes, rhizobium), dépollution et réhabilitation de sols pollués, formations. +40 % de rendement, −70 % d’eau, −80 % de polluants en 24 mois. Devis sous 24 h.', 'Fertil’Innov Environnement, innovative company near Montpellier: soil microbiological diagnosis, biofertilisation, phytoremediation and training. +40% yield, −80% pollutants in 24 months.', 'Fertil’Innov Environnement, empresa innovadora cerca de Montpellier: diagnóstico microbiológico de suelos, biofertilización, fitorremediación y formación. +40 % de rendimiento, −80 % de contaminantes en 24 meses.'),
   seo_services: K('global', 'Description Google — services', 'Diagnostic microbiologique PCR/NGS, biofertilisation (mycorhizes, PGPR), remédiation écologique, phytomanagement : les services de Fertil’Innov pour agriculteurs et industriels.', 'PCR/NGS microbiological diagnosis, biofertilisation (mycorrhizae, PGPR), ecological remediation, phytomanagement: Fertil’Innov’s services for farmers and industry.', 'Diagnóstico microbiológico PCR/NGS, biofertilización (micorrizas, PGPR), remediación ecológica, fitogestión: los servicios de Fertil’Innov para agricultores e industria.'),
   seo_activites: K('global', 'Description Google — activités', 'Caractérisation des milieux anthropisés, isolement de microorganismes bénéfiques, biofertilisation intelligente, réhabilitation écologique et R&D.', 'Characterisation of anthropised environments, isolation of beneficial microorganisms, smart biofertilisation, ecological rehabilitation and R&D.', 'Caracterización de medios antropizados, aislamiento de microorganismos beneficiosos, biofertilización inteligente, rehabilitación ecológica e I+D.'),
   seo_expertise: K('global', 'Description Google — expertise', 'Microbiome du sol, cycles biogéochimiques, hydromorphologie, biodisponibilité des nutriments : l’expertise scientifique de Fertil’Innov.', 'Soil microbiome, biogeochemical cycles, hydromorphology, nutrient bioavailability: Fertil’Innov’s scientific expertise.', 'Microbioma del suelo, ciclos biogeoquímicos, hidromorfología, biodisponibilidad de nutrientes: la experiencia científica de Fertil’Innov.'),
@@ -225,10 +234,10 @@ export const CONTENT = {
   seo_chiffres: K('global', 'Description Google — chiffres', 'Résultats mesurés de Fertil’Innov : 97 % de satisfaction, 200+ sites traités, +40 % de rendement, −70 % d’eau d’irrigation, 4 t de CO₂/ha/an séquestrées.', 'Fertil’Innov’s measured results: 97% satisfaction, 200+ sites treated, +40% yield, −70% irrigation water, 4 t CO₂/ha/year sequestered.', 'Resultados medidos de Fertil’Innov: 97 % de satisfacción, más de 200 sitios tratados, +40 % de rendimiento, −70 % de agua de riego, 4 t de CO₂/ha/año.'),
   seo_blog: K('global', 'Description Google — blog', 'Actualités de Fertil’Innov : projets SONARES et ENDORSE, Pollutec, biostimulants, plantes de montagne et microbiologie des sols.', 'Fertil’Innov news: SONARES and ENDORSE projects, Pollutec, biostimulants, mountain plants and soil microbiology.', 'Noticias de Fertil’Innov: proyectos SONARES y ENDORSE, Pollutec, bioestimulantes, plantas de montaña y microbiología de suelos.'),
   seo_faq: K('global', 'Description Google — FAQ', 'Quels microorganismes ? Quelles normes ISO ? Délais d’un diagnostic ? Les réponses techniques de Fertil’Innov sur les sols, la biofertilisation et la remédiation.', 'Which microorganisms? Which ISO standards? How long does a diagnosis take? Fertil’Innov’s technical answers on soils, biofertilisation and remediation.', '¿Qué microorganismos? ¿Qué normas ISO? ¿Plazos de un diagnóstico? Las respuestas técnicas de Fertil’Innov sobre suelos, biofertilización y remediación.'),
-  seo_contact: K('global', 'Description Google — contact', 'Contactez Fertil’Innov Environnement à Grabels (34) : devis gratuit sous 24 h pour un diagnostic de sol, une biofertilisation ou une réhabilitation de site.', 'Contact Fertil’Innov Environnement in Grabels (France): free quote within 24 h for a soil diagnosis, biofertilisation or site rehabilitation.', 'Contacte con Fertil’Innov Environnement en Grabels (Francia): presupuesto gratuito en 24 h para un diagnóstico de suelo, biofertilización o rehabilitación de sitio.'),
+  seo_contact: K('global', 'Description Google — contact', 'Contactez Fertil’Innov Environnement à Grabels (34) : devis sous 24 h pour un diagnostic de sol, une biofertilisation ou une réhabilitation de site.', 'Contact Fertil’Innov Environnement in Grabels (France): quote within 24 h for a soil diagnosis, biofertilisation or site rehabilitation.', 'Contacte con Fertil’Innov Environnement en Grabels (Francia): presupuesto en 24 h para un diagnóstico de suelo, biofertilización o rehabilitación de sitio.'),
 };
 
-export const CONTENT_PAGES = ['global', 'accueil', 'services', 'activites', 'expertise', 'formations', 'chiffres', 'blog', 'faq', 'contact'];
+export const CONTENT_PAGES = ['global', 'accueil', 'services', 'activites', 'expertise', 'formations', 'chiffres', 'blog', 'faq', 'contact', 'guide'];
 
 /** Texte effectif dans une langue : surcharge du propriétaire, sinon défaut (repli sur le français). */
 export function texte(textes, key, lang = 'fr') {

@@ -15,7 +15,7 @@ const template = readFileSync(path.join(DIST, 'index.html'), 'utf8');
 const ssr = await import(pathToFileURL(path.resolve('dist-ssr/entry-server.js')).href);
 
 const LANGS = ['fr', 'en', 'es'];
-const PATHS = ['/', '/services', '/activites', '/expertise', '/formations', '/chiffres', '/blog', '/faq', '/contact'];
+const PATHS = ['/', '/services', '/activites', '/expertise', '/formations', '/chiffres', '/blog', '/sols', '/faq', '/contact'];
 const localePath = (p, l) => (l === 'fr' ? p : p === '/' ? `/${l}` : `/${l}${p}`);
 
 let site = null;

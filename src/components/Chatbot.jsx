@@ -174,7 +174,7 @@ export default function Chatbot() {
       <AnimatePresence>
         {open && (
           <motion.section key="panel" role="dialog" aria-label={t('pois_nom')} initial={{ opacity: 0, y: 24, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 24, scale: 0.96 }} transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="w-[calc(100vw-2rem)] sm:w-[400px] h-[min(78vh,640px)] flex flex-col overflow-hidden rounded-3xl bg-white shadow-leaf border border-fi-light">
+            data-lenis-prevent className="w-[calc(100vw-2rem)] sm:w-[400px] h-[min(78vh,640px)] flex flex-col overflow-hidden rounded-3xl bg-white shadow-leaf border border-fi-light">
             <header className="flex items-center gap-3 bg-fi-deep text-white px-4 py-3 grain">
               <img {...img('petit_pois')} alt="" width={44} height={44} className="h-11 w-11 object-contain" />
               <div className="flex-1 min-w-0">
@@ -184,7 +184,7 @@ export default function Chatbot() {
               <button type="button" onClick={() => setOpen(false)} aria-label="Fermer" className="inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-white/10"><X size={18} /></button>
             </header>
 
-            <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-fi-bg" role="log" aria-live="polite">
+            <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-3 bg-fi-bg" role="log" aria-live="polite">
               {loading && <p className="text-sm text-fi-text/60">…</p>}
               {messages.map((m, i) => (
                 <div key={i} className={`flex gap-2 ${m.from === 'user' ? 'justify-end' : ''}`}>

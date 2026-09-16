@@ -15,7 +15,7 @@ export const FONT_PRESETS = {
 };
 
 export const PALETTE_DEFAULT = {
-  primary: '#2e7d32', secondary: '#4caf50', accent: '#8bc34a', dark: '#1b5e20', deep: '#0f2e13',
+  primary: '#2e7d32', secondary: '#4caf50', accent: '#8bc34a', dark: '#237a45', deep: '#0f2e13',
   light: '#c8e6c9', mint: '#e8f5e9', bg: '#f9fbf8', text: '#263238', soil: '#5d3f24', loam: '#a67c52',
 };
 

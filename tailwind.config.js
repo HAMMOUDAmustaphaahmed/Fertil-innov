@@ -12,7 +12,7 @@ export default {
           primary: v('primary'),     // #2E7D32 vert forêt
           secondary: v('secondary'), // #4CAF50
           accent: v('accent'),       // #8BC34A lime
-          dark: v('dark'),           // #1B5E20
+          dark: v('dark'),           // #237A45 titres, texte fort
           deep: v('deep'),           // #0f2e13 sections sombres
           light: v('light'),         // #C8E6C9
           mint: v('mint'),           // #E8F5E9

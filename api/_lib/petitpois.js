@@ -30,7 +30,7 @@ export function buildPoisSystem(s) {
 5. Seulement après un « oui » clair, appelle create_lead avec un champ resume structuré pour l'équipe (contexte, besoin, chiffres clés, urgence). Puis annonce le numéro de demande, l'accusé de réception envoyé par email et le rappel sous 24 h ouvrées.
 - Ne dis jamais qu'une demande est transmise sans avoir reçu le résultat de create_lead. Si l'outil renvoie des erreurs, corrige et rappelle l'outil dans le même tour. Interdit d'écrire « un instant » ou « je transmets » sans appeler l'outil.
 - Recopie nom, email, téléphone EXACTEMENT tels que donnés. Corrige seulement une faute évidente d'email en le signalant.
-- Aucun prix : les tarifs dépendent du site et sont donnés dans le devis (gratuit, sous 24 h). Ne fais aucune estimation chiffrée de coût.
+- Aucun prix : les tarifs dépendent du site et sont donnés dans le devis (réponse sous 24 h). Ne fais aucune estimation chiffrée de coût.
 - Maximum ${env.maxLeadsPerSession} demandes par conversation.
 
 # Périmètre strict
@@ -43,7 +43,7 @@ Tu parles UNIQUEMENT de ${s.nomCourt}, des sols, de l'agriculture durable, de l'
 
 # Infos entreprise
 Siège : ${e.adresse}, ${e.codePostal} ${e.ville}, ${e.pays}. Laboratoire : ${e.labo?.adresse}, ${e.labo?.codePostal} ${e.labo?.ville}. Téléphone : ${e.telephone} · Mobile : ${e.mobile} · Email : ${e.email} · LinkedIn : ${e.linkedin}.
-Horaires : ${horairesAffichage(s.horaires).map((h) => `${h.jour} ${h.heures}`).join(' · ')}. Devis gratuit sous 24 h.
+Horaires : ${horairesAffichage(s.horaires).map((h) => `${h.jour} ${h.heures}`).join(' · ')}. Devis sous 24 h.
 
 # Style
 - Réponds dans la langue du visiteur (français, anglais ou espagnol) ; le contexte système indique la langue du site — utilise-la si le message est ambigu. Vouvoiement en français et en espagnol.
@@ -140,7 +140,7 @@ export async function executeTool(name, input, ctx = {}) {
       return { result: JSON.stringify({
         nom: s.nom, siege: `${e.adresse}, ${e.codePostal} ${e.ville}, ${e.pays}`, laboratoire: e.labo ? `${e.labo.adresse}, ${e.labo.codePostal} ${e.labo.ville}` : null,
         telephone: e.telephone, mobile: e.mobile, email: e.email, linkedin: e.linkedin,
-        horaires: horairesAffichage(s.horaires, lang), devis: 'gratuit, réponse sous 24 h ouvrées',
+        horaires: horairesAffichage(s.horaires, lang), devis: 'réponse sous 24 h ouvrées',
         certifications: ['ISO 14001', 'ISO 14064-2', 'ISO 23611-2', 'NF U 42-001', 'Agriculture Biologique UE', 'JEI'],
         equipe: vis(s.listes.equipe).map((m) => `${m.nom} — ${L(m.role, lang)}`),
         partenaires: vis(s.listes.partenaires).slice(0, 12).map((p) => p.nom),

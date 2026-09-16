@@ -7,6 +7,7 @@ import { PageHero } from '../components/ui';
 import { useLang } from '../i18n/LangProvider';
 import { useSite, imgSrc } from '../site/SiteProvider';
 import { useReveal } from '../hooks/useReveal';
+import { setScrollLocked } from '../hooks/useSmoothScroll';
 
 export default function Activites() {
   const { t, p, L } = useLang();
@@ -22,7 +23,8 @@ export default function Activites() {
     const onKey = (e) => { if (e.key === 'Escape') setOpen(null); };
     document.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
-    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = ''; };
+    setScrollLocked(true); // Lenis ne doit plus faire défiler la page derrière la fenêtre
+    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = ''; setScrollLocked(false); };
   }, [open]);
 
   return (
@@ -64,7 +66,7 @@ export default function Activites() {
         {active && (
           <motion.div key="overlay" className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-fi-deep/70 backdrop-blur-sm p-0 sm:p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(null)}>
             <motion.div role="dialog" aria-modal="true" aria-labelledby="act-title" onClick={(e) => e.stopPropagation()} initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }} transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="w-full sm:max-w-3xl max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white shadow-leaf">
+              data-lenis-prevent className="w-full sm:max-w-3xl max-h-[92vh] overflow-y-auto overscroll-contain rounded-t-3xl sm:rounded-3xl bg-white shadow-leaf">
               <div className="relative">
                 <img src={pic(active)} alt="" width={1000} height={500} className="aspect-[2/1] w-full object-cover rounded-t-3xl" />
                 <button type="button" onClick={() => setOpen(null)} aria-label="Fermer" className="absolute right-3 top-3 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-fi-dark hover:bg-white"><X /></button>
