@@ -37,10 +37,10 @@ export function buildLead(input = {}, { services = [], lang = 'fr', source = 'ch
   const type = LEAD_TYPES.includes(input.type) ? input.type : null;
   if (!type) erreurs.push(`type invalide (attendu : ${LEAD_TYPES.join(', ')})`);
   const c = input.client || {};
-  const nom = String(c.nom || '').trim().slice(0, 120);
-  const email = String(c.email || '').trim().toLowerCase().slice(0, 200);
-  const telephone = String(c.telephone || '').trim().slice(0, 40);
-  const organisation = String(c.organisation || '').trim().slice(0, 160);
+  const nom = clean(c.nom).slice(0, 120);
+  const email = clean(c.email).toLowerCase().slice(0, 200);
+  const telephone = clean(c.telephone).slice(0, 40);
+  const organisation = clean(c.organisation).slice(0, 160);
   if (nom.length < 2) erreurs.push('nom du client manquant');
   if (!isEmail(email)) erreurs.push('email invalide');
   if (telephone && !isPhone(telephone)) erreurs.push('téléphone invalide (9 à 15 chiffres)');
