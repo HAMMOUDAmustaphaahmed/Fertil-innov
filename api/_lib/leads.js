@@ -18,6 +18,8 @@ export const TYPE_LABEL = {
   es: { devis: 'Solicitud de presupuesto', formation: 'Formación', info: 'Pregunta', partenariat: 'Colaboración / I+D' },
 };
 
+// Les modèles glissent parfois des caractères invisibles (trait d'union conditionnel, espaces insécables…) dans les noms.
+const clean = (s) => String(s || '').replace(/[­​-‏⁠﻿]/g, '').replace(/\s+/g, ' ').trim();
 const isEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s);
 const normPhone = (s) => String(s || '').replace(/[\s.\-()]/g, '');
 const isPhone = (s) => /^\+?\d{9,15}$/.test(normPhone(s));
