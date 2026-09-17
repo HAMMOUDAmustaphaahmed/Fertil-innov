@@ -7,7 +7,7 @@
 
 import { store } from './store.js';
 import { env } from './env.js';
-import { runTurn, looksLikeFakeAction, NUDGE_TEXT } from './llm.js';
+import { runTurn, looksLikeFakeAction, NUDGE_TEXT, nullableOptionals } from './llm.js';
 import { STATUS_LABEL, LEAD_STATUS, LEAD_TYPES, TYPE_LABEL } from './leads.js';
 import { sendCustomEmail } from './emails.js';
 import { getSettings, updateSettings, undoSettings, settingsHistory, IMAGE_SLOTS, PALETTE_PRESETS, PALETTE_DEFAULT, FONT_PRESETS, LISTES, isHex, resolveImageUrl, triggerRedeploy } from './settings.js';
@@ -35,7 +35,7 @@ Entreprise : ${s.entreprise.adresse}, ${s.entreprise.codePostal} ${s.entreprise.
 
 const PERIODES = ['aujourdhui', 'hier', 'semaine', 'mois', 'toutes', 'dates'];
 
-export const CHEF_TOOLS = [
+const RAW_CHEF_TOOLS = [
   { name: 'list_leads', description: `Liste les demandes clients. periode: ${PERIODES.join('|')} (du/au AAAA-MM-JJ pour dates). Par défaut : nouvelles + en cours ; statut (${LEAD_STATUS.join('|')}) ou type (${LEAD_TYPES.join('|')}) pour filtrer ; tous_statuts pour tout.`, input_schema: { type: 'object', properties: { periode: { type: 'string', enum: PERIODES }, du: { type: 'string' }, au: { type: 'string' }, statut: { type: 'string', enum: LEAD_STATUS }, type: { type: 'string', enum: LEAD_TYPES }, tous_statuts: { type: 'boolean' } }, required: ['periode'], additionalProperties: false } },
   { name: 'get_lead', description: "Détail d'une demande (FI-XXXXXX).", input_schema: { type: 'object', properties: { numero: { type: 'string' } }, required: ['numero'], additionalProperties: false } },
   { name: 'update_lead_status', description: `Change le statut d'une demande (${LEAD_STATUS.join('|')}) et/ou ajoute une note interne. perdue = confirmation requise.`, input_schema: { type: 'object', properties: { numero: { type: 'string' }, statut: { type: 'string', enum: LEAD_STATUS }, note: { type: 'string' } }, required: ['numero'], additionalProperties: false } },
@@ -57,6 +57,8 @@ export const CHEF_TOOLS = [
   { name: 'undo_last_change', description: 'Annule la dernière modification du site (5 niveaux). Sans confirmation si le propriétaire le demande explicitement.', input_schema: { type: 'object', properties: {}, additionalProperties: false } },
   { name: 'redeploy', description: 'Relance le déploiement du site pour régénérer les pages pré-rendues (SEO Google / IA) après des changements de contenu. Les visiteurs voient déjà les changements sans cela.', input_schema: { type: 'object', properties: {}, additionalProperties: false } },
 ];
+
+export const CHEF_TOOLS = nullableOptionals(RAW_CHEF_TOOLS);
 
 // ---------------------------------------------------------------------------
 // Utilitaires dates (heure de Paris)

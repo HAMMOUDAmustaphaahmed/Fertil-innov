@@ -27,7 +27,8 @@ try {
   }
 } catch (e) { console.warn('[prerender] configuration Supabase indisponible, défauts utilisés :', e.message); }
 
-const siteUrl = (process.env.PUBLIC_SITE_URL || site?.entreprise?.siteUrl || 'https://www.fertilinnov-environnement.com').replace(/\/$/, '');
+// Domaine officiel (canonical, sitemap, hreflang) — indépendant de l'URL Vercel de déploiement.
+const siteUrl = (site?.entreprise?.siteUrl || 'https://www.fertilinnov-environnement.com').replace(/\/$/, '');
 globalThis.window = undefined; // sécurité : aucun accès window côté serveur
 
 let ok = 0; let ko = 0;

@@ -12,6 +12,27 @@ import { env, assertEnv } from './env.js';
 let anthropic;
 let groq;
 
+/**
+ * Rend « nullable » toutes les propriétés facultatives d'un schéma d'outil : les modèles
+ * renvoient souvent null pour un champ qu'ils ne connaissent pas, et Groq rejette alors
+ * tout l'appel (tool_use_failed) — ce qui laissait la conversation sans réponse.
+ */
+export function nullableOptionals(tools) {
+  const fix = (schema) => {
+    if (!schema || typeof schema !== 'object') return schema;
+    const req = new Set(schema.required || []);
+    if (schema.properties) {
+      for (const [k, p] of Object.entries(schema.properties)) {
+        if (p && typeof p.type === 'string' && !req.has(k) && p.type !== 'null') p.type = [p.type, 'null'];
+        if (p?.type === 'object' || (Array.isArray(p?.type) && p.type.includes('object'))) fix(p);
+        if (p?.items) fix(p.items);
+      }
+    }
+    return schema;
+  };
+  return tools.map((t) => ({ ...t, input_schema: fix(JSON.parse(JSON.stringify(t.input_schema))) }));
+}
+
 export function providerInfo() {
   return { provider: env.provider, model: env.model, guardModel: env.guardModel };
 }

@@ -25,10 +25,35 @@ function transport() {
   return smtp;
 }
 
-/** Envoi générique : { to, subject, html, replyTo? } → id du message ou null. */
+// Requête HTTP avec délai maximum (les fonctions serverless ne doivent jamais rester bloquées).
+async function fetchTimeout(url, init, ms = 15000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  try { return await fetch(url, { ...init, signal: ctrl.signal }); } finally { clearTimeout(t); }
+}
+
+/** Envoi générique : { to, subject, html, replyTo? } → id du message ou null. Lève une erreur explicite en cas d'échec. */
 export async function sendMail({ to, subject, html, replyTo }) {
   const s = await getSettings();
   const nom = s.nom;
+  if (env.emailProvider === 'mailjet') {
+    // API REST Mailjet (HTTPS) : contrairement au SMTP, une adresse expéditrice non validée
+    // ou un refus renvoie une vraie erreur au lieu d'un message silencieusement perdu.
+    assertEnv(['mailjetKey', 'mailjetSecret', 'mailjetSender']);
+    const auth = Buffer.from(`${env.mailjetKey}:${env.mailjetSecret}`).toString('base64');
+    const tos = (Array.isArray(to) ? to : [to]).map((Email) => ({ Email }));
+    const r = await fetchTimeout('https://api.mailjet.com/v3.1/send', {
+      method: 'POST', headers: { authorization: `Basic ${auth}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ Messages: [{ From: { Email: env.mailjetSender, Name: nom }, To: tos, Subject: subject, HTMLPart: html, ...(replyTo ? { ReplyTo: { Email: replyTo } } : {}) }] }),
+    });
+    const data = await r.json().catch(() => ({}));
+    const m = data.Messages?.[0];
+    if (!r.ok || m?.Status !== 'success') {
+      const detail = m?.Errors?.map((x) => x.ErrorMessage).join(' ; ') || data.ErrorMessage || `HTTP ${r.status}`;
+      const err = new Error(`Mailjet : ${detail}`); err.code = 'EMAIL'; throw err;
+    }
+    return m.To?.[0]?.MessageID || null;
+  }
   if (env.emailProvider === 'resend') {
     assertEnv(['resendKey']);
     resend ||= new Resend(env.resendKey);

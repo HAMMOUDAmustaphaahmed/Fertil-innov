@@ -7,7 +7,8 @@ import { LANGS } from '../data/infos';
 
 export function useSiteUrl() {
   const { entreprise } = useSite();
-  const base = (typeof window !== 'undefined' && window.__SITE_URL__) || (typeof process !== 'undefined' && process.env?.PUBLIC_SITE_URL) || entreprise.siteUrl || 'https://www.fertilinnov-environnement.com';
+  // Toujours le domaine officiel : la copie *.vercel.app renvoie vers lui (canonical) et n'est pas indexée (X-Robots-Tag dans vercel.json).
+  const base = entreprise.siteUrl || 'https://www.fertilinnov-environnement.com';
   return String(base).replace(/\/$/, '');
 }
 

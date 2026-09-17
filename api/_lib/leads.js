@@ -91,7 +91,7 @@ export async function persistLead(lead, { sessionId = null } = {}) {
     return { ok: false, erreurs: ['Nombre maximum de demandes atteint pour cette conversation. Propose le téléphone ou le formulaire (handoff_to_human).'] };
   }
   if ((await store().countLeads('client_email', lead.client_email, since)) >= env.maxLeadsPerEmailPerDay) {
-    return { ok: false, erreurs: ["Cette adresse email a déjà envoyé plusieurs demandes aujourd'hui. Propose le téléphone."] };
+    return { ok: false, erreurs: ["Cette adresse email a déjà envoyé plusieurs demandes aujourd'hui : l'équipe vous répondra à partir de celles-ci, ou appelez-nous directement."] };
   }
   const saved = await store().createLead({ ...lead, session_id: sessionId });
   return { ok: true, lead: saved };

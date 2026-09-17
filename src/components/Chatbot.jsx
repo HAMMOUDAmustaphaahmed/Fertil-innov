@@ -157,6 +157,8 @@ export default function Chatbot() {
         else if (ev.type === 'done') { update((l) => { l.streaming = false; }); setRemaining(ev.remaining); if (ev.blocked) setBlocked(t('pois_indispo')); if (ev.remaining === 0) setMessages((m) => [...m, { from: 'bot', text: t('pois_limite'), cta: contactCta() }]); }
         else if (ev.type === 'error') { update((l) => { l.streaming = false; l.text = ev.message; }); if (typeof ev.remaining === 'number') setRemaining(ev.remaining); }
       });
+      // Flux terminé sans événement « done » (fonction interrompue) : on referme proprement la bulle.
+      update((l) => { if (l.streaming) { l.streaming = false; if (!l.text) l.text = t('pois_indispo'); } });
     } catch {
       update((l) => { l.streaming = false; l.text = t('pois_indispo'); });
     } finally {

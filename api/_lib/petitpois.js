@@ -7,6 +7,7 @@ import { env } from './env.js';
 import { buildLead, persistLead, publicLead, LEAD_TYPES } from './leads.js';
 import { sendLeadToCompany, sendLeadAck } from './emails.js';
 import { notifyOwner } from './telegram.js';
+import { nullableOptionals } from './llm.js';
 import { L } from '../../src/data/site.js';
 import { parisNow, isOpenAt, horairesAffichage } from '../../src/data/infos.js';
 
@@ -53,7 +54,7 @@ Horaires : ${horairesAffichage(s.horaires).map((h) => `${h.jour} ${h.heures}`).j
 - Si le visiteur dit merci ou au revoir, réponds brièvement et chaleureusement.`;
 }
 
-export const TOOLS = [
+const RAW_TOOLS = [
   {
     name: 'get_services',
     description: "Liste les services de l'entreprise (id, titre, résumé, points clés, chiffres, page). Appelle-le avant de décrire un service ou de choisir l'id à passer à create_lead. Sans filtre, renvoie tout.",
@@ -110,6 +111,8 @@ export const TOOLS = [
     input_schema: { type: 'object', properties: { motif: { type: 'string', enum: ['devis', 'formation', 'partenariat', 'info'] }, resume: { type: 'string', description: 'Résumé pour l’équipe.' } }, required: ['motif', 'resume'], additionalProperties: false },
   },
 ];
+
+export const TOOLS = nullableOptionals(RAW_TOOLS);
 
 const PAGES = { services: '/services', activites: '/activites', expertise: '/expertise', formations: '/formations', chiffres: '/chiffres', blog: '/blog', faq: '/faq', contact: '/contact' };
 const pagePath = (lang, p) => (lang === 'fr' ? p : `/${lang}${p}`);
@@ -196,8 +199,11 @@ async function createLeadTool(input, ctx, lang) {
 /** Notifications d'une nouvelle demande (email entreprise, accusé client, Telegram). Ne bloque jamais. */
 export async function notifyLead(lead) {
   const out = { company: false, ack: false, telegram: false };
-  try { await sendLeadToCompany(lead); out.company = true; } catch (e) { console.error('email entreprise', e.message); }
-  try { await sendLeadAck(lead); out.ack = true; } catch (e) { console.error('accusé de réception', e.message); }
+  // Les trois notifications partent en parallèle, chacune avec son propre délai maximum :
+  // le visiteur ne doit jamais attendre plus de ~15 s après la création de sa demande.
+  const [c, a] = await Promise.allSettled([sendLeadToCompany(lead), sendLeadAck(lead)]);
+  if (c.status === 'fulfilled') out.company = true; else console.error('email entreprise', c.reason?.message);
+  if (a.status === 'fulfilled') out.ack = true; else console.error('accusé de réception', a.reason?.message);
   try {
     const d = lead.details || {};
     const lines = [`🆕 Nouvelle demande ${lead.numero} — ${lead.type}${lead.service ? ` (${lead.service})` : ''}`, `👤 ${lead.client.nom}${lead.client.organisation ? ` · ${lead.client.organisation}` : ''}`, `✉️ ${lead.client.email}${lead.client.telephone ? ` · 📞 ${lead.client.telephone}` : ''}`];
