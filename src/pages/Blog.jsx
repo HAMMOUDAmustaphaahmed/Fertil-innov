@@ -21,7 +21,7 @@ export default function Blog() {
         <div className="wrap grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {list.map((b, i) => (
             <article key={b.id} className={`reveal card overflow-hidden group flex flex-col ${i === 0 ? 'md:col-span-2 lg:col-span-3 lg:grid lg:grid-cols-2' : ''}`}>
-              {b.image ? <img src={imgSrc(b.image)} alt="" width={900} height={506} loading={i === 0 ? 'eager' : 'lazy'} className={`w-full object-cover group-hover:scale-[1.02] transition-transform duration-500 ${i === 0 ? 'aspect-[16/9] lg:aspect-auto lg:h-full lg:max-h-[440px]' : 'aspect-[16/9]'}`} /> : <div className={`bg-fi-deep text-fi-accent flex items-center justify-center ${i === 0 ? 'aspect-[16/9] lg:aspect-auto' : 'aspect-[16/9]'}`}><Headphones size={48} aria-hidden /></div>}
+              {b.image ? <img src={imgSrc(b.image)} alt="" width={900} height={506} loading={i === 0 ? 'eager' : 'lazy'} decoding="async" className={`w-full object-cover group-hover:scale-[1.02] transition-transform duration-500 ${i === 0 ? 'aspect-[16/9] lg:aspect-auto lg:h-full lg:max-h-[440px]' : 'aspect-[16/9]'}`} /> : <div className={`bg-fi-deep text-fi-accent flex items-center justify-center ${i === 0 ? 'aspect-[16/9] lg:aspect-auto' : 'aspect-[16/9]'}`}><Headphones size={48} aria-hidden /></div>}
               <div className={`p-6 flex flex-col ${i === 0 ? "justify-center" : "flex-1"}`}>
                 <p className="text-xs font-semibold text-fi-primary">{L(b.categorie)} · <time dateTime={b.date}>{fmtDate(b.date, lang)}</time>{b.duree ? ` · ${b.duree} ${t('blog_min')}` : ''}</p>
                 <h2 className={`mt-2 font-display font-semibold text-fi-dark leading-snug ${i === 0 ? 'text-display-sm' : 'text-lg'}`}>{L(b.titre)}</h2>

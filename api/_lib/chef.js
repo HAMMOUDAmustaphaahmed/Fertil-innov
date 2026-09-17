@@ -44,7 +44,7 @@ export const CHEF_TOOLS = [
   { name: 'customer_insights', description: 'Derniers messages des visiteurs à Petit Pois (pour synthèse des besoins).', input_schema: { type: 'object', properties: { jours: { type: 'integer' } }, additionalProperties: false } },
   { name: 'get_settings', description: 'Configuration actuelle du site (résumé).', input_schema: { type: 'object', properties: {}, additionalProperties: false } },
   { name: 'set_info', description: 'Nom, nom court, slogan (français, traduit automatiquement), coordonnées, LinkedIn, GPS, laboratoire. Ne passer que les champs à changer.', input_schema: { type: 'object', properties: { nom: { type: 'string' }, nomCourt: { type: 'string' }, slogan: { type: 'string' }, adresse: { type: 'string' }, codePostal: { type: 'string' }, ville: { type: 'string' }, telephone: { type: 'string' }, mobile: { type: 'string' }, email: { type: 'string' }, linkedin: { type: 'string' }, latitude: { type: 'number' }, longitude: { type: 'number' }, labo_adresse: { type: 'string' }, labo_codePostal: { type: 'string' }, labo_ville: { type: 'string' } }, additionalProperties: false } },
-  { name: 'list_content', description: `Textes d'interface modifiables (clé, page, libellé, valeur française actuelle). Filtrer par page (${CONTENT_PAGES.join('|')}) ou recherche (mot dans le libellé/valeur).`, input_schema: { type: 'object', properties: { page: { type: 'string' }, recherche: { type: 'string' } }, additionalProperties: false } },
+  { name: 'list_content', description: `Textes d'interface modifiables (clé, libellé, début de la valeur). TOUJOURS filtrer : recherche (mot du libellé, ex. « services », « slogan », « Petit Pois ») ou page (${CONTENT_PAGES.join('|')}).`, input_schema: { type: 'object', properties: { page: { type: 'string' }, recherche: { type: 'string' } }, additionalProperties: false } },
   { name: 'set_content', description: 'Modifie des textes d’interface : valeurs = {cle: nouveau texte en français} (clés de list_content). Traduction EN/ES automatique. Valeur vide = retour au texte d’origine.', input_schema: { type: 'object', properties: { valeurs: { type: 'object', additionalProperties: { type: 'string' } } }, required: ['valeurs'], additionalProperties: false } },
   { name: 'set_fonts', description: `Police du site : ${FONT_PRESETS.join(' | ')} (bricolage = défaut, poppins = police du site d'origine).`, input_schema: { type: 'object', properties: { police: { type: 'string', enum: FONT_PRESETS } }, required: ['police'], additionalProperties: false } },
   { name: 'set_hours', description: 'Horaires : plages [{jours:[lundi…dimanche|tous], ouverture:"HH:MM", fermeture:"HH:MM"} ou {jours, ferme:true}].', input_schema: { type: 'object', properties: { plages: { type: 'array', items: { type: 'object', properties: { jours: { type: 'array', items: { type: 'string' } }, ouverture: { type: 'string' }, fermeture: { type: 'string' }, ferme: { type: 'boolean' } }, required: ['jours'], additionalProperties: false } } }, required: ['plages'], additionalProperties: false } },
@@ -209,10 +209,11 @@ export async function executeChefTool(name, input, ctx = {}) {
     case 'list_content': {
       const page = input?.page && CONTENT_PAGES.includes(input.page) ? input.page : null;
       const q = String(input?.recherche || '').toLowerCase();
+      // Résultat compact (le quota Groq est de 8 000 tokens/min) : valeur complète seulement si recherche.
       const rows = Object.entries(CONTENT).filter(([, v]) => !page || v.page === page)
-        .map(([key, v]) => ({ cle: key, page: v.page, libelle: v.label, valeur: settings.textes?.[key]?.fr || v.defaut.fr, modifie: !!settings.textes?.[key] }))
-        .filter((r) => !q || r.libelle.toLowerCase().includes(q) || String(r.valeur).toLowerCase().includes(q) || r.cle.includes(q));
-      return J({ nombre: rows.length, textes: rows.slice(0, 60), ...(rows.length > 60 ? { note: 'Affine avec page ou recherche pour voir le reste.' } : {}) });
+        .map(([key, v]) => { const val = settings.textes?.[key]?.fr || v.defaut.fr; return { cle: key, libelle: v.label, valeur: q ? val : String(val).slice(0, 50), ...(settings.textes?.[key] ? { modifie: true } : {}) }; })
+        .filter((r) => !q || r.libelle.toLowerCase().includes(q) || String(settings.textes?.[r.cle]?.fr || CONTENT[r.cle].defaut.fr).toLowerCase().includes(q) || r.cle.includes(q));
+      return J({ nombre: rows.length, textes: rows.slice(0, 40), ...(rows.length > 40 ? { note: 'Affine avec page ou recherche (mot du libellé) pour voir le reste.' } : {}) });
     }
     case 'set_content': {
       const textes = {}; const inconnues = [];
@@ -367,11 +368,23 @@ export function chefContext(now = new Date()) {
 // Sous-ensemble d'outils selon le sujet du message (moins de tokens par requête).
 const TOOL_GROUPS = {
   demandes: ['list_leads', 'get_lead', 'update_lead_status', 'send_email_to_client', 'stats', 'customer_insights'],
-  site: ['get_settings', 'set_info', 'list_content', 'set_content', 'set_fonts', 'set_hours', 'list_palettes', 'set_palette', 'manage_list', 'set_chiffres', 'list_image_slots', 'set_image', 'undo_last_change', 'redeploy'],
+  info: ['get_settings', 'set_info', 'set_hours'],
+  textes: ['list_content', 'set_content'],
+  style: ['list_palettes', 'set_palette', 'set_fonts'],
+  listes: ['manage_list'],
+  chiffres: ['set_chiffres'],
+  images: ['list_image_slots', 'set_image', 'manage_list'],
+  meta: ['undo_last_change', 'redeploy', 'get_settings'],
 };
 const TOPIC_WORDS = {
-  demandes: /demande|devis|lead|client|prospect|fi-[a-z0-9]{4}|répond|repond|email|mail|stat|chiffre|combien|semaine|mois|hier|aujourd|visiteur|petit pois|synth|résum|resum|traite|gagn|perdu|en cours/i,
-  site: /site|texte|titre|slogan|nom|adresse|téléphone|telephone|mail|linkedin|horaire|ouvert|couleur|palette|police|typo|service|activit|expertise|formation|faq|question|blog|article|actualit|équipe|equipe|membre|partenaire|réalisation|realisation|pourquoi|chiffre|objectif|photo|image|logo|\[photo|accueil|page|bouton|paragraphe|ajoute|supprime|masque|modifie|change|remplace|déploi|deploi|google|seo|gps|labo|annul|retour|défai|defai|erreur/i,
+  demandes: /demande|devis|lead|client|prospect|fi-[a-z0-9]{4}|répond|repond|stat|combien|semaine|mois|hier|aujourd|visiteur|petit pois|synth|résum|resum|traite|gagn|perdu|en cours/i,
+  info: /nom |nom$|slogan|adresse|téléphone|telephone|mobile|mail|linkedin|gps|coordonn|labo|horaire|ouvert|ferm|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|\d+h/i,
+  textes: /texte|titre|paragraphe|bouton|accueil de petit pois|description google|seo|kicker|sous-titre|intro|pied de page|footer|message d'accueil|mention/i,
+  style: /couleur|palette|police|typo|vert|bleu|brun|fonc|clair|font/i,
+  listes: /service|activit|expertise|formation|faq|question|blog|article|actualit|équipe|equipe|membre|partenaire|réalisation|realisation|pourquoi|argument|ajoute|supprime|masque|affiche|liste|renomme/i,
+  chiffres: /chiffre|objectif|projets réalisés|hectare|satisfaction|co2|co₂|arbres|années|rendement|biodiversit|sites traités/i,
+  images: /photo|image|logo|\[photo|illustr|bandeau|hero|portrait/i,
+  meta: /annul|retour en arri|défai|defai|erreur|déploi|deploi|regénèr|regener|régénér|google|configuration|résumé du site|version/i,
 };
 export function selectTools(text, history = '') {
   const probe = `${text} ${history}`;
@@ -381,7 +394,7 @@ export function selectTools(text, history = '') {
   return CHEF_TOOLS.filter((t) => names.has(t.name));
 }
 
-function trimHistory(messages, keepTurns = 2) {
+function trimHistory(messages, keepTurns = 1) {
   const userTextIdx = messages.map((m, i) => (m.role === 'user' && !(Array.isArray(m.content) && m.content.some((b) => b.type === 'tool_result')) ? i : -1)).filter((i) => i >= 0);
   const cutoff = userTextIdx.length > keepTurns ? userTextIdx[userTextIdx.length - keepTurns] : 0;
   return messages.map((m, i) => {

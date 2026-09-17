@@ -52,6 +52,9 @@
   .chalk { text-decoration: underline; text-decoration-color: rgb(var(--fi-accent)); text-decoration-thickness: 0.18em; text-underline-offset: 0.12em; }
 }
 
+/* Header : dégradé brun terre clair (côté logo) vers menthe (menu et bouton devis) */
+.header-bg { background-image: linear-gradient(90deg, #d4b590 0%, #e6d3b5 22%, rgb(var(--fi-mint)) 50%, rgb(var(--fi-mint)) 100%); }
+
 /* Grain léger sur les sections sombres */
 .grain { position: relative; isolation: isolate; }
 .grain::after {

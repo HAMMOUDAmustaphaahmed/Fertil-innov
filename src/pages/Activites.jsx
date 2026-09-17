@@ -47,7 +47,7 @@ export default function Activites() {
             {list.map((a) => (
               <li key={a.id} className="reveal">
                 <button type="button" onClick={() => setOpen(a.id)} className="card w-full text-left overflow-hidden group hover:-translate-y-1 hover:shadow-leaf transition-[transform,box-shadow] duration-300" aria-haspopup="dialog">
-                  <img src={pic(a)} alt="" width={800} height={450} loading="lazy" className="aspect-[16/9] w-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
+                  <img src={pic(a)} alt="" width={800} height={450} loading="lazy" decoding="async" className="aspect-[16/9] w-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
                   <div className="p-5">
                     <h3 className="text-display-sm">{L(a.titre)}</h3>
                     <ul className="mt-3 space-y-1.5 text-sm text-fi-text/75">{a.points.map((pt, i) => <li key={i}>· {L(pt)}</li>)}</ul>

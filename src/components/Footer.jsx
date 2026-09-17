@@ -20,7 +20,7 @@ export default function Footer() {
       <div className="wrap pt-16 pb-10">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-12">
           <div className="lg:col-span-5">
-            <img {...img('logo_rond')} alt={site.nom} width={112} height={112} className="h-24 w-24 rounded-full bg-white p-1 object-contain" loading="lazy" />
+            <img {...img('logo_rond')} alt={site.nom} width={112} height={112} className="h-24 w-24 rounded-full bg-white p-1 object-contain" loading="lazy" decoding="async" />
             <p className="mt-5 max-w-md text-white/75 leading-relaxed">{t('footer_description')}</p>
             <p className="mt-4 text-sm text-fi-accent/90">{t('footer_certifs')}</p>
             <div className="mt-5 flex items-center gap-3">

@@ -81,7 +81,7 @@ export default function Navbar() {
 
   return (
     <>
-    <header className={`fixed inset-x-0 top-0 z-40 bg-fi-mint border-b border-fi-light/70 transition-shadow duration-300 ${scrolled ? 'shadow-soft' : ''}`} style={{ height: 'var(--header-h)' }}>
+    <header className={`fixed inset-x-0 top-0 z-40 header-bg border-b border-fi-light/70 transition-shadow duration-300 ${scrolled ? 'shadow-soft' : ''}`} style={{ height: 'var(--header-h)' }}>
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-white focus:px-4 focus:py-2 focus:text-fi-dark">{lang === 'fr' ? 'Aller au contenu' : lang === 'en' ? 'Skip to content' : 'Ir al contenido'}</a>
       <div className="wrap h-full flex items-center justify-between gap-4">
         <Link to={p('/')} className="flex items-center shrink-0" aria-label={site.nom}>

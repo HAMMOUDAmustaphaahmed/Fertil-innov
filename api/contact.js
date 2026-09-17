@@ -25,7 +25,7 @@ export async function POST(request) {
       client: { nom: body.nom, email: body.email, telephone: body.telephone, organisation: body.organisation },
       service: body.service || null,
       details: { message: body.message, surface_ha: body.surface, localisation: body.localisation, formation: body.formation },
-    }, { services: settings.listes.services.filter((s) => s.visible !== false), lang, source: 'formulaire', requirePhone: false });
+    }, { services: settings.listes.services.filter((s) => s.visible !== false), lang, source: 'formulaire' });
     if (!built.ok) return error(400, built.erreurs.join(' · '));
     const saved = await persistLead(built.lead);
     if (!saved.ok) return error(429, saved.erreurs.join(' '));

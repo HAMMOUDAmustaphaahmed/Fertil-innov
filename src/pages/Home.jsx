@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ArrowDown, Check, Linkedin } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import SEO from '../components/SEO';
 import DepthRail from '../components/DepthRail';
 import { SectionHeader, Counter, PartnersMarquee } from '../components/ui';
@@ -32,12 +33,16 @@ function Hero() {
     gsap.to(q('.h-content'), { yPercent: -8, opacity: 0.2, ease: 'none', scrollTrigger: { trigger: ref.current, start: '40% top', end: 'bottom top', scrub: true } });
   }, { scope: ref });
 
+  // Variantes responsives uniquement pour l'image d'origine (une photo du propriétaire est servie telle quelle).
+  const hero = img('hero');
+  const heroSet = hero.src === '/images/hero.webp' ? '/images/hero-640.webp 640w, /images/hero-1000.webp 1000w, /images/hero.webp 1800w' : undefined;
   const title = t('hero_titre');
   const [l1, l2] = title.includes(',') ? [title.split(',')[0] + ',', title.split(',').slice(1).join(',').trim()] : [title, ''];
 
   return (
     <section ref={ref} data-horizon="surface" className="relative min-h-[100svh] flex items-end bg-fi-deep text-white overflow-hidden grain">
-      <img {...img('hero')} alt="" aria-hidden width={1800} height={1005} fetchpriority="high" className="h-bg absolute inset-0 h-[115%] w-full object-cover object-center opacity-70" />
+      <Helmet>{heroSet ? <link rel="preload" as="image" href="/images/hero.webp" imagesrcset={heroSet} imagesizes="100vw" fetchpriority="high" /> : <link rel="preload" as="image" href={hero.src} fetchpriority="high" />}</Helmet>
+      <img {...hero} alt="" aria-hidden width={1800} height={1005} fetchpriority="high" decoding="async" srcSet={heroSet} sizes="100vw" className="h-bg absolute inset-0 h-[115%] w-full object-cover object-center opacity-70" />
       <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-fi-deep via-fi-deep/55 to-fi-deep/20" />
       <div aria-hidden className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-fi-bg to-transparent z-[1]" />
 
@@ -77,7 +82,7 @@ function Services() {
         <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {services.map((s, i) => (
             <Link key={s.id} to={`${p('/services')}#${s.id}`} className={`reveal card group p-6 md:p-7 flex flex-col hover:-translate-y-1 hover:shadow-leaf transition-[transform,box-shadow] duration-300 ${i === 0 ? 'lg:col-span-2 lg:flex-row lg:items-center lg:gap-8 bg-fi-mint/60' : ''}`}>
-              <img src={`/images/${s.icone}`} alt="" aria-hidden width={72} height={72} loading="lazy" className={`h-16 w-16 object-contain ${i === 0 ? 'lg:h-28 lg:w-28 shrink-0' : ''}`} />
+              <img src={`/images/${s.icone}`} alt="" aria-hidden width={72} height={72} loading="lazy" decoding="async" className={`h-16 w-16 object-contain ${i === 0 ? 'lg:h-28 lg:w-28 shrink-0' : ''}`} />
               <div className={i === 0 ? 'mt-5 lg:mt-0' : 'mt-5'}>
                 <h3 className="text-display-sm">{L(s.titre)}</h3>
                 <p className="mt-2 text-[0.95rem] leading-relaxed text-fi-text/75">{L(s.resume)}</p>
@@ -126,7 +131,7 @@ function Process() {
         <div className="lg:col-span-5 lg:sticky lg:top-28">
           <SectionHeader kicker={t('pourquoi_kicker')} title={t('processus_titre')} text={t('processus_texte')} />
           <div className="mt-8 overflow-hidden rounded-3xl shadow-leaf">
-            <img {...img('sol_profil')} alt="" width={1600} height={900} loading="lazy" className="aspect-[4/3] w-full object-cover" />
+            <img {...img('sol_profil')} alt="" width={1600} height={900} loading="lazy" decoding="async" className="aspect-[4/3] w-full object-cover" />
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link to={p('/services')} className="btn-primary">{t('pourquoi_bouton_1')}</Link>
@@ -199,7 +204,7 @@ function Realisations() {
             <div className="track flex gap-5 w-max lg:pl-[max(0px,calc((100vw-76rem)/2))]">
               {list.map((r) => (
                 <article key={r.id} className="relative w-[78vw] max-w-[420px] sm:w-[360px] shrink-0 overflow-hidden rounded-3xl bg-white/5">
-                  <img src={imgSrc(r.image)} alt={L(r.titre)} width={800} height={600} loading="lazy" className="aspect-[4/3] w-full object-cover" />
+                  <img src={imgSrc(r.image)} alt={L(r.titre)} width={800} height={600} loading="lazy" decoding="async" className="aspect-[4/3] w-full object-cover" />
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-fi-deep via-fi-deep/70 to-transparent p-5 pt-16">
                     <p className="text-xs font-semibold text-fi-accent">{L(r.categorie)}</p>
                     <h3 className="mt-1 text-display-sm !text-white">{L(r.titre)}</h3>
@@ -344,7 +349,7 @@ function Equipe() {
           {list.map((m) => (
             <li key={m.id} className="reveal card overflow-hidden group">
               <div className="aspect-[4/4.2] overflow-hidden bg-fi-mint">
-                <img src={imgSrc(m.image)} alt={m.nom} width={600} height={690} loading="lazy" className="h-full w-full object-cover object-top group-hover:scale-[1.03] transition-transform duration-500" />
+                <img src={imgSrc(m.image)} alt={m.nom} width={600} height={690} loading="lazy" decoding="async" className="h-full w-full object-cover object-top group-hover:scale-[1.03] transition-transform duration-500" />
               </div>
               <div className="p-5">
                 <h3 className="font-display text-lg font-semibold text-fi-dark">{m.nom}</h3>
@@ -374,7 +379,7 @@ function PoisSection() {
     <section ref={ref} className="section bg-fi-deep text-white grain overflow-hidden">
       <div className="wrap grid gap-10 md:grid-cols-12 md:items-center">
         <div className="md:col-span-4 flex justify-center">
-          <img {...img('petit_pois')} alt="Petit Pois" width={320} height={320} loading="lazy" className="mascot w-56 md:w-72 drop-shadow-[0_30px_50px_rgba(0,0,0,0.5)]" />
+          <img {...img('petit_pois')} alt="Petit Pois" width={320} height={320} loading="lazy" decoding="async" className="mascot w-56 md:w-72 drop-shadow-[0_30px_50px_rgba(0,0,0,0.5)]" />
         </div>
         <div className="md:col-span-8">
           <SectionHeader dark kicker={t('pois_kicker')} title={t('pois_titre')} text={t('pois_texte')} />
@@ -402,7 +407,7 @@ function BlogTeaser() {
           {list.map((b) => (
             <li key={b.id} className="reveal card overflow-hidden group">
               <a href={b.lien} target="_blank" rel="noreferrer" className="block">
-                {b.image ? <img src={imgSrc(b.image)} alt="" width={900} height={506} loading="lazy" className="aspect-[16/9] w-full object-cover group-hover:scale-[1.02] transition-transform duration-500" /> : <div className="aspect-[16/9] bg-fi-mint flex items-center justify-center text-4xl">🎙️</div>}
+                {b.image ? <img src={imgSrc(b.image)} alt="" width={900} height={506} loading="lazy" decoding="async" className="aspect-[16/9] w-full object-cover group-hover:scale-[1.02] transition-transform duration-500" /> : <div className="aspect-[16/9] bg-fi-mint flex items-center justify-center text-4xl">🎙️</div>}
                 <div className="p-5">
                   <p className="text-xs font-semibold text-fi-primary">{L(b.categorie)} · {fmtDate(b.date, lang)}</p>
                   <h3 className="mt-2 font-display text-lg font-semibold text-fi-dark leading-snug">{L(b.titre)}</h3>

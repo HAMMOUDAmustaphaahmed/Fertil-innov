@@ -27,7 +27,18 @@ export function providerInfo() {
  * @returns {Promise<{content: Array, stop_reason: string, usage: object}>}
  */
 export async function runTurn(p) {
-  return env.provider === 'groq' ? groqTurn(p) : anthropicTurn(p);
+  if (env.provider !== 'groq') return anthropicTurn(p);
+  const primary = p.model || env.model;
+  try {
+    return await groqTurn(p);
+  } catch (e) {
+    // Quota du modèle saturé (429) ou incident (5xx) : on bascule sur un modèle de repli plutôt que d'échouer.
+    if (!(e?.status === 429 || e?.status >= 500)) throw e;
+    const alt = env.fallbackModels.find((m) => m !== primary);
+    if (!alt) throw e;
+    console.warn(`[llm] ${primary} indisponible (${e.status}) → repli sur ${alt}`);
+    return groqTurn({ ...p, model: alt });
+  }
 }
 // runTurn permet de surcharger le modèle par appel (p.model) — utilisé par le Chef.
 
@@ -35,7 +46,7 @@ export async function runTurn(p) {
 export async function complete({ system, user, maxTokens = 10, model }) {
   if (env.provider === 'groq') {
     assertEnv(['groqKey']);
-    groq ||= new Groq({ apiKey: env.groqKey, maxRetries: 6 }); // palier gratuit : 8k tokens/min → on attend plutôt qu'échouer
+    groq ||= new Groq({ apiKey: env.groqKey, maxRetries: 3 });
     const res = await groq.chat.completions.create({
       model: model || env.guardModel,
       max_completion_tokens: maxTokens,
@@ -93,7 +104,7 @@ async function anthropicTurn(p) {
 // ---------------------------------------------------------------------------
 // Groq (compatible OpenAI)
 // ---------------------------------------------------------------------------
-const isReasoningModel = (m) => /gpt-oss|qwen3|deepseek|compound/i.test(m || '');
+const isReasoningModel = (m) => /gpt-oss|qwen3|deepseek/i.test(m || '') && !/compound/i.test(m || '');
 
 function textOf(content) {
   if (typeof content === 'string') return content;
@@ -134,7 +145,7 @@ async function groqTurn(p) {
   const { system, tools, messages, maxTokens, onText } = p;
   const model = p.model || env.model;
   assertEnv(['groqKey']);
-  groq ||= new Groq({ apiKey: env.groqKey, maxRetries: 6 }); // palier gratuit : 8k tokens/min → on attend plutôt qu'échouer
+  groq ||= new Groq({ apiKey: env.groqKey, maxRetries: 3 }); // 3 essais avec attente, puis repli sur un autre modèle (runTurn)
 
   const stream = await groq.chat.completions.create({
     model,

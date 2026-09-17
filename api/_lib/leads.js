@@ -32,7 +32,7 @@ export function newNumero() {
  * Valide et normalise une demande. Retourne { ok, lead } ou { ok:false, erreurs }.
  * `services` = liste des services visibles (pour vérifier l'id).
  */
-export function buildLead(input = {}, { services = [], lang = 'fr', source = 'chat', requirePhone = true } = {}) {
+export function buildLead(input = {}, { services = [], lang = 'fr', source = 'chat', requirePhone = false } = {}) {
   const erreurs = [];
   const type = LEAD_TYPES.includes(input.type) ? input.type : null;
   if (!type) erreurs.push(`type invalide (attendu : ${LEAD_TYPES.join(', ')})`);

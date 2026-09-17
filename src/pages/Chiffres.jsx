@@ -51,7 +51,7 @@ export default function Chiffres() {
             <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               {real.map((r) => (
                 <li key={r.id} className="reveal relative overflow-hidden rounded-2xl">
-                  <img src={imgSrc(r.image)} alt={L(r.titre)} width={600} height={450} loading="lazy" className="aspect-[4/3] w-full object-cover" />
+                  <img src={imgSrc(r.image)} alt={L(r.titre)} width={600} height={450} loading="lazy" decoding="async" className="aspect-[4/3] w-full object-cover" />
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-fi-deep/90 to-transparent p-4 pt-10 text-white"><p className="text-xs text-fi-accent">{L(r.categorie)}</p><p className="font-display font-semibold leading-tight">{L(r.titre)}</p></div>
                 </li>
               ))}

@@ -8,7 +8,7 @@ export default defineConfig(({ isSsrBuild }) => ({
     rollupOptions: isSsrBuild ? {} : {
       output: {
         manualChunks: {
-          motion: ['framer-motion', 'gsap', '@gsap/react', 'lenis'],
+          motion: ['framer-motion', 'gsap', '@gsap/react'],
           vendor: ['react', 'react-dom', 'react-router-dom', 'react-helmet-async'],
         },
       },

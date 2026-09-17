@@ -44,8 +44,8 @@ Aucune clé ne quitte le serveur : le navigateur n'appelle que `/api/*`.
 | Garde-fou | Variable | Défaut |
 |---|---|---|
 | Messages max par conversation | `CHAT_MAX_MESSAGES_PER_SESSION` | 20 |
-| Messages max par IP et par jour | `CHAT_MAX_MESSAGES_PER_IP_PER_DAY` | 40 |
-| Nouvelles conversations par IP et par jour | `CHAT_MAX_SESSIONS_PER_IP_PER_DAY` | 3 |
+| Messages max par IP et par jour | `CHAT_MAX_MESSAGES_PER_IP_PER_DAY` | 80 |
+| Nouvelles conversations par IP et par jour | `CHAT_MAX_SESSIONS_PER_IP_PER_DAY` | 10 | 
 | Intervalle minimum entre deux messages | `CHAT_MIN_INTERVAL_MS` | 2500 ms |
 | Longueur max d'un message | `CHAT_MAX_INPUT_CHARS` | 500 |
 | Budget global de tokens par jour | `CHAT_DAILY_TOKEN_BUDGET` | 2 000 000 |

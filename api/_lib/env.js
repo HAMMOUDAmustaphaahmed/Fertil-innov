@@ -9,8 +9,12 @@ export const env = {
   provider,
   anthropicKey: process.env.ANTHROPIC_API_KEY,
   groqKey: process.env.GROQ_API_KEY,
+  // Groq : chaque modèle a son propre quota (8 000 tokens/min sur le palier gratuit) → on répartit
+  // Petit Pois, le Chef et le filtre/traducteur sur trois modèles différents, avec un repli si l'un sature.
   model: process.env.POIS_MODEL || process.env.LEA_MODEL || (provider === 'groq' ? 'openai/gpt-oss-120b' : 'claude-sonnet-5'),
-  chefModel: process.env.CHEF_MODEL || (provider === 'groq' ? 'openai/gpt-oss-120b' : ''),
+  chefModel: process.env.CHEF_MODEL || (provider === 'groq' ? 'qwen/qwen3.8-27b' : ''),
+  fallbackModels: (process.env.FALLBACK_MODELS || (provider === 'groq' ? 'qwen/qwen3.8-27b,openai/gpt-oss-120b,openai/gpt-oss-20b' : '')).split(',').map((s) => s.trim()).filter(Boolean),
+  translateModel: process.env.TRANSLATE_MODEL || (provider === 'groq' ? 'openai/gpt-oss-20b' : 'claude-haiku-4-5'),
   guardEnabled: (process.env.POIS_GUARD || process.env.LEA_GUARD || 'on') !== 'off',
   guardModel: process.env.POIS_GUARD_MODEL || process.env.LEA_GUARD_MODEL || (provider === 'groq' ? 'openai/gpt-oss-20b' : 'claude-haiku-4-5'),
   offtopicStrikes: num(process.env.CHAT_OFFTOPIC_STRIKES, 3),
@@ -35,8 +39,8 @@ export const env = {
 
   // Garde-fous
   maxMessagesPerSession: num(process.env.CHAT_MAX_MESSAGES_PER_SESSION, 20),
-  maxMessagesPerIpPerDay: num(process.env.CHAT_MAX_MESSAGES_PER_IP_PER_DAY, 40),
-  maxSessionsPerIpPerDay: num(process.env.CHAT_MAX_SESSIONS_PER_IP_PER_DAY, 3),
+  maxMessagesPerIpPerDay: num(process.env.CHAT_MAX_MESSAGES_PER_IP_PER_DAY, 80),
+  maxSessionsPerIpPerDay: num(process.env.CHAT_MAX_SESSIONS_PER_IP_PER_DAY, 10),
   minIntervalMs: num(process.env.CHAT_MIN_INTERVAL_MS, 2500),
   maxInputChars: num(process.env.CHAT_MAX_INPUT_CHARS, 500),
   historyTurns: num(process.env.CHAT_HISTORY_TURNS, 12),

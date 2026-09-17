@@ -2,6 +2,7 @@
 // par le petit modèle rapide. Utilisé par le Chef quand il modifie un texte du site :
 // le propriétaire écrit en français, les deux autres langues suivent.
 import { complete } from './llm.js';
+import { env } from './env.js';
 import { LANGS } from '../../src/data/infos.js';
 
 const NAMES = { fr: 'français', en: 'anglais', es: 'espagnol' };
@@ -17,6 +18,7 @@ export async function translateAll(text, from = 'fr') {
         system: `Tu es un traducteur professionnel pour un site web d'ingénierie écologique (microbiologie des sols, agriculture, remédiation). Traduis le texte du ${NAMES[from]} vers l'${NAMES[l]}${l === 'en' ? ' (anglais britannique)' : ''}. Conserve le ton, les chiffres, les unités, les noms propres, les noms latins d'espèces et les emojis. Réponds UNIQUEMENT par la traduction, sans guillemets ni commentaire.`,
         user: src,
         maxTokens: Math.min(1500, 80 + src.length * 2),
+        model: env.translateModel,
       });
       const t = raw.trim().replace(/^["«»“”]+|["«»“”]+$/g, '');
       out[l] = t || src;
