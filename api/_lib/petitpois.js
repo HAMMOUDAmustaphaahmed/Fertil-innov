@@ -114,7 +114,7 @@ const RAW_TOOLS = [
 
 export const TOOLS = nullableOptionals(RAW_TOOLS);
 
-const PAGES = { services: '/services', activites: '/activites', expertise: '/expertise', formations: '/formations', chiffres: '/chiffres', blog: '/blog', faq: '/faq', contact: '/contact' };
+const PAGES = { services: '/services', activites: '/activites', expertise: '/expertise', formations: '/formations', chiffres: '/chiffres', blog: '/blog', faq: '/faq', equipe: '/equipe', contact: '/contact' };
 const pagePath = (lang, p) => (lang === 'fr' ? p : `/${lang}${p}`);
 
 // ---------------------------------------------------------------------------

@@ -24,7 +24,8 @@
 }
 
 @layer base {
-  html { scroll-behavior: auto; -webkit-text-size-adjust: 100%; }
+  /* overflow-x: clip (et non hidden) : bloque tout débordement horizontal sans casser position: sticky */
+  html { scroll-behavior: auto; -webkit-text-size-adjust: 100%; scroll-padding-top: calc(var(--header-h) + 1rem); overflow-x: clip; }
   body {
     @apply bg-fi-bg text-fi-text font-sans antialiased;
     font-feature-settings: "ss01", "cv11";
@@ -85,6 +86,113 @@
 /* Éléments révélés par GSAP : cachés avant l'animation (uniquement quand JS est actif) */
 .js .reveal { opacity: 0; }
 
+/* Hero « microscope » : scène collante de plusieurs écrans quand JS + animations sont actifs,
+   sinon un simple hero d'un écran (chapitres et vue micro masqués). */
+.hero-scene { height: 100svh; }
+.hero-micro, .hero-chapter, .hero-hud { display: none; }
+.js .hero-scene { height: 340svh; }
+.hero-scene { min-height: 100svh; }
+.js .hero-micro { display: block; --eye: 0%; clip-path: circle(var(--eye) at var(--orb-x, 50%) var(--orb-y, 30%)); }
+@media (min-aspect-ratio: 11/10) { .js .hero-micro { clip-path: circle(var(--eye) at var(--orb-x, 72%) var(--orb-y, 50%)); } }
+.js .hero-chapter { display: flex; opacity: 0; }
+.js .hero-hud { display: block; opacity: 0; }
+
+/* Atmosphère du hero : halo lime + lueur terre autour de la motte 3D, trame « paillasse » très légère */
+.hero-atmo {
+  background:
+    radial-gradient(circle at var(--orb-x, 50%) var(--orb-y, 30%), rgb(var(--fi-accent) / 0.22), transparent 32%),
+    radial-gradient(ellipse at var(--orb-x, 50%) calc(var(--orb-y, 30%) + 12%), rgb(var(--fi-soil) / 0.55), transparent 45%),
+    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px) 0 0 / 100% 64px,
+    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px) 0 0 / 64px 100%;
+}
+@media (min-aspect-ratio: 11/10) {
+  .hero-atmo {
+    background:
+      radial-gradient(circle at var(--orb-x, 72%) var(--orb-y, 50%), rgb(var(--fi-accent) / 0.22), transparent 30%),
+      radial-gradient(ellipse at var(--orb-x, 72%) calc(var(--orb-y, 50%) + 12%), rgb(var(--fi-soil) / 0.55), transparent 42%),
+      linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px) 0 0 / 100% 64px,
+      linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px) 0 0 / 64px 100%;
+  }
+}
+/* Rayons de lumière au-dessus de la plantule du hero */
+.hero-rays { left: var(--orb-x, 50%); top: calc(var(--orb-y, 30%) - 34%); width: min(70vmin, 620px); aspect-ratio: 1; translate: -50% -50%;
+  background: repeating-conic-gradient(from 0deg, rgb(255 248 200 / 0.10) 0deg 6deg, transparent 6deg 18deg);
+  -webkit-mask: radial-gradient(circle, #000 0%, transparent 62%); mask: radial-gradient(circle, #000 0%, transparent 62%);
+  animation: hero-rays 40s linear infinite; mix-blend-mode: screen; }
+@keyframes hero-rays { to { rotate: 360deg; } }
+
+/* Monolithe de sol en CSS (attente du WebGL, ou repli sans WebGL / animations réduites) : horizons empilés */
+.orb-fallback {
+  left: var(--orb-x, 50%); top: var(--orb-y, 30%); width: min(30vmin, 260px); aspect-ratio: 0.9; translate: -50% -50%; border-radius: 14px;
+  background: linear-gradient(180deg, #7cb342 0 3%, #2b1c10 3% 14%, rgb(var(--fi-soil)) 14% 46%, rgb(var(--fi-loam)) 46% 76%, #8f8577 76%);
+  box-shadow: 0 0 0 1px rgb(var(--fi-accent) / 0.25), 0 0 90px 10px rgb(var(--fi-accent) / 0.16), inset -18px -24px 50px rgb(0 0 0 / 0.35);
+}
+@media (min-aspect-ratio: 11/10) { .orb-fallback { left: var(--orb-x, 72%); top: var(--orb-y, 50%); } }
+
+/* Barre de navigation flottante : verre dépoli, dégradé terre → menthe → blanc */
+.nav-glass {
+  background: linear-gradient(90deg, rgb(230 211 181 / 0.82) 0%, rgb(var(--fi-mint) / 0.82) 42%, rgb(255 255 255 / 0.8) 100%);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5);
+  border: 1px solid rgb(255 255 255 / 0.75);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 10px 30px -22px rgb(var(--fi-deep) / 0.5);
+}
+.nav-glass.is-scrolled { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 18px 50px -20px rgb(var(--fi-deep) / 0.45); }
+
+/* Effets de défilement globaux (usePageFx) : états initiaux posés avant la peinture quand JS est actif */
+.fx-shine { position: relative; overflow: hidden; }
+.fx-shine::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 0%), rgb(255 255 255 / 0.35), transparent 45%); opacity: var(--shine, 0); transition: opacity .4s; }
+
+/* Carotte de prélèvement (processus) : remplissage piloté par --p (0 → 1), horizontal ou vertical */
+.core-seg { --p: 1; clip-path: inset(0 calc((1 - var(--p)) * 100%) 0 0); }
+.core-seg.is-v { clip-path: inset(0 0 calc((1 - var(--p)) * 100%) 0); }
+
+/* Boîtes de Petri : rotation lente */
+.petri-spin { animation: petri-spin 60s linear infinite; }
+@keyframes petri-spin { to { transform: rotate(360deg); } }
+
+/* Icônes : trait qui se trace à l'entrée, accents qui éclosent, respiration au survol */
+.ico .s { stroke-width: 1.4; opacity: .7; }
+.ico .a-s { stroke-width: 2.4; }
+.ico .l, .ico .s { stroke-dasharray: 1; stroke-dashoffset: 0; }
+.js .ico:not(.is-in) .l, .js .ico:not(.is-in) .s { stroke-dashoffset: 1; }
+.js .ico:not(.is-in) .a, .js .ico:not(.is-in) .a-s { transform: scale(0); opacity: 0; }
+.ico .a, .ico .a-s { transform-box: fill-box; transform-origin: center; transition: transform .6s cubic-bezier(.34,1.56,.64,1) .7s, opacity .4s .7s; }
+.ico.is-in .l { transition: stroke-dashoffset 1.3s cubic-bezier(.65,0,.35,1); }
+.ico.is-in .s { transition: stroke-dashoffset 1.1s cubic-bezier(.65,0,.35,1) .35s; }
+.group:hover .ico .a, .ico-tile:hover .ico .a { animation: ico-breath 1.4s ease-in-out infinite; }
+@keyframes ico-breath { 50% { transform: scale(1.25); } }
+.ico-orbit::after { content: ""; position: absolute; width: 6px; height: 6px; border-radius: 50%; background: rgb(var(--fi-accent)); top: -3px; left: 50%;
+  box-shadow: 0 0 10px rgb(var(--fi-accent)); offset-path: inset(0 round 1rem); animation: ico-orbit 6s linear infinite; }
+@keyframes ico-orbit { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+
+/* Repère de carte : onde rouge qui pulse */
+.map-pin { position: relative; display: block; }
+.map-pin::before { content: ""; position: absolute; inset: -8px; border-radius: 50%; background: rgb(229 57 53 / 0.35); animation: map-pulse 2s ease-out infinite; }
+@keyframes map-pulse { from { transform: scale(0.4); opacity: 1; } to { transform: scale(1.8); opacity: 0; } }
+
+/* Bulle de Petit Pois : microbes en orbite, halo qui respire */
+.pois-orbit { animation: pois-orbit linear infinite; }
+@keyframes pois-orbit { to { transform: rotate(360deg); } }
+.pois-halo { animation: pois-halo 3.2s ease-in-out infinite; }
+@keyframes pois-halo { 50% { transform: scale(1.25); opacity: .6; } }
+
+/* Visuels d'en-tête des pages (HeroArt) */
+.art-spin { animation: art-spin 80s linear infinite; }
+.art-counter { animation: art-spin 80s linear infinite reverse; }
+.art-spin-slow { animation: art-spin 140s linear infinite; }
+@keyframes art-spin { to { rotate: 360deg; } }
+.art-ring { stroke-dasharray: 1; stroke-dashoffset: 1; animation: art-draw 2.4s cubic-bezier(.65,0,.35,1) forwards; }
+.art-root { stroke-dasharray: 1; stroke-dashoffset: 1; animation: art-draw 3s cubic-bezier(.65,0,.35,1) .4s forwards; }
+@keyframes art-draw { to { stroke-dashoffset: 0; } }
+.art-wave { animation: art-wave 4s cubic-bezier(.2,.6,.3,1) infinite; opacity: 0; }
+@keyframes art-wave { 0% { transform: scale(.35); opacity: .9; } 100% { transform: scale(1); opacity: 0; } }
+.art-eq { height: 30%; animation: art-eq 1s ease-in-out infinite alternate; }
+@keyframes art-eq { to { height: 90%; } }
+.art-bubble { animation: art-bubble linear infinite; }
+@keyframes art-bubble { 0% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: 1; } 50% { transform: translateY(-60vh) translateX(14px); } 100% { transform: translateY(-120vh) translateX(-10px); opacity: 0; } }
+.art-sweep { background: conic-gradient(from 0deg, rgb(var(--fi-accent) / 0.35), transparent 70deg); animation: art-spin 4s linear infinite; }
+
 /* Barre de défilement discrète */
 ::-webkit-scrollbar { width: 10px; }
 ::-webkit-scrollbar-thumb { background: rgb(var(--fi-primary) / 0.35); border-radius: 999px; border: 2px solid rgb(var(--fi-bg)); }
@@ -93,8 +201,12 @@
 .leaflet-container { font-family: inherit; }
 
 @media (prefers-reduced-motion: reduce) {
-  .marquee-track, .float, .typing-dot { animation: none !important; }
+  .marquee-track, .float, .typing-dot, .petri-spin, .ico-orbit::after, .ico .a, .map-pin::before, .pois-orbit, .pois-halo, .hero-rays, .art-spin, .art-counter, .art-spin-slow, .art-wave, .art-eq, .art-bubble, .art-sweep { animation: none !important; }
+  .art-ring, .art-root { animation: none !important; stroke-dashoffset: 0; }
   .js .reveal { opacity: 1; }
+  .js .hero-scene { height: 100svh; }
+  .js .hero-micro, .js .hero-chapter, .js .hero-hud { display: none; }
+  .orb-fallback { opacity: 1 !important; }
   html { scroll-behavior: auto; }
 }
 

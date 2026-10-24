@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, ArrowRight } from 'lucide-react';
 import SEO from '../components/SEO';
+import Icon from '../components/Icons';
 import { PageHero } from '../components/ui';
 import { useLang } from '../i18n/LangProvider';
 import { useSite } from '../site/SiteProvider';
@@ -19,7 +20,7 @@ export default function Faq() {
   return (
     <>
       <SEO title={t('faq_titre')} description={t('seo_faq')} path="/faq" jsonLd={jsonLd} breadcrumb={[{ name: t('nav_accueil'), path: '/' }, { name: t('nav_faq'), path: '/faq' }]} />
-      <PageHero title={t('faq_titre')} text={t('faq_texte')} />
+      <PageHero variant="bubbles" title={t('faq_titre')} text={t('faq_texte')} />
       <section ref={ref} className="section">
         <div className="wrap grid gap-10 lg:grid-cols-12">
           <div className="lg:col-span-8 space-y-3">
@@ -29,7 +30,7 @@ export default function Faq() {
                 <article key={f.id} className={`reveal card overflow-hidden transition-colors ${isOpen ? 'border-fi-primary/40' : ''}`}>
                   <h2>
                     <button type="button" onClick={() => setOpen(isOpen ? null : f.id)} aria-expanded={isOpen} aria-controls={`faq-${f.id}`} className="flex w-full items-center gap-4 p-5 md:p-6 text-left">
-                      <span className="text-2xl shrink-0" aria-hidden>{f.emoji}</span>
+                      <Icon emoji={f.emoji} tile="light" className="h-11 w-11" size="h-6 w-6" />
                       <span className="flex-1 font-display text-lg font-semibold text-fi-dark leading-snug">{L(f.question)}</span>
                       <ChevronDown size={20} className={`shrink-0 text-fi-primary transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden />
                     </button>

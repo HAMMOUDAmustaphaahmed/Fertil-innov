@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import SEO from '../components/SEO';
+import Icon from '../components/Icons';
 import { PageHero, SectionHeader } from '../components/ui';
 import { useLang } from '../i18n/LangProvider';
 import { useSite } from '../site/SiteProvider';
@@ -20,7 +21,7 @@ export default function Expertise() {
           <div className="grid gap-5 md:grid-cols-2">
             {list.map((x) => (
               <article key={x.id} className="reveal card p-6 md:p-8">
-                <span className="text-3xl" aria-hidden>{x.emoji}</span>
+                <Icon emoji={x.emoji} tile="light" className="h-14 w-14" size="h-8 w-8" />
                 <h2 className="mt-4 text-display-sm">{L(x.titre)}</h2>
                 <p className="mt-3 leading-relaxed text-fi-text/80">{L(x.texte)}</p>
                 <p className="mt-5 rounded-2xl bg-fi-mint px-4 py-3 text-sm font-semibold text-fi-dark">→ {L(x.impact)}</p>

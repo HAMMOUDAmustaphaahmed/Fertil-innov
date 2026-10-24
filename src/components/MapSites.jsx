@@ -12,7 +12,8 @@ export default function MapSites({ className = '' }) {
       const L = (await import('leaflet')).default;
       await import('leaflet/dist/leaflet.css');
       if (cancelled || !ref.current) return;
-      const icon = L.divIcon({ className: '', html: '<span style="display:block;width:18px;height:18px;border-radius:50%;background:#2e7d32;border:3px solid #fff;box-shadow:0 4px 14px rgba(27,94,32,.45)"></span>', iconSize: [18, 18], iconAnchor: [9, 9] });
+      // Repère rouge avec onde qui pulse (classe .map-pin dans index.css)
+      const icon = L.divIcon({ className: '', html: '<span class="map-pin"><span style="display:block;width:18px;height:18px;border-radius:50%;background:#e53935;border:3px solid #fff;box-shadow:0 4px 14px rgba(183,28,28,.5)"></span></span>', iconSize: [18, 18], iconAnchor: [9, 9] });
       map = L.map(ref.current, { scrollWheelZoom: false, attributionControl: true });
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', maxZoom: 19 }).addTo(map);
       const pts = [];

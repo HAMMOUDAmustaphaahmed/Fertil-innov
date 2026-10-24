@@ -40,7 +40,9 @@ export default function SEO({ title, description, path = '/', image, jsonLd = []
   const site = useSite();
   const base = useSiteUrl();
   const url = `${base}${localePath(path, lang)}`;
-  const fullTitle = title ? (title.includes(site.nomCourt) ? title : `${title} | ${site.nomCourt}`) : `${site.nom} | ${site.slogan?.[lang] || site.slogan?.fr}`;
+  // Apostrophes typographique (’) et droite (') confondues : évite « … Fertil’Innov | Fertil'Innov ».
+  const norm = (v) => String(v || '').replace(/[’']/g, "'");
+  const fullTitle = title ? (norm(title).includes(norm(site.nomCourt)) ? title : `${title} | ${site.nomCourt}`) : `${site.nom} | ${site.slogan?.[lang] || site.slogan?.fr}`;
   const keywords = site.listes.services.filter((s) => s.visible !== false).map((s) => s.titre?.[lang] || s.titre?.fr).join(', ');
   const img = image || site.images.og;
   const absImg = /^https?:/.test(img) ? img : `${base}${img}`;

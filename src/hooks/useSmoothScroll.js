@@ -18,6 +18,11 @@ export function useSmoothScroll() {
       tick = (time) => lenis.raf(time * 1000);
       gsap.ticker.add(tick);
       gsap.ticker.lagSmoothing(0);
+      // Défilement bloqué tant que le loader d'index.html est affiché.
+      if (document.documentElement.classList.contains('fi-loading')) {
+        lenis.stop();
+        window.addEventListener('fi:loader-done', () => lenis?.start(), { once: true });
+      }
     });
     return () => {
       cancelled = true;

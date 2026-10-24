@@ -11,7 +11,9 @@
     "telegram": "node scripts/telegram-dev.mjs",
     "images": "node scripts/optimize-images.mjs"
   },
-  "engines": { "node": "22.x" },
+  "engines": {
+    "node": "22.x"
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",
     "@gsap/react": "^2.1.2",
@@ -27,7 +29,8 @@
     "react-dom": "^18.3.1",
     "react-helmet-async": "^2.0.5",
     "react-router-dom": "^6.28.0",
-    "resend": "^6.28.0"
+    "resend": "^6.28.0",
+    "three": "^0.169.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",

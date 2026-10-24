@@ -16,7 +16,7 @@ export default function Blog() {
   return (
     <>
       <SEO title={t('blog_titre')} description={t('seo_blog')} path="/blog" jsonLd={jsonLd} breadcrumb={[{ name: t('nav_accueil'), path: '/' }, { name: t('nav_blog'), path: '/blog' }]} />
-      <PageHero title={t('blog_titre')} text={t('blog_texte')} />
+      <PageHero variant="waves" title={t('blog_titre')} text={t('blog_texte')} />
       <section ref={ref} className="section">
         <div className="wrap grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {list.map((b, i) => (

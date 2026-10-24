@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import App from './App.jsx';
+import App, { preloadRoute } from './App.jsx';
 import { SiteProvider } from './site/SiteProvider.jsx';
 import './index.css';
 
@@ -20,5 +20,5 @@ const app = (
 );
 
 // Page pré-rendue (SEO) → hydratation ; sinon rendu classique.
-if (root.hasChildNodes() && root.dataset.prerendered === '1') ReactDOM.hydrateRoot(root, app);
+if (root.hasChildNodes() && root.dataset.prerendered === '1') preloadRoute(window.location.pathname).then(() => ReactDOM.hydrateRoot(root, app));
 else ReactDOM.createRoot(root).render(app);

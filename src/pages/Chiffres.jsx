@@ -26,7 +26,7 @@ export default function Chiffres() {
   return (
     <>
       <SEO title={t('chiffres_titre')} description={t('seo_chiffres')} path="/chiffres" breadcrumb={[{ name: t('nav_accueil'), path: '/' }, { name: t('nav_chiffres'), path: '/chiffres' }]} />
-      <PageHero title={t('chiffres_titre')} text={t('chiffres_texte')} image="/images/sol-profil.webp" />
+      <PageHero variant="contours" title={t('chiffres_titre')} text={t('chiffres_texte')} image="/images/sol-profil.webp" />
       <section ref={ref} className="section">
         <div className="wrap">
           <dl className="grid grid-cols-2 gap-5 md:grid-cols-4">

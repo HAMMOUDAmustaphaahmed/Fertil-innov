@@ -16,6 +16,7 @@ export const CONTENT = {
   nav_blog: K('global', 'Menu — Blog', 'Blog', 'News', 'Blog'),
   nav_faq: K('global', 'Menu — FAQ', 'FAQ', 'FAQ', 'FAQ'),
   nav_contact: K('global', 'Menu — Contact', 'Contact', 'Contact', 'Contacto'),
+  nav_equipe: K('global', 'Menu — Équipe', 'Équipe', 'Team', 'Equipo'),
   nav_guide: K('global', 'Menu — Guide des sols', 'Guide des sols', 'Soil guide', 'Guía de suelos'),
   nav_bouton: K('global', 'Bouton du menu (haut de page)', 'Demander un devis', 'Request a quote', 'Solicitar presupuesto'),
   nav_langue: K('global', 'Libellé du sélecteur de langue', 'Langue', 'Language', 'Idioma'),
@@ -30,6 +31,17 @@ export const CONTENT = {
   hero_stat_1: K('accueil', 'Hero — chiffre 1', '+40 % de rendement', '+40% yield', '+40 % de rendimiento'),
   hero_stat_2: K('accueil', 'Hero — chiffre 2', '−80 % de polluants en 24 mois', '−80% pollutants in 24 months', '−80 % de contaminantes en 24 meses'),
   hero_stat_3: K('accueil', 'Hero — chiffre 3', '5 000+ souches certifiées', '5,000+ certified strains', '5.000+ cepas certificadas'),
+  hero_ch1_kicker: K('accueil', 'Hero défilant — chapitre 1, petite ligne', 'La rhizosphère', 'The rhizosphere', 'La rizosfera'),
+  hero_ch1_titre: K('accueil', 'Hero défilant — chapitre 1, texte', 'Un gramme de sol vivant abrite jusqu’à un milliard de micro-organismes : c’est là que se joue la nutrition de vos cultures.', 'A single gram of living soil holds up to a billion microorganisms: this is where your crops are fed.', 'Un gramo de suelo vivo alberga hasta mil millones de microorganismos: ahí se decide la nutrición de sus cultivos.'),
+  hero_ch2_kicker: K('accueil', 'Hero défilant — chapitre 2, petite ligne', 'Notre souchothèque', 'Our strain library', 'Nuestra colección de cepas'),
+  hero_ch2_titre: K('accueil', 'Hero défilant — chapitre 2, texte', 'Nous isolons, multiplions et réintroduisons les souches dont vos sols ont besoin.', 'We isolate, grow and reintroduce the strains your soils need.', 'Aislamos, multiplicamos y reintroducimos las cepas que sus suelos necesitan.'),
+  hero_ch3_kicker: K('accueil', 'Hero défilant — chapitre 3, petite ligne', 'Remédiation écologique', 'Ecological remediation', 'Remediación ecológica'),
+  hero_ch3_titre: K('accueil', 'Hero défilant — chapitre 3, texte', 'Le vivant dépollue : une remédiation biologique, suivie par des indicateurs mesurés sur le terrain.', 'Life cleans up: biological remediation, tracked with indicators measured in the field.', 'La vida descontamina: una remediación biológica, seguida con indicadores medidos en campo.'),
+  hero_lbl_myco: K('accueil', 'Hero 3D — étiquette hyphes', 'Réseau mycorhizien', 'Mycorrhizal network', 'Red micorrízica'),
+  hero_lbl_bact: K('accueil', 'Hero 3D — étiquette bactéries', 'Bactéries PGPR', 'PGPR bacteria', 'Bacterias PGPR'),
+  hero_lbl_nod: K('accueil', 'Hero 3D — étiquette nodules', 'Rhizobium · fixation de l’azote', 'Rhizobium · nitrogen fixation', 'Rhizobium · fijación de nitrógeno'),
+  hero_lbl_nut: K('accueil', 'Hero 3D — étiquette nutriments', 'Flux N · P · K vers la racine', 'N · P · K flowing to the root', 'Flujo N · P · K hacia la raíz'),
+  hero_hud: K('accueil', 'Hero défilant — libellé du grossissement', 'Grossissement', 'Magnification', 'Aumento'),
 
   // ---------- Accueil : horizons (rail de profondeur) ----------
   horizon_surface: K('accueil', 'Rail de profondeur — surface', 'Surface', 'Surface', 'Superficie'),
@@ -84,6 +96,10 @@ export const CONTENT = {
 
   // ---------- Accueil : équipe ----------
   equipe_kicker: K('accueil', 'Équipe — petite ligne', 'Notre équipe', 'Our team', 'Nuestro equipo'),
+  equipe_page_titre: K('equipe', 'Page Équipe — titre', 'L’équipe Fertil’Innov', 'The Fertil’Innov team', 'El equipo de Fertil’Innov'),
+  equipe_page_texte: K('equipe', 'Page Équipe — introduction', 'Microbiologistes, agronomes et ingénieurs en écologie : une équipe pluridisciplinaire basée à Grabels, près de Montpellier, qui accompagne vos sols du prélèvement au résultat mesuré.', 'Microbiologists, agronomists and ecological engineers: a multidisciplinary team based in Grabels, near Montpellier, supporting your soils from sampling to measured results.', 'Microbiólogos, agrónomos e ingenieros ecológicos: un equipo multidisciplinar con sede en Grabels, cerca de Montpellier, que acompaña sus suelos de la muestra al resultado medido.'),
+  equipe_cta_titre: K('equipe', 'Page Équipe — appel à l’action', 'Un projet, une question, une candidature ?', 'A project, a question, an application?', '¿Un proyecto, una pregunta, una candidatura?'),
+  equipe_cta_texte: K('equipe', 'Page Équipe — texte de l’appel', 'Écrivez-nous : un membre de l’équipe vous répond sous 24 h ouvrées.', 'Write to us: a team member will reply within 24 working hours.', 'Escríbanos: un miembro del equipo le responderá en 24 h laborables.'),
   equipe_titre: K('accueil', 'Équipe — titre', 'Des experts passionnés par la microbiologie des sols', 'Experts passionate about soil microbiology', 'Expertos apasionados por la microbiología de suelos'),
 
   // ---------- Accueil : Petit Pois ----------
@@ -91,6 +107,7 @@ export const CONTENT = {
   pois_titre: K('accueil', 'Section Petit Pois — titre', 'Petit Pois répond, qualifie votre besoin et transmet votre demande à l’équipe', 'Petit Pois answers, qualifies your need and passes your request to the team', 'Petit Pois responde, califica su necesidad y transmite su solicitud al equipo'),
   pois_texte: K('accueil', 'Section Petit Pois — texte', 'Décrivez votre parcelle ou votre site : Petit Pois vous oriente vers le bon service, répond aux questions techniques de base et prépare votre demande de devis — l’équipe vous rappelle sous 24 h ouvrées.', 'Describe your plot or site: Petit Pois points you to the right service, answers basic technical questions and prepares your quote request — the team calls you back within 24 working hours.', 'Describa su parcela o su sitio: Petit Pois le orienta hacia el servicio adecuado, responde a preguntas técnicas básicas y prepara su solicitud de presupuesto; el equipo le llama en 24 h laborables.'),
   pois_bouton: K('accueil', 'Section Petit Pois — bouton', 'Discuter avec Petit Pois', 'Chat with Petit Pois', 'Hablar con Petit Pois'),
+  pois_demo_r: K('accueil', 'Section Petit Pois — réponse de démonstration', 'C’est une analyse ADN (PCR/NGS) de la vie de votre sol : bactéries, champignons, mycorhizes. Vous recevez un plan d’action sur mesure sous 1 à 2 mois. 🌱', 'It’s a DNA analysis (PCR/NGS) of the life in your soil: bacteria, fungi, mycorrhizae. You receive a tailored action plan within 1–2 months. 🌱', 'Es un análisis de ADN (PCR/NGS) de la vida de su suelo: bacterias, hongos, micorrizas. Recibe un plan de acción a medida en 1 a 2 meses. 🌱'),
   pois_bulle: K('accueil', 'Bulle d’invitation de Petit Pois', 'Une question sur vos sols ? 🌱', 'A question about your soils? 🌱', '¿Una pregunta sobre sus suelos? 🌱'),
 
   // ---------- Services (page) ----------
@@ -200,6 +217,9 @@ export const CONTENT = {
   footer_rd: K('global', 'Pied de page — lien R&D', 'Recherche & développement', 'Research & development', 'Investigación y desarrollo'),
   footer_droits: K('global', 'Pied de page — droits', 'Tous droits réservés.', 'All rights reserved.', 'Todos los derechos reservados.'),
   footer_certifs: K('global', 'Pied de page — certifications', 'ISO 14001 · ISO 14064-2 · Agriculture Biologique UE · JEI', 'ISO 14001 · ISO 14064-2 · EU Organic Farming · JEI', 'ISO 14001 · ISO 14064-2 · Agricultura Ecológica UE · JEI'),
+  footer_cta_kicker: K('global', 'Pied de page — appel, petite ligne', 'Prêts à faire revivre vos sols ?', 'Ready to bring your soils back to life?', '¿Listos para devolver la vida a sus suelos?'),
+  footer_cta_titre: K('global', 'Pied de page — appel, titre', 'Parlons de vos sols', 'Let’s talk about your soils', 'Hablemos de sus suelos'),
+  footer_cta_texte: K('global', 'Pied de page — appel, texte', 'Diagnostic, biofertilisation, réhabilitation ou formation : l’équipe vous répond sous 24 h ouvrées.', 'Diagnosis, biofertilisation, rehabilitation or training: the team replies within 24 working hours.', 'Diagnóstico, biofertilización, rehabilitación o formación: el equipo responde en 24 h laborables.'),
   footer_haut: K('global', 'Pied de page — retour en haut', 'Retour en haut', 'Back to top', 'Volver arriba'),
 
   // ---------- Petit Pois (chat) ----------
@@ -224,7 +244,7 @@ export const CONTENT = {
   guide_cta_texte: K('guide', 'Guide — bloc final : texte', 'Un diagnostic microbiologique le dit en 1 à 2 mois, avec un plan d’action.', 'A microbiological diagnosis tells you in 1–2 months, with an action plan.', 'Un diagnóstico microbiológico lo dice en 1–2 meses, con un plan de acción.'),
 
   // ---------- SEO ----------
-  seo_titre_accueil: K('global', 'Titre Google — accueil', 'Fertil’Innov Environnement | Microbiologie des sols, biofertilisation, analyse et dépollution des sols — Montpellier', 'Fertil’Innov Environnement | Soil microbiology, biofertilisation, soil analysis and remediation — Montpellier, France', 'Fertil’Innov Environnement | Microbiología de suelos, biofertilización, análisis y descontaminación de suelos — Montpellier'),
+  seo_titre_accueil: K('global', 'Titre Google — accueil (60 caractères max. conseillés)', 'Microbiologie et analyse des sols, Montpellier | Fertil’Innov', 'Soil microbiology & soil analysis, Montpellier | Fertil’Innov', 'Microbiología y análisis de suelos, Montpellier | Fertil’Innov'),
   seo_guide: K('global', 'Description Google — guide', 'Fertiliser un sol naturellement, analyse de sol, microbiologie du sol, mycorhizes, dépollution des sols, biostimulants : le guide des sols vivants de Fertil’Innov, laboratoire près de Montpellier.', 'Fertilising soil naturally, soil analysis, soil microbiology, mycorrhizae, soil remediation, biostimulants: the living-soils guide from Fertil’Innov, a laboratory near Montpellier, France.', 'Fertilizar el suelo de forma natural, análisis de suelo, microbiología del suelo, micorrizas, descontaminación de suelos, bioestimulantes: la guía de suelos vivos de Fertil’Innov, laboratorio cerca de Montpellier.'),
   seo_accueil: K('global', 'Description Google — accueil', 'Laboratoire de microbiologie des sols près de Montpellier : analyse de sol PCR/NGS, biofertilisation (mycorhizes, rhizobium), dépollution et réhabilitation de sols pollués, formations. +40 % de rendement, −70 % d’eau, −80 % de polluants en 24 mois. Devis sous 24 h.', 'Fertil’Innov Environnement, innovative company near Montpellier: soil microbiological diagnosis, biofertilisation, phytoremediation and training. +40% yield, −80% pollutants in 24 months.', 'Fertil’Innov Environnement, empresa innovadora cerca de Montpellier: diagnóstico microbiológico de suelos, biofertilización, fitorremediación y formación. +40 % de rendimiento, −80 % de contaminantes en 24 meses.'),
   seo_services: K('global', 'Description Google — services', 'Diagnostic microbiologique PCR/NGS, biofertilisation (mycorhizes, PGPR), remédiation écologique, phytomanagement : les services de Fertil’Innov pour agriculteurs et industriels.', 'PCR/NGS microbiological diagnosis, biofertilisation (mycorrhizae, PGPR), ecological remediation, phytomanagement: Fertil’Innov’s services for farmers and industry.', 'Diagnóstico microbiológico PCR/NGS, biofertilización (micorrizas, PGPR), remediación ecológica, fitogestión: los servicios de Fertil’Innov para agricultores e industria.'),
@@ -234,6 +254,7 @@ export const CONTENT = {
   seo_chiffres: K('global', 'Description Google — chiffres', 'Résultats mesurés de Fertil’Innov : 97 % de satisfaction, 200+ sites traités, +40 % de rendement, −70 % d’eau d’irrigation, 4 t de CO₂/ha/an séquestrées.', 'Fertil’Innov’s measured results: 97% satisfaction, 200+ sites treated, +40% yield, −70% irrigation water, 4 t CO₂/ha/year sequestered.', 'Resultados medidos de Fertil’Innov: 97 % de satisfacción, más de 200 sitios tratados, +40 % de rendimiento, −70 % de agua de riego, 4 t de CO₂/ha/año.'),
   seo_blog: K('global', 'Description Google — blog', 'Actualités de Fertil’Innov : projets SONARES et ENDORSE, Pollutec, biostimulants, plantes de montagne et microbiologie des sols.', 'Fertil’Innov news: SONARES and ENDORSE projects, Pollutec, biostimulants, mountain plants and soil microbiology.', 'Noticias de Fertil’Innov: proyectos SONARES y ENDORSE, Pollutec, bioestimulantes, plantas de montaña y microbiología de suelos.'),
   seo_faq: K('global', 'Description Google — FAQ', 'Quels microorganismes ? Quelles normes ISO ? Délais d’un diagnostic ? Les réponses techniques de Fertil’Innov sur les sols, la biofertilisation et la remédiation.', 'Which microorganisms? Which ISO standards? How long does a diagnosis take? Fertil’Innov’s technical answers on soils, biofertilisation and remediation.', '¿Qué microorganismos? ¿Qué normas ISO? ¿Plazos de un diagnóstico? Las respuestas técnicas de Fertil’Innov sobre suelos, biofertilización y remediación.'),
+  seo_equipe: K('global', 'Description Google — équipe', 'L’équipe de Fertil’Innov Environnement : microbiologistes, agronomes et ingénieurs en écologie des sols à Grabels, près de Montpellier.', 'The Fertil’Innov Environnement team: soil microbiologists, agronomists and ecological engineers in Grabels, near Montpellier, France.', 'El equipo de Fertil’Innov Environnement: microbiólogos, agrónomos e ingenieros en ecología de suelos en Grabels, cerca de Montpellier.'),
   seo_contact: K('global', 'Description Google — contact', 'Contactez Fertil’Innov Environnement à Grabels (34) : devis sous 24 h pour un diagnostic de sol, une biofertilisation ou une réhabilitation de site.', 'Contact Fertil’Innov Environnement in Grabels (France): quote within 24 h for a soil diagnosis, biofertilisation or site rehabilitation.', 'Contacte con Fertil’Innov Environnement en Grabels (Francia): presupuesto en 24 h para un diagnóstico de suelo, biofertilización o rehabilitación de sitio.'),
 };
 

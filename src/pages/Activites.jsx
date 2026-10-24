@@ -30,7 +30,7 @@ export default function Activites() {
   return (
     <>
       <SEO title={t('activites_titre')} description={t('seo_activites')} path="/activites" breadcrumb={[{ name: t('nav_accueil'), path: '/' }, { name: t('nav_activites'), path: '/activites' }]} />
-      <PageHero title={t('activites_titre')} text={t('activites_texte')} />
+      <PageHero variant="dna" title={t('activites_titre')} text={t('activites_texte')} />
 
       <section ref={ref} className="section">
         <div className="wrap grid gap-8 lg:grid-cols-12">

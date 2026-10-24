@@ -13,8 +13,150 @@
     <link id="site-fonts" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Manrope:wght@400;500;600;700&display=swap" />
     <title>Fertil'Innov Environnement | Ingénierie écologique & microbiologie des sols</title>
     <!--app-head-->
+    <script>
+      // Classe .js immédiate (évite le saut de mise en page) + loader « germination » à la première visite de la session.
+      (function () {
+        var d = document.documentElement; d.classList.add('js');
+        try {
+          if (sessionStorage.getItem('fi-visited') || /^\/admin/.test(location.pathname) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+          if (/bot|crawl|spider|slurp|facebookexternalhit|embedly|preview/i.test(navigator.userAgent)) return; // robots : page directement
+          sessionStorage.setItem('fi-visited', '1');
+        } catch (e) { return; }
+        d.classList.add('fi-loading');
+      })();
+    </script>
+    <style>
+      @property --fi-r { syntax: '<length>'; inherits: false; initial-value: 0px; }
+      #fi-loader { display: none; }
+      .fi-loading { overflow: hidden; }
+      .fi-loading #fi-loader, #fi-loader.out { display: flex; }
+      #fi-loader {
+        position: fixed; inset: 0; z-index: 200; flex-direction: column; align-items: center; justify-content: center; gap: 26px;
+        background: radial-gradient(ellipse at 50% 40%, #ffffff 0%, #f3f9f0 45%, #e2efdf 100%); color: #1b3d22;
+        font-family: Manrope, system-ui, sans-serif; --fi-r: 0px;
+        -webkit-mask: radial-gradient(circle at var(--fi-cx, 50%) var(--fi-cy, 40%), transparent var(--fi-r), #000 calc(var(--fi-r) + 1px));
+        mask: radial-gradient(circle at var(--fi-cx, 50%) var(--fi-cy, 40%), transparent var(--fi-r), #000 calc(var(--fi-r) + 1px));
+        transition: --fi-r 1s cubic-bezier(.76, 0, .24, 1), opacity .4s .6s;
+      }
+      #fi-loader.out { --fi-r: 150vmax; opacity: 0; pointer-events: none; }
+      #fi-loader::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .6;
+        background: linear-gradient(rgba(35,122,69,.06) 1px, transparent 1px) 0 0 / 100% 44px, linear-gradient(90deg, rgba(35,122,69,.06) 1px, transparent 1px) 0 0 / 44px 100%;
+        -webkit-mask: radial-gradient(circle at 50% 40%, #000, transparent 70%); mask: radial-gradient(circle at 50% 40%, #000, transparent 70%); }
+      #fi-loader .dish { position: relative; width: min(62vw, 240px); height: auto; overflow: visible; filter: drop-shadow(0 30px 40px rgba(15,46,19,.16)); }
+      #fi-loader .ticks { transform-origin: 120px 120px; animation: fi-spin 16s linear infinite; }
+      #fi-loader .col { transform-box: fill-box; transform-origin: center; transform: scale(0); transition: transform .5s cubic-bezier(.34, 1.56, .64, 1); }
+      #fi-loader .halo { transform-box: fill-box; transform-origin: center; animation: fi-breath 2.4s ease-in-out infinite; }
+      #fi-loader .hy { fill: none; stroke: #6a8f3a; stroke-width: .7; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; opacity: .7; }
+      #fi-loader .scan { animation: fi-scan 2.2s cubic-bezier(.45, 0, .55, 1) infinite; }
+      #fi-loader .brand { position: relative; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 700; font-size: 22px; letter-spacing: -.02em; text-align: center; color: #1b5e20; }
+      #fi-loader .brand span { color: #7cb342; }
+      #fi-loader .row { margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: rgba(27,61,34,.55); }
+      #fi-loader .row b { color: #2e7d32; font-weight: 600; font-variant-numeric: tabular-nums; min-width: 2.2em; text-align: right; }
+      #fi-loader .helix { width: 46px; height: 14px; overflow: hidden; }
+      #fi-loader .helix g { animation: fi-helix 1.2s linear infinite; }
+      #fi-loader .steps { margin-top: 14px; display: flex; gap: 6px; justify-content: center; }
+      #fi-loader .steps i { width: 26px; height: 3px; border-radius: 3px; background: rgba(35,122,69,.14); transition: background .4s; }
+      #fi-loader .steps i.on { background: #4caf50; }
+      @keyframes fi-spin { to { transform: rotate(360deg); } }
+      @keyframes fi-breath { 50% { opacity: .35; transform: scale(1.25); } }
+      @keyframes fi-scan { 0% { transform: translateY(-92px); opacity: 0; } 15%, 85% { opacity: 1; } 100% { transform: translateY(92px); opacity: 0; } }
+      @keyframes fi-helix { to { transform: translateX(-20px); } }
+    </style>
   </head>
   <body>
+    <div id="fi-loader" role="status" aria-label="Chargement">
+      <!-- Boîte de Petri : colonies qui poussent avec le chargement, mycélium, ligne de lecture du séquenceur -->
+      <svg class="dish" viewBox="0 0 240 240" aria-hidden="true">
+        <defs>
+          <clipPath id="fi-c"><circle cx="120" cy="120" r="92" /></clipPath>
+          <radialGradient id="fi-agar" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="#fffaf0" /><stop offset=".7" stop-color="#f6ecd2" /><stop offset="1" stop-color="#eadcb4" /></radialGradient>
+          <linearGradient id="fi-scan" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8bc34a" stop-opacity="0" /><stop offset=".5" stop-color="#8bc34a" stop-opacity=".55" /><stop offset="1" stop-color="#8bc34a" stop-opacity="0" /></linearGradient>
+        </defs>
+        <circle class="ticks" cx="120" cy="120" r="113" fill="none" stroke="rgba(35,122,69,.35)" stroke-width="5" stroke-dasharray="1 9" />
+        <circle cx="120" cy="120" r="104" fill="#ffffff" stroke="rgba(35,122,69,.12)" stroke-width="1" />
+        <circle cx="120" cy="120" r="97" fill="none" stroke="rgba(76,175,80,.35)" stroke-width="1" />
+        <circle cx="120" cy="120" r="92" fill="url(#fi-agar)" />
+        <g clip-path="url(#fi-c)">
+          <path class="hy" pathLength="1" d="M84 92 C 70 80, 64 66, 52 60 M84 92 C 96 76, 104 64, 100 46 M84 92 C 74 104, 60 108, 46 120" />
+          <path class="hy" pathLength="1" d="M152 150 C 168 158, 178 172, 192 176 M152 150 C 150 168, 140 182, 142 198 M152 150 C 170 140, 182 128, 198 126" />
+          <path class="hy" pathLength="1" d="M130 70 C 140 60, 156 58, 166 48 M130 70 C 126 56, 118 48, 120 34" />
+          <g class="cols">
+            <g data-at="4"><circle class="halo" cx="84" cy="92" r="16" fill="rgba(166,124,82,.16)" /><circle class="col" cx="84" cy="92" r="10" fill="#c9a46a" /></g>
+            <g data-at="12"><circle class="col" cx="152" cy="150" r="13" fill="#8bc34a" /></g>
+            <g data-at="20"><circle class="col" cx="130" cy="70" r="7" fill="#4caf50" /></g>
+            <g data-at="28"><circle class="col" cx="104" cy="160" r="9" fill="#a67c52" /></g>
+            <g data-at="34"><circle class="col" cx="168" cy="96" r="6" fill="#c9a46a" /></g>
+            <g data-at="40"><circle class="col" cx="70" cy="140" r="5" fill="#8bc34a" /></g>
+            <g data-at="46"><circle class="col" cx="120" cy="118" r="4" fill="#66bb6a" /></g>
+            <g data-at="52"><circle class="halo" cx="150" cy="190" r="10" fill="rgba(76,175,80,.14)" /><circle class="col" cx="150" cy="190" r="6" fill="#66bb6a" /></g>
+            <g data-at="58"><circle class="col" cx="58" cy="104" r="4" fill="#a67c52" /></g>
+            <g data-at="64"><circle class="col" cx="186" cy="132" r="5" fill="#8bc34a" /></g>
+            <g data-at="70"><circle class="col" cx="96" cy="196" r="4" fill="#c9a46a" /></g>
+            <g data-at="76"><circle class="col" cx="176" cy="66" r="3.5" fill="#66bb6a" /></g>
+            <g data-at="82"><circle class="col" cx="134" cy="132" r="3" fill="#8bc34a" /></g>
+            <g data-at="88"><circle class="col" cx="78" cy="58" r="3" fill="#a67c52" /></g>
+          </g>
+          <rect class="scan" x="20" y="108" width="200" height="24" fill="url(#fi-scan)" />
+          <rect class="scan" x="20" y="119.5" width="200" height="1" fill="#4caf50" opacity=".7" />
+        </g>
+        <ellipse cx="88" cy="58" rx="34" ry="10" fill="rgba(255,255,255,.7)" transform="rotate(-28 88 58)" />
+      </svg>
+      <div>
+        <div class="brand">Fertil<span>’</span>Innov</div>
+        <div class="row">
+          <svg class="helix" viewBox="0 0 46 14" aria-hidden="true"><g fill="none" stroke-width="1.4"><path d="M0 7 Q5 0 10 7 T20 7 T30 7 T40 7 T50 7 T60 7 T70 7" stroke="#4caf50" /><path d="M0 7 Q5 14 10 7 T20 7 T30 7 T40 7 T50 7 T60 7 T70 7" stroke="#a5d6a7" /></g></svg>
+          <span id="fi-step">Prélèvement</span> · <b id="fi-pct">0</b>%
+        </div>
+        <div class="steps" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></div>
+      </div>
+    </div>
+    <script>
+      (function () {
+        var d = document.documentElement, el = document.getElementById('fi-loader');
+        if (!d.classList.contains('fi-loading')) { el.parentNode.removeChild(el); return; }
+        var m = /^\/(en|es)(\/|$)/.exec(location.pathname), lang = m ? m[1] : 'fr';
+        var STEPS = {
+          fr: ['Prélèvement', 'Extraction ADN', 'Séquençage NGS', 'Rapport'],
+          en: ['Sampling', 'DNA extraction', 'NGS sequencing', 'Report'],
+          es: ['Muestreo', 'Extracción de ADN', 'Secuenciación NGS', 'Informe'],
+        }[lang];
+        var pct = document.getElementById('fi-pct'), step = document.getElementById('fi-step'), bars = el.querySelectorAll('.steps i');
+        var cols = el.querySelectorAll('.cols > g'), hy = el.querySelectorAll('.hy');
+        var t0 = performance.now(), MIN = 2200, MAX = 5000, shown = 0, target = 15, done = false, cur = -1;
+        step.textContent = STEPS[0];
+        function bump(v) { if (v > target) target = v; }
+        document.addEventListener('DOMContentLoaded', function () { bump(45); });
+        addEventListener('load', function () { bump(85); });
+        addEventListener('fi:app-ready', function () { bump(100); });
+        // Colonies et hyphes suivent la progression ; l'étape d'analyse change tous les 25 %.
+        function paint() {
+          for (var i = 0; i < cols.length; i++) {
+            var at = +cols[i].getAttribute('data-at'), c = cols[i].querySelector('.col');
+            c.style.transform = 'scale(' + Math.max(0, Math.min(1, (shown - at) / 12)) + ')';
+          }
+          for (var j = 0; j < hy.length; j++) hy[j].style.strokeDashoffset = String(1 - Math.max(0, Math.min(1, (shown - 20 - j * 15) / 45)));
+          var s = Math.min(3, Math.floor(shown / 25));
+          if (s !== cur) { cur = s; step.textContent = STEPS[s]; for (var k = 0; k < bars.length; k++) bars[k].className = k <= s ? 'on' : ''; }
+        }
+        function finish() {
+          if (done) return; done = true; shown = 100; paint(); pct.textContent = '100';
+          var r = el.querySelector('.dish').getBoundingClientRect();
+          el.style.setProperty('--fi-cx', (r.left + r.width / 2) + 'px'); el.style.setProperty('--fi-cy', (r.top + r.height / 2) + 'px');
+          el.classList.add('out'); d.classList.remove('fi-loading');
+          dispatchEvent(new Event('fi:loader-done'));
+          setTimeout(function () { el.parentNode && el.parentNode.removeChild(el); }, 1100);
+        }
+        function frame(now) {
+          var t = now - t0; if (window.__fiReady) bump(100);
+          var cap = Math.min(target, (t / MIN) * 100);
+          shown += (cap - shown) * 0.1; if (cap - shown < 0.5) shown = cap;
+          pct.textContent = Math.round(shown); paint();
+          if ((shown >= 99.5 && t >= MIN) || t > MAX) return finish();
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      })();
+    </script>
     <div id="root"><!--app-html--></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

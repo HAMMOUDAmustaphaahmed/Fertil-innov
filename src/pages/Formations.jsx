@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, Users, Laptop, MapPin } from 'lucide-react';
 import SEO from '../components/SEO';
+import Icon from '../components/Icons';
 import { PageHero, SectionHeader } from '../components/ui';
 import { useLang } from '../i18n/LangProvider';
 import { useSite } from '../site/SiteProvider';
@@ -20,7 +21,7 @@ export default function Formations() {
   return (
     <>
       <SEO title={t('formations_titre')} description={t('seo_formations')} path="/formations" jsonLd={jsonLd} breadcrumb={[{ name: t('nav_accueil'), path: '/' }, { name: t('nav_formations'), path: '/formations' }]} />
-      <PageHero title={t('formations_titre')} text={t('formations_texte')} image="/images/labo-recherche.webp">
+      <PageHero variant="rings" title={t('formations_titre')} text={t('formations_texte')} image="/images/labo-recherche.webp">
         <p className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm"><span className="font-display text-xl font-semibold text-fi-accent">98 %</span> {t('formations_satisfaction')}</p>
       </PageHero>
 
@@ -40,7 +41,7 @@ export default function Formations() {
             {list.map((f) => (
               <li key={f.id} className="reveal card p-6 md:p-8 grid gap-6 md:grid-cols-12 md:items-center">
                 <div className="md:col-span-8">
-                  <div className="flex items-center gap-3"><span className="text-3xl" aria-hidden>{f.emoji}</span><h2 className="text-display-sm">{L(f.titre)}</h2></div>
+                  <div className="flex items-center gap-3"><Icon emoji={f.emoji} tile="light" className="h-14 w-14" size="h-8 w-8" /><h2 className="text-display-sm">{L(f.titre)}</h2></div>
                   <p className="mt-2 font-medium text-fi-primary">{L(f.accroche)}</p>
                   <p className="mt-3 leading-relaxed text-fi-text/80">{L(f.texte)}</p>
                   <ul className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">

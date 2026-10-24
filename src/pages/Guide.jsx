@@ -4,6 +4,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import SEO from '../components/SEO';
+import Icon from '../components/Icons';
 import { PageHero } from '../components/ui';
 import { useLang } from '../i18n/LangProvider';
 import { useSite } from '../site/SiteProvider';
@@ -23,9 +24,9 @@ export default function Guide() {
   return (
     <>
       <SEO title={t('guide_titre')} description={t('seo_guide')} path="/sols" jsonLd={jsonLd} breadcrumb={[{ name: t('nav_accueil'), path: '/' }, { name: t('nav_guide'), path: '/sols' }]} />
-      <PageHero title={t('guide_titre')} text={t('guide_texte')} image="/images/racines.webp">
+      <PageHero variant="horizons" title={t('guide_titre')} text={t('guide_texte')} image="/images/racines.webp">
         <nav aria-label={t('nav_guide')} className="mt-8 flex flex-wrap gap-2">
-          {GUIDE.map((g) => <a key={g.id} href={`#${g.id}`} className="rounded-full bg-white/10 px-3.5 py-2 text-sm text-white/90 hover:bg-white hover:text-fi-deep transition-colors min-h-[40px] inline-flex items-center gap-1.5"><span aria-hidden>{g.emoji}</span>{L(g.titre)}</a>)}
+          {GUIDE.map((g) => <a key={g.id} href={`#${g.id}`} className="rounded-full bg-white/10 px-3.5 py-2 text-sm text-white/90 hover:bg-white hover:text-fi-deep transition-colors min-h-[40px] inline-flex items-center gap-1.5"><Icon emoji={g.emoji} size="h-4 w-4" />{L(g.titre)}</a>)}
         </nav>
       </PageHero>
       <section ref={ref} className="section">
@@ -35,7 +36,7 @@ export default function Guide() {
             return (
               <article key={g.id} id={g.id} className="reveal card p-6 md:p-8 scroll-mt-24">
                 <p className="kicker">{L(g.question)}</p>
-                <h2 className="mt-2 text-display-sm flex items-start gap-3"><span aria-hidden>{g.emoji}</span><span>{L(g.titre)}</span></h2>
+                <h2 className="mt-2 text-display-sm flex items-center gap-3"><Icon emoji={g.emoji} tile="light" className="h-12 w-12" size="h-7 w-7" /><span>{L(g.titre)}</span></h2>
                 <p className="mt-4 font-medium text-fi-dark leading-relaxed">{L(g.resume)}</p>
                 <p className="mt-3 leading-relaxed text-fi-text/80">{L(g.texte)}</p>
                 <div className="mt-5 flex flex-wrap items-center gap-3">

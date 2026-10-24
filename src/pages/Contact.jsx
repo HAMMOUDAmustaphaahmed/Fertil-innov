@@ -43,7 +43,7 @@ export default function Contact() {
   return (
     <>
       <SEO title={t('contact_titre')} description={t('seo_contact')} path="/contact" jsonLd={[{ '@context': 'https://schema.org', '@type': 'ContactPage', name: t('contact_titre') }]} breadcrumb={[{ name: t('nav_accueil'), path: '/' }, { name: t('nav_contact'), path: '/contact' }]} />
-      <PageHero title={t('contact_titre')} text={t('contact_texte')} image={img('contact').src}>
+      <PageHero variant="radar" title={t('contact_titre')} text={t('contact_texte')} image={img('contact').src}>
         <div className="mt-6 flex flex-wrap items-center gap-4 text-sm"><StatusDot className="text-white/85" /><span className="rounded-full bg-fi-accent/20 text-fi-accent px-3 py-1 font-semibold">{t('contact_devis_24h')}</span></div>
       </PageHero>
 
