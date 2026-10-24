@@ -211,7 +211,7 @@ export default function RhizoScene({ api, t = (k) => k }) {
     if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) return undefined;
 
     let disposed = false; let cleanup = () => {};
-    const start = () => import('three').then((THREE) => {
+    const start = () => import('../lib/three-lite').then((THREE) => {
       if (disposed) return;
       const coarse = window.matchMedia('(pointer: coarse)').matches;
       const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, powerPreference: 'high-performance' });
