@@ -19,7 +19,6 @@ const LINKS = [
   { to: '/chiffres', key: 'nav_chiffres' },
   { to: '/equipe', key: 'nav_equipe' },
   { to: '/blog', key: 'nav_blog' },
-  { to: '/sols', key: 'nav_guide' },
   { to: '/faq', key: 'nav_faq' },
 ];
 const EASE = [0.16, 1, 0.3, 1];

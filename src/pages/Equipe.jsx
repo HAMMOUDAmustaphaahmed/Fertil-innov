@@ -32,7 +32,6 @@ export default function Equipe() {
                 <div className="relative aspect-[4/4.2] overflow-hidden bg-fi-mint">
                   <img src={imgSrc(m.image)} alt={m.nom} width={600} height={690} loading="lazy" decoding="async" className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.05]" />
                   <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-fi-deep/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <span aria-hidden className="absolute left-4 top-4 rounded-full bg-white/85 px-2.5 py-1 font-display text-xs font-semibold text-fi-dark backdrop-blur tabular-nums">{String(i + 1).padStart(2, '0')}</span>
                 </div>
                 <div className="p-5">
                   <h2 className="font-display text-lg font-semibold text-fi-dark">{m.nom}</h2>

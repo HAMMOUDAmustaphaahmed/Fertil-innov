@@ -64,5 +64,17 @@
       "path": "/api/cron/daily",
       "schedule": "0 6 * * *"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/sols",
+      "destination": "/faq#guide",
+      "permanent": true
+    },
+    {
+      "source": "/:lang(en|es)/sols",
+      "destination": "/:lang/faq#guide",
+      "permanent": true
+    }
   ]
 }

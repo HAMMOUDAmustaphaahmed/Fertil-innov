@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useRef } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -28,7 +28,6 @@ const Chiffres = lazyPage(() => import('./pages/Chiffres'));
 const Blog = lazyPage(() => import('./pages/Blog'));
 const Faq = lazyPage(() => import('./pages/Faq'));
 const Contact = lazyPage(() => import('./pages/Contact'));
-const Guide = lazyPage(() => import('./pages/Guide'));
 const Equipe = lazyPage(() => import('./pages/Equipe'));
 const Admin = lazy(() => import('./pages/Admin'));
 const NotFound = lazyPage(() => import('./pages/NotFound'));
@@ -42,7 +41,6 @@ export const PAGES = [
   { path: '/chiffres', Component: Chiffres },
   { path: '/blog', Component: Blog },
   { path: '/faq', Component: Faq },
-  { path: '/sols', Component: Guide },
   { path: '/equipe', Component: Equipe },
   { path: '/contact', Component: Contact },
 ];
@@ -90,6 +88,8 @@ function AppContent() {
                   {PREFIXES.flatMap((prefix) => PAGES.map(({ path, Component }) => (
                     <Route key={prefix + path} path={prefix + path || '/'} element={<Component />} />
                   )))}
+                  {/* Ancien « Guide des sols » : fusionné dans la FAQ (redirection 301 aussi dans vercel.json) */}
+                  {PREFIXES.map((prefix) => <Route key={`${prefix}/sols`} path={`${prefix}/sols`} element={<Navigate to={`${prefix}/faq#guide`} replace />} />)}
                   <Route path="/admin" element={<Admin />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
