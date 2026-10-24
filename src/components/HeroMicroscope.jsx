@@ -2,7 +2,7 @@
 // l'oculaire (clip-path circulaire centré sur la motte) s'ouvre et l'on entre dans le sol vivant : grains minéraux,
 // racines qui se dessinent, micro-organismes reliés par un réseau d'hyphes (canvas).
 // Trois chapitres (rhizosphère, souchothèque, remédiation) apparaissent aux points de repos.
-// Sans JS ou avec prefers-reduced-motion : hero classique d'un écran (voir .hero-scene dans index.css).
+// Sans JS : hero classique d'un écran (voir .hero-scene dans index.css).
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ArrowDown } from 'lucide-react';

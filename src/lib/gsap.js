@@ -6,4 +6,6 @@ import { useGSAP } from '@gsap/react';
 if (typeof window !== 'undefined') gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 export { gsap, ScrollTrigger, useGSAP };
-export const prefersReducedMotion = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Les animations sont voulues sur tous les appareils : on ignore « réduire les animations » (souvent activé
+// d'office sur mobile par le mode économie d'énergie), qui coupait le loader, la scène 3D et les animations.
+export const prefersReducedMotion = () => false;

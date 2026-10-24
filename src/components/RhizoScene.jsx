@@ -4,7 +4,7 @@
 // nutriments (N, P, K) qui circulent des hyphes vers les racines, pluie qui s'infiltre, CO₂ capté par
 // les feuilles, ver de terre dans l'horizon A, loupe « ×1000 » sur une colonie. Étiquettes HTML projetées.
 // Tourne au pointeur (souris / glissé tactile), se désagrège au défilement (api.set(progress)).
-// Repli CSS sans WebGL ou avec prefers-reduced-motion.
+// Repli CSS sans WebGL.
 import { useEffect, useRef, useState } from 'react';
 import MicroCanvas from './MicroCanvas';
 
@@ -206,7 +206,7 @@ export default function RhizoScene({ api, t = (k) => k }) {
 
   useEffect(() => {
     const el = wrap.current;
-    if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+    if (!el) return undefined;
     const probe = document.createElement('canvas');
     if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) return undefined;
 

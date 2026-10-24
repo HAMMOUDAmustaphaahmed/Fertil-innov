@@ -112,7 +112,7 @@ export default function App() {
     window.dispatchEvent(new Event('fi:app-ready'));
   }, []);
   return (
-    <MotionConfig reducedMotion="user">
+    <MotionConfig reducedMotion="never">
       <LangProvider>
         <AppContent />
       </LangProvider>

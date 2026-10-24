@@ -12,7 +12,7 @@
 import { useEffect, useRef } from 'react';
 import { gsap } from '../lib/gsap';
 
-const reduced = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reduced = () => false; // animations sur tous les appareils (voir lib/gsap.js)
 
 /** Boucle d'animation qui ne tourne que lorsque l'élément est visible. */
 function useLoop(ref, draw) {

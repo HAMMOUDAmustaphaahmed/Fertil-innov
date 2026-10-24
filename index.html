@@ -14,13 +14,12 @@
     <title>Fertil'Innov Environnement | Ingénierie écologique & microbiologie des sols</title>
     <!--app-head-->
     <script>
-      // Classe .js immédiate (évite le saut de mise en page) + loader « germination » à la première visite de la session.
+      // Classe .js immédiate (évite le saut de mise en page) + loader « germination » à chaque chargement complet du site.
       (function () {
         var d = document.documentElement; d.classList.add('js');
         try {
-          if (sessionStorage.getItem('fi-visited') || /^\/admin/.test(location.pathname) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+          if (/^\/admin/.test(location.pathname)) return;
           if (/bot|crawl|spider|slurp|facebookexternalhit|embedly|preview/i.test(navigator.userAgent)) return; // robots : page directement
-          sessionStorage.setItem('fi-visited', '1');
         } catch (e) { return; }
         d.classList.add('fi-loading');
       })();

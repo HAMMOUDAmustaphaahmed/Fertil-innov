@@ -200,15 +200,6 @@
 /* Leaflet */
 .leaflet-container { font-family: inherit; }
 
-@media (prefers-reduced-motion: reduce) {
-  .marquee-track, .float, .typing-dot, .petri-spin, .ico-orbit::after, .ico .a, .map-pin::before, .pois-orbit, .pois-halo, .hero-rays, .art-spin, .art-counter, .art-spin-slow, .art-wave, .art-eq, .art-bubble, .art-sweep { animation: none !important; }
-  .art-ring, .art-root { animation: none !important; stroke-dashoffset: 0; }
-  .js .reveal { opacity: 1; }
-  .js .hero-scene { height: 100svh; }
-  .js .hero-micro, .js .hero-chapter, .js .hero-hud { display: none; }
-  .orb-fallback { opacity: 1 !important; }
-  html { scroll-behavior: auto; }
-}
 
 @media print { header, footer, #petit-pois { display: none !important; } }
 
