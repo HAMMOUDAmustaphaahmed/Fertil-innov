@@ -1,5 +1,6 @@
-// Bas de page en deux blocs : l'appel à l'action « Parlons de vos sols » sur fond de terre, où des racines
-// poussent à l'arrivée, puis le pied de page (colonnes d'informations, herbe au-dessus de la ligne du copyright). La description commence par la marque taillée dans un profil de sol : des pousses
+// Bas de page en deux blocs : l'appel à l'action « Parlons de vos sols » sur fond clair (aurore de lumières
+// qui dérivent, racines qui poussent, dernier mot souligné à la main), puis le pied de page émeraude
+// (colonnes d'informations, herbe au-dessus de la ligne du copyright). La description commence par la marque taillée dans un profil de sol : des pousses
 // sortent des lettres, une lampe (souris, ou balayage automatique sur mobile) éclaire le sol vivant dedans.
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
@@ -25,6 +26,10 @@ export default function Footer() {
   const onContact = path.replace(/\/$/, '') === '/contact';
   // Description : la marque animée remplace le nom en tête de phrase, le reste suit
   const descRest = t('footer_description').replace(/^\s*Fertil[’']\s*Innov\s*/i, '');
+  // Titre de l'appel : le dernier mot est mis en valeur
+  const ctaWords = t('footer_cta_titre').trim().split(/\s+/);
+  const ctaLast = ctaWords.pop();
+  const ctaHead = ctaWords.join(' ');
   // Lampe : suit le pointeur sur la marque (le balayage automatique CSS reprend en sortant)
   const light = (ev) => { const el = ev.currentTarget; const r = el.getBoundingClientRect(); el.style.setProperty('--mx', `${((ev.clientX - r.left) / r.width) * 100}%`); el.style.setProperty('--my', `${((ev.clientY - r.top) / r.height) * 100}%`); el.classList.add('is-lit'); };
   const unlight = (ev) => ev.currentTarget.classList.remove('is-lit');
@@ -35,6 +40,7 @@ export default function Footer() {
     if (prefersReducedMotion()) return;
     gsap.to(roots, { strokeDashoffset: 0, duration: 2.2, ease: 'power2.out', stagger: 0.12, scrollTrigger: { trigger: ref.current, start: 'top 85%', once: true } });
     gsap.fromTo(q('.f-cta-title'), { clipPath: 'inset(0% 0% 100% 0%)', yPercent: 30 }, { clipPath: 'inset(-20% -5% -25% -5%)', yPercent: 0, duration: 1.3, ease: 'expo.out', scrollTrigger: { trigger: ref.current, start: 'top 80%', once: true } });
+    gsap.fromTo(q('.f-scribble'), { strokeDasharray: '1 2', strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.1, ease: 'power2.inOut', delay: 0.7, scrollTrigger: { trigger: ref.current, start: 'top 80%', once: true } });
     // La marque sort de terre, puis les pousses germent au sommet des lettres
     const st = { trigger: q('.f-mark')[0], start: 'top 92%', once: true };
     gsap.fromTo(q('.f-word'), { yPercent: 45, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1.4, ease: 'expo.out', scrollTrigger: st });
@@ -44,10 +50,13 @@ export default function Footer() {
   return (
     <div ref={ref} className="mt-8">
       {/* Appel à l'action, bloc à part sur fond de terre (sauf sur la page Contact, qui est déjà le formulaire) */}
-      {!onContact && <section className="f-cta relative mx-2 sm:mx-3 overflow-hidden rounded-[28px] text-white print:hidden">
-        <div aria-hidden className="pointer-events-none absolute inset-0"><div className="grain h-full" /></div>
+      {!onContact && <section className="f-cta relative mx-2 sm:mx-3 overflow-hidden rounded-[28px] text-fi-text print:hidden">
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <span className="f-blob f-blob-1" /><span className="f-blob f-blob-2" /><span className="f-blob f-blob-3" />
+          <div className="f-dots absolute inset-0" />
+        </div>
         {/* Racines qui descendent depuis la surface */}
-        <svg aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-64 w-full text-[#e6cfa6]/45" viewBox="0 0 1440 260" preserveAspectRatio="none" fill="none" stroke="currentColor" strokeLinecap="round">
+        <svg aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-64 w-full text-fi-secondary/35" viewBox="0 0 1440 260" preserveAspectRatio="none" fill="none" stroke="currentColor" strokeLinecap="round">
           <path className="f-root" pathLength="1" strokeWidth="3" d="M180 0 C 190 60, 150 100, 170 160 S 220 230, 200 260" />
           <path className="f-root" pathLength="1" strokeWidth="1.5" d="M172 90 C 140 110, 110 120, 80 160" />
           <path className="f-root" pathLength="1" strokeWidth="3" d="M720 0 C 700 50, 760 90, 730 150 S 690 220, 720 260" />
@@ -57,17 +66,26 @@ export default function Footer() {
           <path className="f-root" pathLength="1" strokeWidth="1.5" d="M1255 110 C 1300 120, 1340 140, 1380 180" />
         </svg>
         <div className="wrap relative pt-24 pb-16 md:pt-32 md:pb-20 text-center">
-          <p className="text-sm font-medium text-fi-accent">{t('footer_cta_kicker')}</p>
-          <h2 className="f-cta-title mx-auto mt-4 max-w-4xl font-display text-[clamp(2.6rem,8vw,6.5rem)] font-semibold leading-[0.95] tracking-tight !text-white">{t('footer_cta_titre')}</h2>
-          <p className="mx-auto mt-6 max-w-xl text-lg text-white/75">{t('footer_cta_texte')}</p>
+          <p className="inline-flex items-center gap-2 rounded-full border border-fi-primary/15 bg-white/70 px-4 py-1.5 text-sm font-medium text-fi-primary backdrop-blur"><span className="h-1.5 w-1.5 rounded-full bg-fi-accent" aria-hidden />{t('footer_cta_kicker')}</p>
+          <h2 className="f-cta-title mx-auto mt-5 max-w-4xl font-display text-[clamp(2.6rem,8vw,6.5rem)] font-semibold leading-[0.95] tracking-tight !text-[#173d22]">
+            {ctaHead}{ctaHead && ' '}
+            {/* Dernier mot : dégradé de vert et soulignement tracé à la main */}
+            <span className="relative inline-block whitespace-nowrap">
+              <span className="f-cta-word">{ctaLast}</span>
+              <svg aria-hidden className="absolute -bottom-[0.12em] left-0 h-[0.22em] w-full overflow-visible" viewBox="0 0 200 20" preserveAspectRatio="none" fill="none">
+                <path className="f-scribble" pathLength="1" d="M4 13 C 40 4, 90 6, 120 9 S 176 14, 196 6" stroke="#8bc34a" strokeWidth="5" strokeLinecap="round" />
+              </svg>
+            </span>
+          </h2>
+          <p className="mx-auto mt-6 max-w-xl text-lg text-fi-text/70">{t('footer_cta_texte')}</p>
           <div className="mt-9 flex flex-wrap justify-center gap-3">
-            <Link to={p('/contact')} state={{ subject: 'devis' }} className="btn-accent">{t('nav_bouton')} <ArrowUpRight size={18} aria-hidden /></Link>
-            <button type="button" onClick={() => openPois()} className="btn-light">{t('hero_bouton_2')}</button>
+            <Link to={p('/contact')} state={{ subject: 'devis' }} className="btn-primary">{t('nav_bouton')} <ArrowUpRight size={18} aria-hidden /></Link>
+            <button type="button" onClick={() => openPois()} className="btn-ghost">{t('hero_bouton_2')}</button>
           </div>
         </div>
       </section>}
 
-      <footer className={`relative overflow-hidden bg-fi-deep text-white ${!onContact ? 'mt-3' : ''}`}>
+      <footer className={`f-foot relative overflow-hidden text-white ${!onContact ? 'mt-3' : ''}`}>
         <div aria-hidden className="pointer-events-none absolute inset-0"><div className="grain h-full" /></div>
 
         <div className={`wrap relative pb-10 ${!onContact ? 'pt-16' : 'pt-48'}`}>
@@ -75,7 +93,7 @@ export default function Footer() {
             <div className="lg:col-span-5">
               <img {...img('logo_rond')} alt={site.nom} width={112} height={112} className="h-24 w-24 rounded-full bg-white p-1 object-contain" loading="lazy" decoding="async" />
               {/* La marque animée ouvre la description : lettres taillées dans un profil de sol, pousses, lampe */}
-              <p className="mt-6 max-w-md text-white/75 leading-relaxed">
+              <p className="mt-6 max-w-md text-white/85 leading-relaxed">
                 <span aria-hidden className="f-mark relative mb-2 block w-max pt-[0.3em] font-display text-[clamp(2.4rem,4.4vw,3.4rem)] font-bold leading-none tracking-tight" onPointerMove={light} onPointerLeave={unlight}>
                   <span className="f-word block whitespace-nowrap">
                     {[...MARK].map((c, i) => (
@@ -95,7 +113,7 @@ export default function Footer() {
                 <span className="sr-only">{MARK} </span>
                 {descRest}
               </p>
-              <p className="mt-4 text-sm text-fi-accent/90">{t('footer_certifs')}</p>
+              <p className="mt-4 text-sm text-[#dcf3b0]">{t('footer_certifs')}</p>
               <div className="mt-5 flex items-center gap-3">
                 <a href={e.linkedin} target="_blank" rel="noreferrer" aria-label="LinkedIn" className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 hover:bg-fi-accent hover:text-fi-deep transition-colors"><Linkedin size={18} /></a>
                 <a href={`tel:${e.telephone.replace(/\s/g, '')}`} aria-label={t('contact_tel_titre')} className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 hover:bg-fi-accent hover:text-fi-deep transition-colors"><Phone size={18} /></a>
@@ -105,41 +123,41 @@ export default function Footer() {
 
             <div className="lg:col-span-2">
               <h3 className="font-display text-white text-base font-semibold mb-4">{t('footer_services')}</h3>
-              <ul className="space-y-2.5 text-sm text-white/75">
-                {services.map((s) => <li key={s.id}><Link to={`${p('/services')}#${s.id}`} className="hover:text-fi-accent transition-colors">{L(s.titre)}</Link></li>)}
-                <li><Link to={p('/formations')} className="hover:text-fi-accent transition-colors">{t('nav_formations')}</Link></li>
+              <ul className="space-y-2.5 text-sm text-white/85">
+                {services.map((s) => <li key={s.id}><Link to={`${p('/services')}#${s.id}`} className="hover:text-[#dcf3b0] transition-colors">{L(s.titre)}</Link></li>)}
+                <li><Link to={p('/formations')} className="hover:text-[#dcf3b0] transition-colors">{t('nav_formations')}</Link></li>
               </ul>
             </div>
 
             <div className="lg:col-span-2">
               <h3 className="font-display text-white text-base font-semibold mb-4">{t('footer_entreprise')}</h3>
-              <ul className="space-y-2.5 text-sm text-white/75">
-                <li><Link to={`${p('/')}#realisations`} className="hover:text-fi-accent transition-colors">{t('footer_realisations')}</Link></li>
-                <li><Link to={p('/activites')} className="hover:text-fi-accent transition-colors">{t('footer_rd')}</Link></li>
-                <li><Link to={p('/expertise')} className="hover:text-fi-accent transition-colors">{t('nav_expertise')}</Link></li>
-                <li><Link to={p('/equipe')} className="hover:text-fi-accent transition-colors">{t('nav_equipe')}</Link></li>
-                <li><Link to={p('/chiffres')} className="hover:text-fi-accent transition-colors">{t('nav_chiffres')}</Link></li>
-                <li><Link to={p('/blog')} className="hover:text-fi-accent transition-colors">{t('nav_blog')}</Link></li>
-                <li><Link to={`${p('/faq')}#guide`} className="hover:text-fi-accent transition-colors">{t('nav_guide')}</Link></li>
-                <li><Link to={p('/faq')} className="hover:text-fi-accent transition-colors">{t('nav_faq')}</Link></li>
-                <li><Link to={p('/contact')} className="hover:text-fi-accent transition-colors">{t('nav_contact')}</Link></li>
+              <ul className="space-y-2.5 text-sm text-white/85">
+                <li><Link to={`${p('/')}#realisations`} className="hover:text-[#dcf3b0] transition-colors">{t('footer_realisations')}</Link></li>
+                <li><Link to={p('/activites')} className="hover:text-[#dcf3b0] transition-colors">{t('footer_rd')}</Link></li>
+                <li><Link to={p('/expertise')} className="hover:text-[#dcf3b0] transition-colors">{t('nav_expertise')}</Link></li>
+                <li><Link to={p('/equipe')} className="hover:text-[#dcf3b0] transition-colors">{t('nav_equipe')}</Link></li>
+                <li><Link to={p('/chiffres')} className="hover:text-[#dcf3b0] transition-colors">{t('nav_chiffres')}</Link></li>
+                <li><Link to={p('/blog')} className="hover:text-[#dcf3b0] transition-colors">{t('nav_blog')}</Link></li>
+                <li><Link to={`${p('/faq')}#guide`} className="hover:text-[#dcf3b0] transition-colors">{t('nav_guide')}</Link></li>
+                <li><Link to={p('/faq')} className="hover:text-[#dcf3b0] transition-colors">{t('nav_faq')}</Link></li>
+                <li><Link to={p('/contact')} className="hover:text-[#dcf3b0] transition-colors">{t('nav_contact')}</Link></li>
               </ul>
             </div>
 
             <div className="lg:col-span-3">
               <h3 className="font-display text-white text-base font-semibold mb-4">{t('nav_contact')}</h3>
-              <address className="not-italic text-sm text-white/75 space-y-2.5">
-                <p className="flex gap-2"><MapPin size={16} className="mt-0.5 shrink-0 text-fi-accent" aria-hidden /><span>{e.adresse}<br />{e.codePostal} {e.ville}, {e.pays}</span></p>
-                <p className="flex gap-2"><Phone size={16} className="mt-0.5 shrink-0 text-fi-accent" aria-hidden /><span><a href={`tel:${e.telephone.replace(/\s/g, '')}`} className="hover:text-fi-accent">{e.telephone}</a><br /><a href={`tel:${e.mobile.replace(/\s/g, '')}`} className="hover:text-fi-accent">{e.mobile}</a></span></p>
-                <p className="flex gap-2"><Mail size={16} className="mt-0.5 shrink-0 text-fi-accent" aria-hidden /><a href={`mailto:${e.email}`} className="hover:text-fi-accent break-all">{e.email}</a></p>
-                <p className="pt-1 text-white/60">{horairesAffichage(site.horaires, lang).map((h) => `${h.jour} ${h.heures}`).join(' · ')}</p>
+              <address className="not-italic text-sm text-white/85 space-y-2.5">
+                <p className="flex gap-2"><MapPin size={16} className="mt-0.5 shrink-0 text-[#dcf3b0]" aria-hidden /><span>{e.adresse}<br />{e.codePostal} {e.ville}, {e.pays}</span></p>
+                <p className="flex gap-2"><Phone size={16} className="mt-0.5 shrink-0 text-[#dcf3b0]" aria-hidden /><span><a href={`tel:${e.telephone.replace(/\s/g, '')}`} className="hover:text-[#dcf3b0]">{e.telephone}</a><br /><a href={`tel:${e.mobile.replace(/\s/g, '')}`} className="hover:text-[#dcf3b0]">{e.mobile}</a></span></p>
+                <p className="flex gap-2"><Mail size={16} className="mt-0.5 shrink-0 text-[#dcf3b0]" aria-hidden /><a href={`mailto:${e.email}`} className="hover:text-[#dcf3b0] break-all">{e.email}</a></p>
+                <p className="pt-1 text-white/75">{horairesAffichage(site.horaires, lang).map((h) => `${h.jour} ${h.heures}`).join(' · ')}</p>
               </address>
             </div>
           </div>
 
           {/* Herbe qui pousse au-dessus de la ligne du copyright */}
           <div aria-hidden className="f-grass pointer-events-none mt-12 h-7" />
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-white/10 pt-6 text-xs text-white/55">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-white/10 pt-6 text-xs text-white/75">
             <p>© {new Date().getFullYear()} {site.nom}. {t('footer_droits')}</p>
             <button type="button" onClick={toTop} className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 hover:bg-white/10 transition-colors min-h-[40px]">{t('footer_haut')} <ArrowUp size={14} aria-hidden /></button>
           </div>
