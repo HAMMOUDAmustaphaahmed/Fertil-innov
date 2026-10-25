@@ -94,11 +94,11 @@
 .hero-scene { min-height: 100svh; }
 /* Plongée : on zoome sur un point du sol du champ (sous la motte, au pied des sillons), où s'ouvre l'oculaire */
 .hero-scene { --dive-y: 66%; }
-.hero-land, .micro-inner { transform-origin: var(--orb-x, 50%) var(--dive-y); }
+.micro-inner { transform-origin: var(--orb-x, 50%) var(--dive-y); }
 .js .hero-micro { display: block; visibility: hidden; --eye: 0%; clip-path: circle(var(--eye) at var(--orb-x, 50%) var(--dive-y)); }
 @media (min-aspect-ratio: 11/10) {
   .hero-scene { --dive-y: 82%; }
-  .hero-land, .micro-inner { transform-origin: var(--orb-x, 72%) var(--dive-y); }
+  .micro-inner { transform-origin: var(--orb-x, 72%) var(--dive-y); }
   .js .hero-micro { clip-path: circle(var(--eye) at var(--orb-x, 72%) var(--dive-y)); }
 }
 .js .hero-chapter { display: flex; opacity: 0; }

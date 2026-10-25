@@ -212,25 +212,45 @@ function paint(cv, vxPct) {
   ctx.fillStyle = g; ctx.fillRect(0, hy, W, H - hy);
 }
 
-export default function FieldCanvas() {
+// Le paysage est peint une fois dans un calque en mémoire ; le canvas visible en affiche une copie, agrandie
+// autour du point de plongée pendant la descente (api.zoom). Pas de zoom CSS : un calque agrandi ×7 faisait
+// dégrader sa résolution par le navigateur, et le champ pouvait rester flou ou vide au retour en haut.
+export default function FieldCanvas({ api }) {
   const ref = useRef(null);
   useEffect(() => {
     const cv = ref.current; const host = cv.closest('section') || cv.parentElement;
-    let last = ''; let timer = 0;
+    const cache = document.createElement('canvas');
+    let last = ''; let timer = 0; let zoom = 1; let origin = [0.5, 0.66];
+    const render = () => {
+      if (!cache.width || !cv.width) return;
+      const ctx = cv.getContext('2d');
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      if (zoom > 1.0005) {
+        const ox = origin[0] * cv.width; const oy = origin[1] * cv.height;
+        ctx.setTransform(zoom, 0, 0, zoom, ox - ox * zoom, oy - oy * zoom);
+      }
+      ctx.drawImage(cache, 0, 0);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+    };
     const draw = () => {
       const coarse = window.matchMedia('(pointer: coarse)').matches;
       const dpr = Math.min(window.devicePixelRatio || 1, coarse ? 1.25 : 1.5);
       const w = Math.round(cv.clientWidth * dpr); const h = Math.round(cv.clientHeight * dpr);
-      const ox = parseFloat(getComputedStyle(host).getPropertyValue('--orb-x')) || (w / h > 1.1 ? 72 : 50);
-      const key = `${w}x${h}@${ox.toFixed(1)}`;
+      const css = getComputedStyle(host);
+      const ox = parseFloat(css.getPropertyValue('--orb-x')) || (w / h > 1.1 ? 72 : 50);
+      const oy = parseFloat(css.getPropertyValue('--dive-y')) || (w / h > 1.1 ? 82 : 66);
+      const key = `${w}x${h}@${ox.toFixed(1)}/${oy}`;
       if (!w || !h || key === last) return;
-      last = key; cv.width = w; cv.height = h; paint(cv, ox / 100);
+      last = key; origin = [ox / 100, oy / 100];
+      cache.width = w; cache.height = h; paint(cache, ox / 100);
+      cv.width = w; cv.height = h; render();
     };
+    if (api) api.current = { zoom: (z) => { if (Math.abs(z - zoom) < 0.0005) return; zoom = z; render(); } };
     const later = () => { clearTimeout(timer); timer = setTimeout(draw, 200); };
     const repaint = () => { last = ''; draw(); };
     draw();
-    // Le navigateur peut vider un canvas (mémoire graphique saturée pendant la plongée) : on repeint dès qu'il
-    // le rend, et on vérifie en revenant en haut de page qu'il n'est pas resté vide.
+    // Canvas vidé par le navigateur (mémoire graphique) : on repeint à sa restauration, et on vérifie en
+    // revenant en haut de page qu'il n'est pas resté vide.
     cv.addEventListener('contextrestored', repaint);
     let checked = 0;
     const check = () => {
@@ -242,7 +262,10 @@ export default function FieldCanvas() {
     const ro = new ResizeObserver(later); ro.observe(cv);
     // La motte 3D publie sa position (--orb-x) une fois chargée : on recale le point de fuite
     const mo = new MutationObserver(later); mo.observe(host, { attributes: true, attributeFilter: ['style'] });
-    return () => { clearTimeout(timer); ro.disconnect(); mo.disconnect(); cv.removeEventListener('contextrestored', repaint); window.removeEventListener('scroll', check); };
-  }, []);
+    return () => {
+      clearTimeout(timer); ro.disconnect(); mo.disconnect(); cv.removeEventListener('contextrestored', repaint); window.removeEventListener('scroll', check);
+      if (api) api.current = null;
+    };
+  }, [api]);
   return <canvas ref={ref} aria-hidden className="absolute inset-0 h-full w-full" />;
 }

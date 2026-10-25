@@ -45,6 +45,7 @@ export default function HeroMicroscope() {
   const ref = useRef(null);
   const micro = useRef(null);
   const soil = useRef(null);
+  const field = useRef(null);
   const orb = useRef(null);
 
   useGSAP(() => {
@@ -76,6 +77,7 @@ export default function HeroMicroscope() {
       const k = Math.min(1, Math.max(0, (p - 0.06) / 0.7));
       if (mag) mag.textContent = `×${fmt.format(Math.round(Math.pow(1000, k) / (k > 0.4 ? 10 : 1)) * (k > 0.4 ? 10 : 1))}`;
     };
+    const dive = { z: 1 };
     const tl = gsap.timeline({
       defaults: { ease: 'none' },
       scrollTrigger: {
@@ -85,7 +87,7 @@ export default function HeroMicroscope() {
     });
     tl.to(q('.h-content'), { opacity: 0, y: -70, filter: 'blur(10px)', duration: 0.12 }, 0.02)
       .to(q('.h-hint'), { opacity: 0, duration: 0.04 }, 0)
-      .to(q('.hero-land'), { scale: 7, duration: 0.26, ease: 'power3.in' }, 0.02) // on plonge dans le sol du champ
+      .to(dive, { z: 7, duration: 0.26, ease: 'power3.in', onUpdate: () => field.current?.zoom(dive.z) }, 0.02) // on plonge dans le sol du champ (zoom dessiné dans le canvas)
       .to(q('.hero-land'), { opacity: 0, duration: 0.08 }, 0.22)
       // Verrou : la vue micro (et l'anneau) restent masqués tant que l'oculaire n'est pas ouvert, même si un
       // navigateur applique mal le clip-path (le sol flou ne doit jamais recouvrir le champ en haut de page)
@@ -127,7 +129,7 @@ export default function HeroMicroscope() {
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('fi:scrolled-top', reconcile); // fin du bouton « Retour en haut »
     const boot = setTimeout(reconcile, 600);
-    return () => { window.removeEventListener('fi:loader-done', play); window.removeEventListener('resize', sizeEye); window.removeEventListener('scroll', onScroll); window.removeEventListener('fi:scrolled-top', reconcile); clearTimeout(idle); clearTimeout(boot); };
+    return () => { field.current?.zoom(1); window.removeEventListener('fi:loader-done', play); window.removeEventListener('resize', sizeEye); window.removeEventListener('scroll', onScroll); window.removeEventListener('fi:scrolled-top', reconcile); clearTimeout(idle); clearTimeout(boot); };
   }, { scope: ref, dependencies: [lang] });
 
   const title = t('hero_titre');
@@ -138,9 +140,8 @@ export default function HeroMicroscope() {
       {/* Fenêtre sombre arrondie sous la barre de navigation : rien du hero n'est masqué par l'en-tête */}
       <div className="sticky top-[var(--header-h)] mx-2 sm:mx-3 h-[calc(100svh-var(--header-h)-0.5rem)] flex items-end overflow-hidden rounded-[28px] bg-fi-deep text-white">
         {/* Échelle macro : champ au couchant + lueur autour de la motte de terre vivante en 3D */}
-        {/* Pas de will-change ici : zoomé ×7, Chrome dégraderait la résolution du calque et la garderait au retour (champ flou) */}
         <div aria-hidden className="hero-land absolute inset-0">
-          <FieldCanvas />
+          <FieldCanvas api={field} />
           <div className="hero-atmo absolute inset-0" />
         </div>
         <RhizoScene api={orb} t={t} />
