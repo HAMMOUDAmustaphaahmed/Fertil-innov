@@ -7,7 +7,7 @@
 //  wood      (réserve)   : tranche de tronc, cernes, anneau de lumière, lampe à la souris
 //  data      Chiffres    : champ de carottes de sol 3D, nos chiffres épinglés, soleil, pollen
 //  myco      Équipe      : réseau mycorhizien, impulsions de nutriments
-//  leaves    Blog        : feuilles nervurées qui dérivent dans la brise
+//  leaves    Blog        : feuilles dans un rayon de soleil, nos derniers articles sur des fiches de verre
 //  iris      FAQ         : bulles irisées qui éclatent à la souris
 //  rings     (réserve)   : cernes de croissance qui se tracent
 //  contours  (réserve)   : courbes de niveau / données qui ondulent
@@ -663,37 +663,76 @@ function Myco() {
 }
 
 // Blog : feuilles du savoir. Feuilles nervurées (vertes, dorées, automnales) qui dérivent, se retournent et
-// tournoient en profondeur, poussées par une brise qui suit la souris.
+// tournoient dans un rayon de soleil (contre-jour quand elles le traversent), poussées par une brise qui suit
+// la souris. Nos derniers articles flottent parmi elles sur des fiches de verre (grand écran).
 function Leaves() {
   const ref = useRef(null);
   const pt = usePointer(ref);
+  const { L } = useLang();
+  const { listes } = useSite();
+  const posts = useRef([]);
+  posts.current = (listes.blog || []).filter((b) => b.visible !== false).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3)
+    .map((b) => { const ti = L(b.titre); return { titre: ti.length > 46 ? `${ti.slice(0, 44).trimEnd()}…` : ti, meta: `${L(b.categorie)} · ${b.date.slice(0, 4)}` }; });
   const st = useRef(null);
   useLoop(ref, (t) => {
     const cv = ref.current; if (!cv) return;
     const [ctx, w, h, dpr] = fit(cv);
     if (!w || !h) return;
+    const wide = w / h > 1.1;
     if (!st.current) {
       const r = rand(21); const Rn = (a, b) => a + r() * (b - a);
       const pal = [['#9ccc65', '#558b2f'], ['#c5e1a5', '#7cb342'], ['#f2c46d', '#c98a2b'], ['#e7a15a', '#a85a24'], ['#8bc34a', '#33691e']];
-      st.current = { leaves: Array.from({ length: 22 }, () => ({ x: Rn(0, 1), y: Rn(-0.2, 1.1), z: Rn(0.3, 1), a: Rn(0, 6.28), va: Rn(-0.6, 0.6), f: Rn(0, 6.28), vf: Rn(0.8, 2), vy: Rn(0.02, 0.05), sw: Rn(0, 6.28), c: pal[(r() * pal.length) | 0] })), wind: 0 };
+      st.current = { leaves: Array.from({ length: 22 }, () => ({ x: Rn(0, 1), y: Rn(-0.2, 1.1), z: Rn(0.3, 1), a: Rn(0, 6.28), va: Rn(-0.6, 0.6), f: Rn(0, 6.28), vf: Rn(0.8, 2), vy: Rn(0.02, 0.05), sw: Rn(0, 6.28), c: pal[(r() * pal.length) | 0] })),
+        motes: Array.from({ length: 40 }, () => ({ u: r(), v: r(), s: Rn(0.4, 1.2), ph: Rn(0, 6.28) })), wind: 0 };
     }
     const S = st.current; const P = pt.current;
     S.wind += ((P.in ? P.x * 0.12 : 0.02) - S.wind) * 0.02;
     ctx.clearRect(0, 0, w, h);
+    // Rayon de soleil en diagonale (haut droite → bas gauche) et poussières dorées
+    const beam = (x, y) => { const d = Math.abs((x - w * 0.95) * 0.55 + (y - 0) * 0.83 - h * 0.35) / (w * 0.18); return Math.max(0, 1 - d); };
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    let g = ctx.createLinearGradient(w, 0, w * 0.35, h); g.addColorStop(0, 'rgba(255,236,170,0.16)'); g.addColorStop(1, 'rgba(255,236,170,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(w * 0.78, 0); ctx.lineTo(w, 0); ctx.lineTo(w * 0.55, h); ctx.lineTo(w * 0.2, h); ctx.closePath(); ctx.fill();
+    for (const m of S.motes) { const x = w * (0.55 + m.u * 0.45) - m.v * w * 0.35; const y = ((m.v + t * 0.01 * m.s) % 1) * h; const k = beam(x, y); if (!k) continue; ctx.fillStyle = `rgba(255,240,190,${0.5 * k * (0.6 + 0.4 * Math.sin(t * 2 + m.ph))})`; ctx.beginPath(); ctx.arc(x, y, dpr * m.s * 1.4, 0, 6.283); ctx.fill(); }
+    ctx.restore();
+    // Feuilles
     const sorted = [...S.leaves].sort((a, b) => a.z - b.z);
     for (const l of sorted) {
       l.y += l.vy * 0.016 * l.z; l.x += (S.wind + Math.sin(t * 0.8 + l.sw) * 0.02) * 0.016 * l.z; l.a += l.va * 0.016; l.f += l.vf * 0.016;
       if (l.y > 1.15) { l.y = -0.15; l.x = Math.random(); } if (l.x > 1.1) l.x = -0.1; if (l.x < -0.1) l.x = 1.1;
-      const s = (14 + l.z * 30) * dpr; const flip = Math.cos(l.f);
+      const s = (14 + l.z * 30) * dpr; const flip = Math.cos(l.f); const lit = beam(l.x * w, l.y * h);
       ctx.save(); ctx.translate(l.x * w, l.y * h); ctx.rotate(l.a); ctx.scale(Math.max(0.08, Math.abs(flip)), 1);
       ctx.globalAlpha = 0.35 + l.z * 0.65;
-      const g = ctx.createLinearGradient(-s, 0, s, 0); g.addColorStop(0, flip > 0 ? l.c[0] : '#e8f0d8'); g.addColorStop(1, l.c[1]);
+      g = ctx.createLinearGradient(-s, -s * 0.3, s, s * 0.3); g.addColorStop(0, flip > 0 ? l.c[0] : '#e8f0d8'); g.addColorStop(1, l.c[1]);
       ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(-s, 0); ctx.bezierCurveTo(-s * 0.4, -s * 0.55, s * 0.5, -s * 0.5, s, 0); ctx.bezierCurveTo(s * 0.5, s * 0.5, -s * 0.4, s * 0.55, -s, 0); ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,230,0.55)'; ctx.lineWidth = dpr; ctx.beginPath(); ctx.moveTo(-s * 1.15, 0); ctx.lineTo(s * 0.95, 0); ctx.stroke();
-      ctx.strokeStyle = 'rgba(255,255,230,0.3)'; for (let k = -3; k <= 3; k++) { if (!k) continue; const x0 = (k / 4) * s * 0.8; ctx.beginPath(); ctx.moveTo(x0, 0); ctx.lineTo(x0 + s * 0.25, -s * 0.28); ctx.moveTo(x0, 0); ctx.lineTo(x0 + s * 0.25, s * 0.28); ctx.stroke(); }
+      if (lit) { ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = `rgba(255,240,170,${0.35 * lit})`; ctx.fill(); ctx.globalCompositeOperation = 'source-over'; }
+      // nervure centrale, secondaires courbes et tertiaires
+      ctx.strokeStyle = 'rgba(255,255,230,0.6)'; ctx.lineWidth = dpr * 1.1; ctx.beginPath(); ctx.moveTo(-s * 1.15, 0); ctx.lineTo(s * 0.95, 0); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,230,0.32)'; ctx.lineWidth = dpr * 0.7;
+      for (let k = -3; k <= 3; k++) { if (!k) continue; const x0 = (k / 4) * s * 0.8; for (const sg of [-1, 1]) { ctx.beginPath(); ctx.moveTo(x0, 0); ctx.quadraticCurveTo(x0 + s * 0.12, sg * s * 0.12, x0 + s * 0.3, sg * s * 0.3); ctx.stroke(); } }
       ctx.restore();
     }
     ctx.globalAlpha = 1;
+    // Nos derniers articles, sur des fiches de verre qui flottent (grand écran)
+    if (wide) {
+      const fs = Math.max(11 * dpr, Math.min(14 * dpr, w * 0.012));
+      posts.current.forEach((po, i) => {
+        const x = w * [0.44, 0.58, 0.48][i] + (P.in ? P.x * 14 * dpr * (i + 1) : 0); const y = h * [0.3, 0.52, 0.74][i] + Math.sin(t * 0.9 + i * 2) * dpr * 6;
+        ctx.font = `600 ${fs}px Manrope, system-ui, sans-serif`; const tw = Math.max(ctx.measureText(po.titre).width, fs * 10);
+        const bw = tw + fs * 4; const bh = fs * 3.4;
+        ctx.save(); ctx.translate(x, y); ctx.rotate(Math.sin(t * 0.6 + i) * 0.03);
+        ctx.fillStyle = 'rgba(12,40,22,0.62)'; ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = dpr;
+        ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(0, 0, bw, bh, fs * 0.8); else ctx.rect(0, 0, bw, bh); ctx.fill(); ctx.stroke();
+        // petite feuille en icône
+        ctx.save(); ctx.translate(fs * 1.5, bh / 2); ctx.rotate(-0.6); const s = fs * 0.75;
+        ctx.fillStyle = ['#9ccc65', '#f2c46d', '#8bc34a'][i]; ctx.beginPath(); ctx.moveTo(-s, 0); ctx.bezierCurveTo(-s * 0.4, -s * 0.6, s * 0.5, -s * 0.5, s, 0); ctx.bezierCurveTo(s * 0.5, s * 0.5, -s * 0.4, s * 0.6, -s, 0); ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,230,0.6)'; ctx.beginPath(); ctx.moveTo(-s, 0); ctx.lineTo(s, 0); ctx.stroke(); ctx.restore();
+        ctx.textBaseline = 'middle';
+        ctx.font = `600 ${fs * 0.78}px Manrope, system-ui, sans-serif`; ctx.fillStyle = 'rgba(197,255,120,0.9)'; ctx.fillText(po.meta.toUpperCase(), fs * 3, bh * 0.32);
+        ctx.font = `600 ${fs}px Manrope, system-ui, sans-serif`; ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.fillText(po.titre, fs * 3, bh * 0.66);
+        ctx.restore();
+      });
+    }
   });
   return <canvas ref={ref} aria-hidden className="absolute inset-y-0 right-0 h-full w-full md:w-3/5" />;
 }
