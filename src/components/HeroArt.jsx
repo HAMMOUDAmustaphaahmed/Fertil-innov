@@ -5,7 +5,7 @@
 //  scope     Expertise   : oculaire de microscope en fond noir, micro-organismes vivants
 //  parcours  Formations  : parcours d'apprentissage dans une carotte de sol (vraies formations)
 //  wood      (réserve)   : tranche de tronc, cernes, anneau de lumière, lampe à la souris
-//  data      Chiffres    : champ de colonnes 3D qui ondule, se soulève à la souris
+//  data      Chiffres    : champ de carottes de sol 3D, nos chiffres épinglés, soleil, pollen
 //  myco      Équipe      : réseau mycorhizien, impulsions de nutriments
 //  leaves    Blog        : feuilles nervurées qui dérivent dans la brise
 //  iris      FAQ         : bulles irisées qui éclatent à la souris
@@ -522,38 +522,92 @@ function Wood() {
   return <canvas ref={ref} aria-hidden className="absolute right-[-38%] top-1/2 aspect-square w-[min(120vw,46rem)] -translate-y-1/2 md:right-[-4%]" />;
 }
 
-// Chiffres : champ de données en 3D isométrique. Des colonnes ondulent comme un champ de blé sous le vent,
-// plus lumineuses quand elles montent ; elles se soulèvent autour de la souris.
+// Chiffres : champ de carottes de sol en 3D isométrique. Chaque colonne est une carotte (herbe au sommet,
+// horizons de sol sur les faces) ; le champ ondule comme du blé sous le vent, les colonnes se soulèvent
+// autour de la souris. Nos vrais chiffres flottent au-dessus, épinglés à des colonnes qui pulsent ;
+// ombres portées, rayon de soleil qui balaie le champ, pollen qui s'élève.
+const DF_LAYERS = [[0.05, [124, 179, 66]], [0.2, [43, 26, 13]], [0.3, [93, 63, 36]], [0.27, [138, 100, 64]], [1, [163, 154, 139]]];
+const DF_PINS = [[3, 8, 'projets', '', 'compteur_projets'], [8, 3, 'hectares', ' ha', 'compteur_ha'], [9, 9, 'satisfaction', ' %', 'compteur_satisfaction'], [5, 5, 'annees', '', 'compteur_annees']];
 function DataField() {
   const ref = useRef(null);
   const pt = usePointer(ref);
+  const { t: tr } = useLang();
+  const { chiffres } = useSite();
+  const pins = useRef([]);
+  pins.current = DF_PINS.map(([i, j, k, suf, lab]) => ({ i, j, v: `${chiffres?.[k] ?? ''}${suf}`, l: tr(lab) })).filter((q) => q.v.trim());
+  const pollen = useRef(null);
   useLoop(ref, (t) => {
     const cv = ref.current; if (!cv) return;
-    const [ctx, w, h] = fit(cv);
+    const [ctx, w, h, dpr] = fit(cv);
     if (!w || !h) return;
     const N = 12; const cw = Math.min(w / (N * 2.9), h / (N * 1.9)); const ch = cw * 0.55;
-    const ox = w * 0.68; const oy = h * 0.58 - N * ch * 0.6;
+    const ox = w * 0.68; const oy = h * 0.6 - N * ch * 0.6;
     const P = pt.current; const mx = P.in ? P.px * (w / cv.clientWidth) : -9999; const my = P.in ? P.py * (h / cv.clientHeight) : -9999;
     const p = Number(getComputedStyle(cv).getPropertyValue('--ph-p')) || 0;
+    const pinAt = new Map(pins.current.map((q) => [`${q.i},${q.j}`, q]));
+    const sweep = ((t * 0.12) % 1.6) - 0.3; // rayon de soleil, en diagonale sur le champ
     ctx.clearRect(0, 0, w, h);
     // Sol : grille
     ctx.strokeStyle = 'rgba(200,230,201,0.08)'; ctx.lineWidth = 1;
-    for (let i = 0; i <= N; i++) { ctx.beginPath(); ctx.moveTo(ox + (i - 0) * cw, oy + (i + 0) * ch); ctx.lineTo(ox + (i - N) * cw, oy + (i + N) * ch); ctx.stroke(); ctx.beginPath(); ctx.moveTo(ox - i * cw, oy + i * ch); ctx.lineTo(ox + (N - i) * cw, oy + (N + i) * ch); ctx.stroke(); }
+    for (let i = 0; i <= N; i++) { ctx.beginPath(); ctx.moveTo(ox + i * cw, oy + i * ch); ctx.lineTo(ox + (i - N) * cw, oy + (i + N) * ch); ctx.stroke(); ctx.beginPath(); ctx.moveTo(ox - i * cw, oy + i * ch); ctx.lineTo(ox + (N - i) * cw, oy + (N + i) * ch); ctx.stroke(); }
+    // Hauteurs (et ombres portées, dessinées avant les colonnes)
+    const cells = [];
     for (let s2 = 0; s2 <= 2 * (N - 1); s2++) for (let i = 0; i < N; i++) {
       const j = s2 - i; if (j < 0 || j >= N) continue;
       const bx = ox + (i - j) * cw; const by = oy + (i + j + 1) * ch;
       let v = 0.5 + 0.5 * Math.sin(i * 0.45 + t * 1.2 + p * 4) * Math.cos(j * 0.38 - t * 0.8);
       const near = Math.hypot(bx - mx, by - ch - my); if (near < cw * 4) v += (1 - near / (cw * 4)) * 0.9;
+      const pin = pinAt.get(`${i},${j}`); if (pin) v = 1.05 + 0.12 * Math.sin(t * 2.2 + i);
       const H = (0.15 + v * 1.1) * ch * 4.2;
-      const lum = Math.min(1, v);
-      const top = `rgb(${120 + lum * 110},${180 + lum * 60},${70 + lum * 40})`;
-      // face gauche, face droite, dessus
-      ctx.fillStyle = `rgb(${20 + lum * 30},${70 + lum * 40},${35 + lum * 15})`;
-      ctx.beginPath(); ctx.moveTo(bx - cw, by - ch); ctx.lineTo(bx, by); ctx.lineTo(bx, by - H); ctx.lineTo(bx - cw, by - ch - H); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = `rgb(${35 + lum * 40},${100 + lum * 50},${45 + lum * 20})`;
-      ctx.beginPath(); ctx.moveTo(bx + cw, by - ch); ctx.lineTo(bx, by); ctx.lineTo(bx, by - H); ctx.lineTo(bx + cw, by - ch - H); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = top; ctx.beginPath(); ctx.moveTo(bx, by - H); ctx.lineTo(bx - cw, by - ch - H); ctx.lineTo(bx, by - 2 * ch - H); ctx.lineTo(bx + cw, by - ch - H); ctx.closePath(); ctx.fill();
-      if (lum > 0.85) { ctx.globalCompositeOperation = 'lighter'; const g = ctx.createRadialGradient(bx, by - ch - H, 0, bx, by - ch - H, cw * 2); g.addColorStop(0, 'rgba(220,255,160,0.35)'); g.addColorStop(1, 'rgba(220,255,160,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(bx, by - ch - H, cw * 2, 0, 6.283); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; }
+      const sun = Math.max(0, 1 - Math.abs((i - j) / N * 0.5 + 0.5 - sweep) * 6);
+      cells.push({ i, j, bx, by, H, lum: Math.min(1, v), sun, pin });
+      ctx.fillStyle = 'rgba(0,0,0,0.22)'; const sh = H * 0.35;
+      ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx + cw, by - ch); ctx.lineTo(bx + cw + sh, by - ch + sh * 0.3); ctx.lineTo(bx + sh, by + sh * 0.3); ctx.closePath(); ctx.fill();
+    }
+    const tone = (c, k) => `rgb(${Math.min(255, c[0] * k) | 0},${Math.min(255, c[1] * k) | 0},${Math.min(255, c[2] * k) | 0})`;
+    const face = (bx, by, H, dir, k) => { // face latérale découpée en horizons de sol (dir -1 gauche, +1 droite)
+      let d = 0;
+      for (const [f, col] of DF_LAYERS) {
+        const d2 = f >= 1 ? H : Math.min(H, d + Math.max(2 * dpr * (col === DF_LAYERS[0][1] ? 1 : 0), H * f));
+        ctx.fillStyle = tone(col, k);
+        ctx.beginPath(); ctx.moveTo(bx + dir * cw, by - ch - H + d); ctx.lineTo(bx, by - H + d); ctx.lineTo(bx, by - H + d2); ctx.lineTo(bx + dir * cw, by - ch - H + d2); ctx.closePath(); ctx.fill();
+        d = d2; if (d >= H) break;
+      }
+    };
+    const tops = [];
+    for (const c of cells) {
+      const { bx, by, H, lum, sun, pin } = c; const k = 0.75 + lum * 0.3 + sun * 0.22;
+      face(bx, by, H, -1, 0.62 * k); face(bx, by, H, 1, 0.85 * k);
+      const g0 = pin ? [242, 196, 109] : [110 + lum * 80, 170 + lum * 60, 60 + lum * 30];
+      ctx.fillStyle = tone(g0, 1 + sun * 0.22);
+      ctx.beginPath(); ctx.moveTo(bx, by - H); ctx.lineTo(bx - cw, by - ch - H); ctx.lineTo(bx, by - 2 * ch - H); ctx.lineTo(bx + cw, by - ch - H); ctx.closePath(); ctx.fill();
+      if (lum > 0.85 || pin) tops.push(c);
+    }
+    // Lueur des sommets les plus hauts et des colonnes épinglées
+    ctx.globalCompositeOperation = 'lighter';
+    for (const c of tops) { const r = cw * (c.pin ? 2.6 : 2); const g = ctx.createRadialGradient(c.bx, c.by - ch - c.H, 0, c.bx, c.by - ch - c.H, r); g.addColorStop(0, c.pin ? 'rgba(255,220,140,0.28)' : 'rgba(220,255,160,0.16)'); g.addColorStop(1, 'rgba(220,255,160,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c.bx, c.by - ch - c.H, r, 0, 6.283); ctx.fill(); }
+    // Pollen qui s'élève du champ
+    if (!pollen.current) pollen.current = Array.from({ length: 34 }, () => ({ u: Math.random(), v: Math.random(), z: Math.random(), s: 0.3 + Math.random() * 0.7 }));
+    for (const q of pollen.current) {
+      const life = (t * 0.08 * q.s + q.z) % 1; const bx = ox + (q.u - q.v) * N * cw; const by = oy + (q.u + q.v) * N * ch - life * h * 0.35;
+      ctx.fillStyle = `rgba(230,255,180,${0.6 * Math.sin(life * Math.PI)})`; ctx.beginPath(); ctx.arc(bx + Math.sin(t + q.z * 9) * cw * 0.3, by, dpr * (1 + q.s * 1.5), 0, 6.283); ctx.fill();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    // Nos chiffres, épinglés au-dessus de leurs colonnes
+    const fs = Math.max(11 * dpr, Math.min(15 * dpr, w * 0.0125));
+    for (const c of cells) {
+      if (!c.pin) continue;
+      const x = c.bx; const yTop = c.by - 2 * ch - c.H; const yC = yTop - cw * 2.2 + Math.sin(t * 1.5 + c.i) * dpr * 3;
+      ctx.strokeStyle = 'rgba(255,230,160,0.6)'; ctx.lineWidth = dpr; ctx.beginPath(); ctx.moveTo(x, yTop); ctx.lineTo(x, yC + fs * 1.4); ctx.stroke();
+      ctx.font = `700 ${fs * 1.5}px "Bricolage Grotesque", system-ui, sans-serif`; const vw = ctx.measureText(c.pin.v).width;
+      ctx.font = `500 ${fs * 0.8}px Manrope, system-ui, sans-serif`; const lw = ctx.measureText(c.pin.l).width;
+      const bw = Math.max(vw, lw) + fs * 1.6; const bh = fs * 2.9; const bx0 = x - bw / 2; const by0 = yC - bh / 2;
+      ctx.fillStyle = 'rgba(10,36,20,0.72)'; ctx.strokeStyle = 'rgba(255,230,160,0.35)';
+      ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx0, by0, bw, bh, fs * 0.7); else ctx.rect(bx0, by0, bw, bh); ctx.fill(); ctx.stroke();
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = `700 ${fs * 1.5}px "Bricolage Grotesque", system-ui, sans-serif`; ctx.fillStyle = '#f2d48c'; ctx.fillText(c.pin.v, x, yC - fs * 0.45);
+      ctx.font = `500 ${fs * 0.8}px Manrope, system-ui, sans-serif`; ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.fillText(c.pin.l, x, yC + fs * 0.85);
+      ctx.textAlign = 'start';
     }
   });
   return <canvas ref={ref} aria-hidden className="absolute inset-y-0 right-0 h-full w-full md:w-2/3" />;
