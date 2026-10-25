@@ -190,12 +190,23 @@ function Process() {
 }
 
 // ---------------------------------------------------------------------------
-// Réalisations : accordéon de « carottes de sol ». Les panneaux fermés sont étroits et ternes (sol épuisé,
-// gris-sépia, titre vertical) ; le panneau ouvert s'élargit et sa photo reprend vie en couleur par un cercle
-// qui s'ouvre depuis le centre. Ouverture au survol (souris), au toucher ou au clavier ; défilement
-// automatique toutes les 6 s tant que la section est visible et que le visiteur n'a pas interagi.
+// Réalisations : accordéon de « carottes de sol ». Les panneaux fermés sont étroits, en bichromie verte, titre
+// vertical ; le panneau ouvert s'élargit et sa photo reprend vie en couleur par un cercle qui part du pointeur
+// (du centre au toucher / en lecture auto), puis zoom lent façon cinéma, parallaxe au pointeur et viseur de
+// terrain (coins, réticule, étiquette d'échantillon avec coordonnées GPS). Ouverture au survol, au toucher ou
+// au clavier ; défilement automatique toutes les 6 s tant que la section est visible et sans interaction.
 // ---------------------------------------------------------------------------
 const CORE_DELAY = 6000;
+// Coordonnées (approximatives) des villes des réalisations, pour l'étiquette d'échantillon
+const GPS = { montpellier: '43.61° N · 3.88° E', 'béziers': '43.34° N · 3.22° E', toulouse: '43.60° N · 1.44° E', 'nîmes': '43.84° N · 4.36° E', perpignan: '42.70° N · 2.90° E' };
+const gpsOf = (lieu = '') => GPS[lieu.split(',')[0].trim().toLowerCase()] || '';
+// Pointeur → variables CSS : origine du cercle de couleur, réticule, parallaxe
+const aim = (e) => {
+  const el = e.currentTarget; const r = el.getBoundingClientRect();
+  const x = (e.clientX - r.left) / r.width; const y = (e.clientY - r.top) / r.height;
+  el.style.setProperty('--px', `${x * 100}%`); el.style.setProperty('--py', `${y * 100}%`);
+  el.style.setProperty('--dx', (x - 0.5).toFixed(3)); el.style.setProperty('--dy', (y - 0.5).toFixed(3));
+};
 function Realisations() {
   const { t, L } = useLang();
   const { listes, chiffres } = useSite();
@@ -235,12 +246,29 @@ function Realisations() {
           {list.map((r, i) => {
             const on = i === active;
             return (
-              <button key={r.id} type="button" aria-expanded={on} onClick={() => open(i)} onMouseEnter={() => hover(i)} onFocus={() => open(i)}
+              <button key={r.id} type="button" aria-expanded={on} onClick={() => open(i)} onMouseEnter={(e) => { aim(e); hover(i); }} onPointerMove={aim} onFocus={() => open(i)}
                 className={`core relative overflow-hidden rounded-[1.75rem] text-left ring-1 ring-white/10 outline-none transition-all duration-700 ease-[cubic-bezier(.7,0,.2,1)] focus-visible:ring-2 focus-visible:ring-fi-accent ${on ? 'h-[25rem] md:h-auto md:flex-[5]' : 'h-[4.5rem] md:h-auto md:flex-[1]'}`}>
-                {/* Photo en couleur, et sa version « sol épuisé » qui se retire en cercle à l'ouverture */}
-                <img src={imgSrc(r.image)} alt={L(r.titre)} width={800} height={600} loading="lazy" decoding="async" data-fx-off className={`absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] ease-out ${on ? 'scale-100' : 'scale-110'}`} />
-                <img src={imgSrc(r.image)} alt="" aria-hidden width={800} height={600} loading="lazy" decoding="async" data-fx-off className="core-dull absolute inset-0 h-full w-full object-cover" style={{ clipPath: on ? 'circle(0% at 50% 60%)' : 'circle(150% at 50% 60%)' }} />
-                <span aria-hidden className={`absolute inset-0 transition-opacity duration-700 ${on ? 'bg-gradient-to-t from-black/85 via-black/25 to-transparent' : 'bg-fi-deep/45'}`} />
+                {/* Fond : la photo en bichromie verte (panneau fermé) */}
+                <span aria-hidden className="core-duo absolute inset-0">
+                  <img src={imgSrc(r.image)} alt="" width={800} height={600} loading="lazy" decoding="async" data-fx-off className="h-full w-full object-cover" />
+                </span>
+                {/* Dessus : la photo en couleur, révélée en cercle depuis le pointeur, zoom lent et parallaxe */}
+                <span className="core-color absolute inset-0 overflow-hidden" style={{ clipPath: `circle(${on ? '150%' : '0%'} at var(--px, 50%) var(--py, 60%))` }}>
+                  <span className="core-par absolute -inset-6 block">
+                    <img src={imgSrc(r.image)} alt={L(r.titre)} width={800} height={600} loading="lazy" decoding="async" data-fx-off className={`h-full w-full object-cover ${on ? 'core-kb' : ''}`} />
+                  </span>
+                </span>
+                <span aria-hidden className={`absolute inset-0 transition-opacity duration-700 ${on ? 'bg-gradient-to-t from-black/85 via-black/20 to-transparent' : 'bg-fi-deep/30'}`} />
+                {/* Viseur de terrain sur le panneau ouvert : coins, réticule (souris), étiquette d'échantillon */}
+                <span aria-hidden className={`pointer-events-none absolute inset-0 transition-opacity duration-700 ${on ? 'opacity-100 delay-500' : 'opacity-0'}`}>
+                  <span className="core-corner left-4 top-4 border-l-2 border-t-2" /><span className="core-corner right-4 top-4 border-r-2 border-t-2" />
+                  <span className="core-corner bottom-4 left-4 border-b-2 border-l-2" /><span className="core-corner bottom-4 right-4 border-b-2 border-r-2" />
+                  <span className="core-cross" />
+                  <span className="absolute right-5 top-5 flex items-center gap-3 rounded-xl border border-white/20 bg-black/30 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/85 backdrop-blur-md">
+                    <span className="flex flex-col leading-tight"><span className="text-fi-accent">{t('real_echantillon')} FI-{pad(i + 1)}</span>{gpsOf(r.lieu) && <span className="mt-0.5 font-medium normal-case tracking-normal text-white/70">{gpsOf(r.lieu)}</span>}</span>
+                    <span className="core-barcode h-6 w-10" />
+                  </span>
+                </span>
                 {/* Panneau fermé : numéro et titre (vertical sur grand écran) */}
                 <span aria-hidden className={`absolute inset-0 transition-opacity ${on ? 'opacity-0 duration-100' : 'opacity-100 delay-300 duration-500'}`}>
                   <span className="absolute inset-y-0 left-0 flex items-center gap-3 px-5 md:hidden">

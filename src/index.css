@@ -130,8 +130,20 @@
   animation: hero-rays 40s linear infinite; mix-blend-mode: screen; }
 @keyframes hero-rays { to { rotate: 360deg; } }
 
-/* Réalisations : version « sol épuisé » de la photo (grise, sépia, terne), retirée en cercle à l'ouverture */
-.core-dull { filter: grayscale(1) sepia(.35) brightness(.55) contrast(1.1); transition: clip-path 1.2s cubic-bezier(.7, 0, .2, 1); }
+/* Réalisations : bichromie verte (panneau fermé), photo couleur révélée en cercle, zoom lent, parallaxe, viseur */
+.core-duo img { filter: grayscale(1) contrast(1.15) brightness(.9); }
+.core-duo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(160deg, #1b5e20, #0f2e13); mix-blend-mode: multiply; }
+.core-duo::before { content: ""; position: absolute; inset: 0; z-index: 1; background: #c5e1a5; mix-blend-mode: screen; opacity: .18; }
+.core-color { transition: clip-path 1.3s cubic-bezier(.7, 0, .2, 1); }
+.core-par { transform: translate(calc(var(--dx, 0) * -22px), calc(var(--dy, 0) * -22px)); transition: transform .6s cubic-bezier(.2, .7, .2, 1); }
+.core-kb { animation: core-kb 9s ease-out forwards; }
+@keyframes core-kb { from { transform: scale(1.12); } to { transform: scale(1); } }
+.core-corner { position: absolute; width: 22px; height: 22px; border-color: rgb(var(--fi-accent) / 0.9); border-radius: 4px; }
+.core-cross { position: absolute; left: var(--px, 50%); top: var(--py, 50%); width: 34px; height: 34px; translate: -50% -50%; opacity: 0; transition: opacity .3s;
+  background: linear-gradient(rgb(255 255 255 / .8), rgb(255 255 255 / .8)) center / 1px 100% no-repeat, linear-gradient(rgb(255 255 255 / .8), rgb(255 255 255 / .8)) center / 100% 1px no-repeat;
+  border: 1px solid rgb(255 255 255 / .5); border-radius: 50%; }
+@media (hover: hover) and (pointer: fine) { .core:hover .core-cross { opacity: 1; } }
+.core-barcode { background: repeating-linear-gradient(90deg, rgb(255 255 255 / .85) 0 1px, transparent 1px 3px, rgb(255 255 255 / .85) 3px 5px, transparent 5px 6px, rgb(255 255 255 / .85) 6px 7px, transparent 7px 10px); opacity: .8; }
 .core-progress { width: 0; animation: core-fill linear forwards; }
 @keyframes core-fill { to { width: 100%; } }
 

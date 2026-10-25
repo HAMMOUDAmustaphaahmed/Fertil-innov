@@ -70,6 +70,7 @@ export const CONTENT = {
   realisations_kicker: K('accueil', 'Réalisations — petite ligne', 'Nos réalisations', 'Our projects', 'Nuestros proyectos'),
   realisations_titre: K('accueil', 'Réalisations — titre', 'Des projets concrets qui redonnent vie aux sols', 'Real projects that bring soils back to life', 'Proyectos concretos que devuelven la vida a los suelos'),
   realisations_texte: K('accueil', 'Réalisations — texte', 'Sites industriels, vignobles, anciennes mines : chaque intervention est suivie par des indicateurs mesurés sur le terrain.', 'Industrial sites, vineyards, former mines: every intervention is tracked with indicators measured in the field.', 'Sitios industriales, viñedos, antiguas minas: cada intervención se sigue con indicadores medidos en campo.'),
+  real_echantillon: K('accueil', 'Réalisations — étiquette « échantillon »', 'Échantillon', 'Sample', 'Muestra'),
   compteur_projets: K('accueil', 'Compteur — projets', 'Projets réalisés', 'Projects completed', 'Proyectos realizados'),
   compteur_ha: K('accueil', 'Compteur — hectares', 'Hectares traités', 'Hectares treated', 'Hectáreas tratadas'),
   compteur_satisfaction: K('accueil', 'Compteur — satisfaction', 'Satisfaction clients', 'Client satisfaction', 'Satisfacción de clientes'),
