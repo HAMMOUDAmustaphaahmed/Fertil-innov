@@ -19,6 +19,7 @@ export const CONTENT = {
   nav_equipe: K('global', 'Menu — Équipe', 'Équipe', 'Team', 'Equipo'),
   nav_guide: K('global', 'Menu — Guide des sols', 'Guide des sols', 'Soil guide', 'Guía de suelos'),
   nav_bouton: K('global', 'Bouton du menu (haut de page)', 'Demander un devis', 'Request a quote', 'Solicitar presupuesto'),
+  nav_bouton_2: K('global', 'Bouton du menu — second libellé (alterne avec le premier)', 'Nous contacter', 'Contact us', 'Contáctenos'),
   nav_langue: K('global', 'Libellé du sélecteur de langue', 'Langue', 'Language', 'Idioma'),
 
   // ---------- Accueil : hero ----------

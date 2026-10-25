@@ -197,6 +197,8 @@ function Process() {
 // au clavier ; défilement automatique toutes les 6 s tant que la section est visible et sans interaction.
 // ---------------------------------------------------------------------------
 const CORE_DELAY = 6000;
+// Spores qui s'élèvent sur la photo ouverte : [position %, retard s, taille]
+const SPORES = [[12, 0, 4], [26, 1.4, 3], [41, 0.6, 5], [58, 2.1, 3], [69, 0.9, 4], [83, 1.7, 3], [92, 0.3, 5]];
 // Coordonnées (approximatives) des villes des réalisations, pour l'étiquette d'échantillon
 const GPS = { montpellier: '43.61° N · 3.88° E', 'béziers': '43.34° N · 3.22° E', toulouse: '43.60° N · 1.44° E', 'nîmes': '43.84° N · 4.36° E', perpignan: '42.70° N · 2.90° E' };
 const gpsOf = (lieu = '') => GPS[lieu.split(',')[0].trim().toLowerCase()] || '';
@@ -259,10 +261,22 @@ function Realisations() {
                   </span>
                 </span>
                 <span aria-hidden className={`absolute inset-0 transition-opacity duration-700 ${on ? 'bg-gradient-to-t from-black/85 via-black/20 to-transparent' : 'bg-fi-deep/30'}`} />
+                {/* Ouverture : un reflet de soleil balaie la photo, des spores s'élèvent */}
+                {on && <span aria-hidden key={`sweep${active}`} className="core-sweep pointer-events-none absolute inset-0" />}
+                {on && <span aria-hidden className="pointer-events-none absolute inset-0">{SPORES.map(([x, d, sz], k) => <span key={k} className="core-spore" style={{ left: `${x}%`, width: sz, height: sz, animationDelay: `${d}s` }} />)}</span>}
+                {/* Carotte de sol : bande de terre (humus, horizons, grains) avec herbe en surface ; les racines y poussent à l'ouverture */}
+                <span aria-hidden className="core-soil pointer-events-none absolute inset-x-0 bottom-0 h-[14%]">
+                  <span className="f-grass absolute inset-x-0 bottom-full h-4 opacity-90" />
+                  <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 40" preserveAspectRatio="none" fill="none">
+                    {['M50 0 C 49 12, 53 22, 50 40', 'M50 8 C 40 14, 32 18, 22 30', 'M50 14 C 60 20, 70 24, 80 36', 'M30 0 C 30 10, 26 18, 24 26', 'M72 0 C 72 8, 76 16, 78 24'].map((d, k) => (
+                      <path key={k} d={d} pathLength="1" className={`core-root ${on ? 'is-on' : ''}`} style={{ transitionDelay: on ? `${0.6 + k * 0.12}s` : '0s' }} stroke="#f3e6c8" strokeWidth={k ? 1.2 : 2} vectorEffect="non-scaling-stroke" strokeLinecap="round" />
+                    ))}
+                  </svg>
+                </span>
                 {/* Viseur de terrain sur le panneau ouvert : coins, réticule (souris), étiquette d'échantillon */}
                 <span aria-hidden className={`pointer-events-none absolute inset-0 transition-opacity duration-700 ${on ? 'opacity-100 delay-500' : 'opacity-0'}`}>
                   <span className="core-corner left-4 top-4 border-l-2 border-t-2" /><span className="core-corner right-4 top-4 border-r-2 border-t-2" />
-                  <span className="core-corner bottom-4 left-4 border-b-2 border-l-2" /><span className="core-corner bottom-4 right-4 border-b-2 border-r-2" />
+                  <span className="core-corner bottom-[calc(14%+1rem)] left-4 border-b-2 border-l-2" /><span className="core-corner bottom-[calc(14%+1rem)] right-4 border-b-2 border-r-2" />
                   <span className="core-cross" />
                   <span className="absolute right-5 top-5 flex items-center gap-3 rounded-xl border border-white/20 bg-black/30 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/85 backdrop-blur-md">
                     <span className="flex flex-col leading-tight"><span className="text-fi-accent">{t('real_echantillon')} FI-{pad(i + 1)}</span>{gpsOf(r.lieu) && <span className="mt-0.5 font-medium normal-case tracking-normal text-white/70">{gpsOf(r.lieu)}</span>}</span>
@@ -272,18 +286,16 @@ function Realisations() {
                 {/* Panneau fermé : numéro et titre (vertical sur grand écran) */}
                 <span aria-hidden className={`absolute inset-0 transition-opacity ${on ? 'opacity-0 duration-100' : 'opacity-100 delay-300 duration-500'}`}>
                   <span className="absolute inset-y-0 left-0 flex items-center gap-3 px-5 md:hidden">
-                    <span className="font-display text-sm tabular-nums text-fi-accent">{pad(i + 1)}</span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-fi-accent" />
                     <span className="font-semibold text-white/90">{L(r.titre)}</span>
                   </span>
-                  <span className="absolute inset-0 hidden flex-col items-center justify-between py-7 md:flex">
-                    <span className="font-display text-sm tabular-nums text-fi-accent">{pad(i + 1)}</span>
+                  <span className="absolute inset-x-0 top-0 bottom-[14%] hidden flex-col items-center justify-end py-7 md:flex">
                     <span className="whitespace-nowrap text-sm font-semibold tracking-wide text-white/90 [writing-mode:vertical-rl] rotate-180">{L(r.titre)}</span>
                   </span>
                 </span>
                 {/* Panneau ouvert : détails */}
-                <span className={`absolute inset-x-0 bottom-0 block p-6 md:p-8 transition-all duration-700 ${on ? 'translate-y-0 opacity-100 delay-300' : 'pointer-events-none translate-y-6 opacity-0'}`}>
+                <span className={`absolute inset-x-0 bottom-[14%] block p-6 md:p-8 transition-all duration-700 ${on ? 'translate-y-0 opacity-100 delay-300' : 'pointer-events-none translate-y-6 opacity-0'}`}>
                   <span className="flex items-center gap-3 text-xs font-semibold">
-                    <span className="tabular-nums text-white/50">{pad(i + 1)} / {pad(list.length)}</span>
                     <span className="rounded-full border border-fi-accent/40 bg-fi-accent/15 px-3 py-1 text-fi-accent backdrop-blur">{L(r.categorie)}</span>
                   </span>
                   <span className="mt-3 block font-display text-display-sm md:text-display-md text-white">{L(r.titre)}</span>

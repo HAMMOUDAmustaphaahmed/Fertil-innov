@@ -93,6 +93,9 @@ export default function Navbar() {
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  // Bouton du haut : « Demander un devis » puis « Nous contacter », en alternance toutes les 3 s
+  const [ctaAlt, setCtaAlt] = useState(0);
+  useEffect(() => { const id = setInterval(() => setCtaAlt((v) => 1 - v), 3000); return () => clearInterval(id); }, []);
   const { scrollYProgress } = useScroll();
   const progress = useSpring(scrollYProgress, { stiffness: 220, damping: 40, restDelta: 0.001 });
 
@@ -139,8 +142,13 @@ export default function Navbar() {
 
             <div className="flex items-center gap-1.5">
               <LangSwitch />
-              <Link to={p('/contact')} className="fx-magnetic group hidden md:inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-fi-dark pl-5 pr-1.5 py-1.5 text-sm font-semibold text-white shadow-leaf transition-colors hover:bg-fi-primary">
-                {t('nav_bouton')}
+              <Link to={p('/contact')} aria-label={t('nav_bouton')} className="fx-magnetic group hidden md:inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-fi-dark pl-5 pr-1.5 py-1.5 text-sm font-semibold text-white shadow-leaf transition-colors hover:bg-fi-primary">
+                {/* Les deux libellés alternent toutes les 3 s (glissement vertical) ; la largeur reste celle du plus long */}
+                <span aria-hidden className="relative inline-grid overflow-hidden">
+                  {[t('nav_bouton'), t('nav_bouton_2')].map((label, i) => (
+                    <span key={i} className={`[grid-area:1/1] transition-all duration-500 ease-[cubic-bezier(.7,0,.2,1)] ${ctaAlt === i ? 'translate-y-0 opacity-100' : (ctaAlt === 1 ? '-translate-y-full' : 'translate-y-full') + ' opacity-0'}`}>{label}</span>
+                  ))}
+                </span>
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-fi-accent text-fi-deep transition-transform duration-500 group-hover:rotate-45"><ArrowUpRight size={16} aria-hidden /></span>
               </Link>
               <Burger open={open} onClick={() => setOpen((o) => !o)} />
