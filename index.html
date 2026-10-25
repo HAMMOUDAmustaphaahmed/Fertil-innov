@@ -32,82 +32,109 @@
       .fi-loading { overflow: hidden; }
       .fi-loading #fi-loader, #fi-loader.out { display: flex; }
       #fi-loader {
-        position: fixed; inset: 0; z-index: 200; flex-direction: column; align-items: center; justify-content: center; gap: 26px;
-        background: radial-gradient(ellipse at 50% 40%, #ffffff 0%, #f3f9f0 45%, #e2efdf 100%); color: #1b3d22;
+        position: fixed; inset: 0; z-index: 200; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 16px;
+        background: radial-gradient(ellipse at 50% 38%, #ffffff 0%, #f3f9f0 45%, #e2efdf 100%); color: #1b3d22;
         font-family: Manrope, system-ui, sans-serif; --fi-r: 0px;
         -webkit-mask: radial-gradient(circle at var(--fi-cx, 50%) var(--fi-cy, 40%), transparent var(--fi-r), #000 calc(var(--fi-r) + 1px));
         mask: radial-gradient(circle at var(--fi-cx, 50%) var(--fi-cy, 40%), transparent var(--fi-r), #000 calc(var(--fi-r) + 1px));
         transition: --fi-r 1s cubic-bezier(.76, 0, .24, 1), opacity .4s .6s;
       }
       #fi-loader.out { --fi-r: 150vmax; opacity: 0; pointer-events: none; }
-      #fi-loader::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .6;
-        background: linear-gradient(rgba(35,122,69,.06) 1px, transparent 1px) 0 0 / 100% 44px, linear-gradient(90deg, rgba(35,122,69,.06) 1px, transparent 1px) 0 0 / 44px 100%;
-        -webkit-mask: radial-gradient(circle at 50% 40%, #000, transparent 70%); mask: radial-gradient(circle at 50% 40%, #000, transparent 70%); }
-      #fi-loader .dish { position: relative; width: min(62vw, 240px); height: auto; overflow: visible; filter: drop-shadow(0 30px 40px rgba(15,46,19,.16)); }
-      #fi-loader .ticks { transform-origin: 120px 120px; animation: fi-spin 16s linear infinite; }
-      #fi-loader .col { transform-box: fill-box; transform-origin: center; transform: scale(0); transition: transform .5s cubic-bezier(.34, 1.56, .64, 1); }
-      #fi-loader .halo { transform-box: fill-box; transform-origin: center; animation: fi-breath 2.4s ease-in-out infinite; }
-      #fi-loader .hy { fill: none; stroke: #6a8f3a; stroke-width: .7; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; opacity: .7; }
-      #fi-loader .scan { animation: fi-scan 2.2s cubic-bezier(.45, 0, .55, 1) infinite; }
-      #fi-loader .brand { position: relative; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 700; font-size: 22px; letter-spacing: -.02em; text-align: center; color: #1b5e20; }
+      #fi-loader .dish { position: relative; width: min(70vw, 270px); height: auto; overflow: visible; }
+      #fi-loader .ln { fill: none; stroke-linecap: round; stroke-dasharray: 1 2; stroke-dashoffset: 1; } /* écart > 1 : pas de point résiduel au bout */
+      #fi-loader .sc { transform-box: fill-box; transform: scale(0); }
+      #fi-loader .plant { transform-origin: 130px 236px; animation: fi-sway 3.4s ease-in-out infinite alternate; }
+      #fi-loader .seed { transform-box: fill-box; transform-origin: center; }
+      #fi-loader .drop { animation: fi-glint 2.6s ease-in-out infinite; }
+      #fi-loader .brand { position: relative; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 700; font-size: 24px; letter-spacing: -.02em; text-align: center; color: #1b5e20; line-height: 1; }
       #fi-loader .brand span { color: #7cb342; }
-      #fi-loader .row { margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: rgba(27,61,34,.55); }
-      #fi-loader .row b { color: #2e7d32; font-weight: 600; font-variant-numeric: tabular-nums; min-width: 2.2em; text-align: right; }
-      #fi-loader .helix { width: 46px; height: 14px; overflow: hidden; }
-      #fi-loader .helix g { animation: fi-helix 1.2s linear infinite; }
-      #fi-loader .steps { margin-top: 14px; display: flex; gap: 6px; justify-content: center; }
-      #fi-loader .steps i { width: 26px; height: 3px; border-radius: 3px; background: rgba(35,122,69,.14); transition: background .4s; }
-      #fi-loader .steps i.on { background: #4caf50; }
-      @keyframes fi-spin { to { transform: rotate(360deg); } }
-      @keyframes fi-breath { 50% { opacity: .35; transform: scale(1.25); } }
-      @keyframes fi-scan { 0% { transform: translateY(-92px); opacity: 0; } 15%, 85% { opacity: 1; } 100% { transform: translateY(92px); opacity: 0; } }
-      @keyframes fi-helix { to { transform: translateX(-20px); } }
+      #fi-loader .brand small { display: block; margin-top: 4px; font-family: Manrope, system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: .32em; text-transform: uppercase; color: rgba(27,94,32,.6); }
+      #fi-loader .tag { margin-top: 12px; max-width: 300px; text-align: center; font-size: 13.5px; line-height: 1.45; color: rgba(27,61,34,.75); }
+      #fi-loader .row { margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; color: rgba(27,61,34,.6); }
+      #fi-loader .row b { color: #2e7d32; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 2.2em; text-align: right; }
+      #fi-loader .row i { width: 7px; height: 7px; border-radius: 50%; background: #c9a46a; transition: background .5s; }
+      #fi-loader .steps { margin: 10px auto 0; display: flex; gap: 6px; justify-content: center; }
+      #fi-loader .steps i { width: 30px; height: 3px; border-radius: 3px; background: rgba(35,122,69,.14); transition: background .4s; }
+      #fi-loader .steps i.on { background: linear-gradient(90deg, #c9a46a, #7cb342); }
+      @keyframes fi-sway { from { rotate: -1.2deg; } to { rotate: 1.6deg; } }
+      @keyframes fi-glint { 50% { opacity: .35; } }
     </style>
   </head>
   <body>
     <div id="fi-loader" role="status" aria-label="Chargement">
-      <!-- Boîte de Petri : colonies qui poussent avec le chargement, mycélium, ligne de lecture du séquenceur -->
-      <svg class="dish" viewBox="0 0 240 240" aria-hidden="true">
+      <!-- Une graine germe dans une boîte de Petri et devient une plante : radicule et poils absorbants sur la gélose,
+           tigelle qui s'élève, cotylédons qui s'ouvrent, vraies feuilles nervurées. Tout suit la progression du chargement. -->
+      <svg class="dish" viewBox="0 0 260 300" aria-hidden="true">
         <defs>
-          <clipPath id="fi-c"><circle cx="120" cy="120" r="92" /></clipPath>
-          <radialGradient id="fi-agar" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="#fffaf0" /><stop offset=".7" stop-color="#f6ecd2" /><stop offset="1" stop-color="#eadcb4" /></radialGradient>
-          <linearGradient id="fi-scan" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8bc34a" stop-opacity="0" /><stop offset=".5" stop-color="#8bc34a" stop-opacity=".55" /><stop offset="1" stop-color="#8bc34a" stop-opacity="0" /></linearGradient>
+          <radialGradient id="fi-agar" cx=".42" cy=".38" r=".7"><stop offset="0" stop-color="#fbf1d2" /><stop offset=".6" stop-color="#efdcab" /><stop offset="1" stop-color="#d9bd80" /></radialGradient>
+          <linearGradient id="fi-wall" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffffff" stop-opacity=".85" /><stop offset=".18" stop-color="#e8f1ee" stop-opacity=".35" /><stop offset=".5" stop-color="#ffffff" stop-opacity=".12" /><stop offset=".82" stop-color="#e8f1ee" stop-opacity=".35" /><stop offset="1" stop-color="#ffffff" stop-opacity=".85" /></linearGradient>
+          <radialGradient id="fi-seed" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#c08a52" /><stop offset=".55" stop-color="#8a5a2b" /><stop offset="1" stop-color="#4e3015" /></radialGradient>
+          <linearGradient id="fi-stem" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#e9efc9" /><stop offset=".35" stop-color="#b5d47a" /><stop offset="1" stop-color="#6ea83a" /></linearGradient>
+          <radialGradient id="fi-coty" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#c5e1a5" /><stop offset=".5" stop-color="#8bc34a" /><stop offset="1" stop-color="#4f7d24" /></radialGradient>
+          <linearGradient id="fi-leaf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9ccc65" /><stop offset=".55" stop-color="#5f9b2e" /><stop offset="1" stop-color="#2f5d17" /></linearGradient>
+          <filter id="fi-blur" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="5" /></filter>
+          <filter id="fi-fuzz" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation=".9" /></filter>
+          <filter id="fi-grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4" /><feColorMatrix values="0 0 0 0 .55  0 0 0 0 .42  0 0 0 0 .2  0 0 0 .35 0" /><feComposite in2="SourceGraphic" operator="in" /></filter>
+          <clipPath id="fi-agar-c"><ellipse cx="130" cy="238" rx="104" ry="30" /></clipPath>
         </defs>
-        <circle class="ticks" cx="120" cy="120" r="113" fill="none" stroke="rgba(35,122,69,.35)" stroke-width="5" stroke-dasharray="1 9" />
-        <circle cx="120" cy="120" r="104" fill="#ffffff" stroke="rgba(35,122,69,.12)" stroke-width="1" />
-        <circle cx="120" cy="120" r="97" fill="none" stroke="rgba(76,175,80,.35)" stroke-width="1" />
-        <circle cx="120" cy="120" r="92" fill="url(#fi-agar)" />
-        <g clip-path="url(#fi-c)">
-          <path class="hy" pathLength="1" d="M84 92 C 70 80, 64 66, 52 60 M84 92 C 96 76, 104 64, 100 46 M84 92 C 74 104, 60 108, 46 120" />
-          <path class="hy" pathLength="1" d="M152 150 C 168 158, 178 172, 192 176 M152 150 C 150 168, 140 182, 142 198 M152 150 C 170 140, 182 128, 198 126" />
-          <path class="hy" pathLength="1" d="M130 70 C 140 60, 156 58, 166 48 M130 70 C 126 56, 118 48, 120 34" />
-          <g class="cols">
-            <g data-at="4"><circle class="halo" cx="84" cy="92" r="16" fill="rgba(166,124,82,.16)" /><circle class="col" cx="84" cy="92" r="10" fill="#c9a46a" /></g>
-            <g data-at="12"><circle class="col" cx="152" cy="150" r="13" fill="#8bc34a" /></g>
-            <g data-at="20"><circle class="col" cx="130" cy="70" r="7" fill="#4caf50" /></g>
-            <g data-at="28"><circle class="col" cx="104" cy="160" r="9" fill="#a67c52" /></g>
-            <g data-at="34"><circle class="col" cx="168" cy="96" r="6" fill="#c9a46a" /></g>
-            <g data-at="40"><circle class="col" cx="70" cy="140" r="5" fill="#8bc34a" /></g>
-            <g data-at="46"><circle class="col" cx="120" cy="118" r="4" fill="#66bb6a" /></g>
-            <g data-at="52"><circle class="halo" cx="150" cy="190" r="10" fill="rgba(76,175,80,.14)" /><circle class="col" cx="150" cy="190" r="6" fill="#66bb6a" /></g>
-            <g data-at="58"><circle class="col" cx="58" cy="104" r="4" fill="#a67c52" /></g>
-            <g data-at="64"><circle class="col" cx="186" cy="132" r="5" fill="#8bc34a" /></g>
-            <g data-at="70"><circle class="col" cx="96" cy="196" r="4" fill="#c9a46a" /></g>
-            <g data-at="76"><circle class="col" cx="176" cy="66" r="3.5" fill="#66bb6a" /></g>
-            <g data-at="82"><circle class="col" cx="134" cy="132" r="3" fill="#8bc34a" /></g>
-            <g data-at="88"><circle class="col" cx="78" cy="58" r="3" fill="#a67c52" /></g>
+        <!-- Ombre portée et fond de verre -->
+        <ellipse cx="132" cy="262" rx="118" ry="20" fill="rgba(20,50,25,.28)" filter="url(#fi-blur)" />
+        <path d="M18 238 v12 a112 34 0 0 0 224 0 v-12" fill="rgba(255,255,255,.55)" stroke="rgba(120,160,140,.45)" stroke-width="1" />
+        <ellipse cx="130" cy="238" rx="112" ry="34" fill="rgba(235,245,240,.6)" stroke="rgba(120,160,140,.5)" stroke-width="1" />
+        <!-- Gélose : translucide, légèrement granuleuse -->
+        <ellipse cx="130" cy="238" rx="104" ry="30" fill="url(#fi-agar)" />
+        <ellipse cx="130" cy="238" rx="104" ry="30" fill="#fff" filter="url(#fi-grain)" opacity=".7" />
+        <ellipse cx="104" cy="230" rx="52" ry="11" fill="rgba(255,255,255,.35)" />
+        <g clip-path="url(#fi-agar-c)">
+          <!-- Racines sur la gélose : halo duveteux des poils absorbants + racine nacrée -->
+          <g stroke="rgba(255,255,255,.75)" filter="url(#fi-fuzz)">
+            <path class="ln hair" pathLength="1" stroke-width="5" d="M130 240 C 120 246, 104 250, 82 252 S 50 254, 36 250" />
+            <path class="ln hair" pathLength="1" stroke-width="4" d="M132 240 C 146 247, 166 250, 186 249 S 212 246, 224 242" />
+            <path class="ln hair" pathLength="1" stroke-width="3.5" d="M131 241 C 133 250, 128 258, 122 264" />
           </g>
-          <rect class="scan" x="20" y="108" width="200" height="24" fill="url(#fi-scan)" />
-          <rect class="scan" x="20" y="119.5" width="200" height="1" fill="#4caf50" opacity=".7" />
+          <g stroke="#f7efdc">
+            <path class="ln root" pathLength="1" stroke-width="2.2" d="M130 240 C 120 246, 104 250, 82 252 S 50 254, 36 250" />
+            <path class="ln root" pathLength="1" stroke-width="1.8" d="M132 240 C 146 247, 166 250, 186 249 S 212 246, 224 242" />
+            <path class="ln root" pathLength="1" stroke-width="1.6" d="M131 241 C 133 250, 128 258, 122 264" />
+            <path class="ln root" pathLength="1" stroke-width="1" d="M98 250 C 94 242, 86 236, 76 232" />
+            <path class="ln root" pathLength="1" stroke-width="1" d="M70 253 C 66 260, 58 262, 50 262" />
+            <path class="ln root" pathLength="1" stroke-width="1" d="M168 249 C 172 240, 180 234, 192 230" />
+            <path class="ln root" pathLength="1" stroke-width="1" d="M200 248 C 206 256, 214 258, 222 256" />
+          </g>
+          <!-- Gouttelettes de condensation sur la gélose -->
+          <g fill="rgba(255,255,255,.8)"><circle class="drop" cx="62" cy="234" r="1.8" /><circle class="drop" cx="196" cy="236" r="1.4" style="animation-delay:-1s" /><circle class="drop" cx="150" cy="258" r="1.6" style="animation-delay:-2s" /><circle class="drop" cx="90" cy="222" r="1.2" style="animation-delay:-.5s" /></g>
         </g>
-        <ellipse cx="88" cy="58" rx="34" ry="10" fill="rgba(255,255,255,.7)" transform="rotate(-28 88 58)" />
+        <!-- Plante : tigelle, cotylédons, vraies feuilles -->
+        <g class="plant">
+          <path class="ln stem" pathLength="1" d="M130 236 C 129 214, 133 190, 130 160 S 128 120, 130 96" stroke="url(#fi-stem)" stroke-width="4.6" />
+          <g class="sc coty" style="transform-origin: 100% 60%"><path d="M129 150 C 112 132, 88 134, 80 148 C 92 160, 116 160, 129 150 Z" fill="url(#fi-coty)" /><path d="M128 150 C 112 146, 98 146, 86 148" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1" /></g>
+          <g class="sc coty" style="transform-origin: 0% 60%"><path d="M131 150 C 148 132, 172 134, 180 148 C 168 160, 144 160, 131 150 Z" fill="url(#fi-coty)" /><path d="M132 150 C 148 146, 162 146, 174 148" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1" /></g>
+          <g class="sc leaf" style="transform-origin: 100% 85%">
+            <path d="M129 112 C 120 92, 96 78, 74 82 C 76 100, 100 118, 129 112 Z" fill="url(#fi-leaf)" />
+            <path d="M129 112 C 112 104, 94 92, 78 84 M118 106 l-6 -12 M108 100 l-8 -10 M98 94 l-8 -8 M112 108 l-12 -2 M100 102 l-12 -2" fill="none" stroke="rgba(214,240,180,.55)" stroke-width=".8" stroke-linecap="round" />
+          </g>
+          <g class="sc leaf" style="transform-origin: 0% 85%">
+            <path d="M131 104 C 140 84, 164 72, 186 76 C 184 94, 160 110, 131 104 Z" fill="url(#fi-leaf)" />
+            <path d="M131 104 C 148 96, 166 86, 182 78 M142 98 l6 -12 M152 92 l8 -10 M162 88 l8 -8 M148 100 l12 -2 M160 94 l12 -2" fill="none" stroke="rgba(214,240,180,.55)" stroke-width=".8" stroke-linecap="round" />
+          </g>
+          <g class="sc leaf" style="transform-origin: 50% 100%"><path d="M130 97 C 122 84, 124 70, 130 62 C 136 70, 138 84, 130 97 Z" fill="url(#fi-leaf)" /><path d="M130 96 V 66" stroke="rgba(214,240,180,.6)" stroke-width=".8" /></g>
+        </g>
+        <!-- Graine : gonfle, son tégument se fend -->
+        <g class="seed">
+          <path d="M112 238 C 110 228, 122 222, 133 224 C 146 226, 150 236, 144 243 C 138 250, 116 249, 112 238 Z" fill="url(#fi-seed)" />
+          <ellipse cx="131" cy="245.5" rx="6" ry="1.5" fill="#eadcbc" opacity=".85" />
+          <ellipse cx="121" cy="231" rx="6" ry="2.6" fill="rgba(255,255,255,.45)" transform="rotate(-20 121 231)" />
+          <path class="ln crack" pathLength="1" d="M114 234 C 118 227, 128 223, 138 225" stroke="#f4e6c4" stroke-width="1.3" />
+        </g>
+        <!-- Bord avant du verre : reflets -->
+        <path d="M18 238 a112 34 0 0 0 224 0" fill="none" stroke="url(#fi-wall)" stroke-width="3" />
+        <path d="M40 256 a100 26 0 0 0 70 14" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2" stroke-linecap="round" />
+        <path d="M196 262 a100 26 0 0 0 30 -12" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5" stroke-linecap="round" />
       </svg>
       <div>
-        <div class="brand">Fertil<span>’</span>Innov</div>
-        <div class="row">
-          <svg class="helix" viewBox="0 0 46 14" aria-hidden="true"><g fill="none" stroke-width="1.4"><path d="M0 7 Q5 0 10 7 T20 7 T30 7 T40 7 T50 7 T60 7 T70 7" stroke="#4caf50" /><path d="M0 7 Q5 14 10 7 T20 7 T30 7 T40 7 T50 7 T60 7 T70 7" stroke="#a5d6a7" /></g></svg>
-          <span id="fi-step">Prélèvement</span> · <b id="fi-pct">0</b>%
-        </div>
+        <div class="brand">Fertil<span>’</span>Innov<small>Environnement</small></div>
+        <p class="tag" id="fi-tag">Recherche &amp; solutions biologiques pour des sols vivants</p>
+        <div class="row"><i id="fi-dot"></i><span id="fi-step">Graine</span> · <b id="fi-pct">0</b>%</div>
         <div class="steps" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></div>
       </div>
     </div>
@@ -117,27 +144,36 @@
         if (!d.classList.contains('fi-loading')) { el.parentNode.removeChild(el); return; }
         var m = /^\/(en|es)(\/|$)/.exec(location.pathname), lang = m ? m[1] : 'fr';
         var STEPS = {
-          fr: ['Prélèvement', 'Extraction ADN', 'Séquençage NGS', 'Rapport'],
-          en: ['Sampling', 'DNA extraction', 'NGS sequencing', 'Report'],
-          es: ['Muestreo', 'Extracción de ADN', 'Secuenciación NGS', 'Informe'],
+          fr: ['Graine', 'Germination', 'Croissance', 'Plante vivante'],
+          en: ['Seed', 'Germination', 'Growth', 'Living plant'],
+          es: ['Semilla', 'Germinación', 'Crecimiento', 'Planta viva'],
         }[lang];
-        var pct = document.getElementById('fi-pct'), step = document.getElementById('fi-step'), bars = el.querySelectorAll('.steps i');
-        var cols = el.querySelectorAll('.cols > g'), hy = el.querySelectorAll('.hy');
+        document.getElementById('fi-tag').textContent = {
+          fr: 'Recherche & solutions biologiques pour des sols vivants',
+          en: 'Research & biological solutions for living soils',
+          es: 'Investigación y soluciones biológicas para suelos vivos',
+        }[lang];
+        var pct = document.getElementById('fi-pct'), step = document.getElementById('fi-step'), bars = el.querySelectorAll('.steps i'), dot = document.getElementById('fi-dot');
+        var seed = el.querySelector('.seed'), crack = el.querySelector('.crack'), stem = el.querySelector('.stem');
+        var roots = el.querySelectorAll('.root'), hairs = el.querySelectorAll('.hair'), cotys = el.querySelectorAll('.coty'), leaves = el.querySelectorAll('.leaf');
         var t0 = performance.now(), MIN = 2200, MAX = 5000, shown = 0, target = 15, done = false, cur = -1;
         step.textContent = STEPS[0];
         function bump(v) { if (v > target) target = v; }
         document.addEventListener('DOMContentLoaded', function () { bump(45); });
         addEventListener('load', function () { bump(85); });
         addEventListener('fi:app-ready', function () { bump(100); });
-        // Colonies et hyphes suivent la progression ; l'étape d'analyse change tous les 25 %.
+        function k(a, b) { return Math.max(0, Math.min(1, (shown - a) / b)); }
+        // La graine gonfle et se fend, la radicule explore la gélose, la tige monte, cotylédons puis feuilles s'ouvrent.
         function paint() {
-          for (var i = 0; i < cols.length; i++) {
-            var at = +cols[i].getAttribute('data-at'), c = cols[i].querySelector('.col');
-            c.style.transform = 'scale(' + Math.max(0, Math.min(1, (shown - at) / 12)) + ')';
-          }
-          for (var j = 0; j < hy.length; j++) hy[j].style.strokeDashoffset = String(1 - Math.max(0, Math.min(1, (shown - 20 - j * 15) / 45)));
+          seed.style.transform = 'scale(' + (1 + k(0, 14) * 0.08) + ')';
+          crack.style.strokeDashoffset = 1 - k(10, 8);
+          for (var r = 0; r < roots.length; r++) roots[r].style.strokeDashoffset = 1 - k(14 + (r < 3 ? r * 4 : 30 + (r - 3) * 6), r < 3 ? 34 : 20);
+          for (var h = 0; h < hairs.length; h++) hairs[h].style.strokeDashoffset = 1 - k(26 + h * 5, 34);
+          stem.style.strokeDashoffset = 1 - k(24, 34);
+          for (var c = 0; c < cotys.length; c++) cotys[c].style.transform = 'scale(' + k(48 + c * 3, 12) + ')';
+          for (var l = 0; l < leaves.length; l++) leaves[l].style.transform = 'scale(' + k(64 + l * 9, 13) + ')';
           var s = Math.min(3, Math.floor(shown / 25));
-          if (s !== cur) { cur = s; step.textContent = STEPS[s]; for (var k = 0; k < bars.length; k++) bars[k].className = k <= s ? 'on' : ''; }
+          if (s !== cur) { cur = s; step.textContent = STEPS[s]; dot.style.background = ['#a1764a', '#c5d07a', '#8bc34a', '#4caf50'][s]; for (var j = 0; j < bars.length; j++) bars[j].className = j <= s ? 'on' : ''; }
         }
         function finish() {
           if (done) return; done = true; shown = 100; paint(); pct.textContent = '100';

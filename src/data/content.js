@@ -41,6 +41,11 @@ export const CONTENT = {
   hero_lbl_bact: K('accueil', 'Hero 3D — étiquette bactéries', 'Bactéries PGPR', 'PGPR bacteria', 'Bacterias PGPR'),
   hero_lbl_nod: K('accueil', 'Hero 3D — étiquette nodules', 'Rhizobium · fixation de l’azote', 'Rhizobium · nitrogen fixation', 'Rhizobium · fijación de nitrógeno'),
   hero_lbl_nut: K('accueil', 'Hero 3D — étiquette nutriments', 'Flux N · P · K vers la racine', 'N · P · K flowing to the root', 'Flujo N · P · K hacia la raíz'),
+  hero_hz_o: K('accueil', 'Hero 3D — horizon O', 'Litière & humus', 'Litter & humus', 'Hojarasca y humus'),
+  hero_hz_a: K('accueil', 'Hero 3D — horizon A', 'Horizon A · vie du sol', 'A horizon · soil life', 'Horizonte A · vida del suelo'),
+  hero_hz_b: K('accueil', 'Hero 3D — horizon B', 'Horizon B · accumulation', 'B horizon · accumulation', 'Horizonte B · acumulación'),
+  hero_hz_c: K('accueil', 'Hero 3D — horizon C', 'Horizon C · roche mère', 'C horizon · parent rock', 'Horizonte C · roca madre'),
+  hero_tap: K('accueil', 'Hero 3D — invite à toucher le sol', 'Touchez le sol pour le réveiller', 'Tap the soil to wake it up', 'Toca el suelo para despertarlo'),
   hero_hud: K('accueil', 'Hero défilant — libellé du grossissement', 'Grossissement', 'Magnification', 'Aumento'),
 
   // ---------- Accueil : horizons (rail de profondeur) ----------

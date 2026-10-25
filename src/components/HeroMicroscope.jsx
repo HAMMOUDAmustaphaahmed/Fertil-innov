@@ -1,6 +1,8 @@
-// Hero « microscope » : un monolithe de sol vivant en 3D (RhizoScene) se désagrège au défilement,
-// l'oculaire (clip-path circulaire centré sur la motte) s'ouvre et l'on entre dans le sol vivant : grains minéraux,
-// racines qui se dessinent, micro-organismes reliés par un réseau d'hyphes (canvas).
+// Hero « microscope » : un monolithe de sol vivant en 3D (RhizoScene), prélevé dans un champ au couchant (FieldCanvas),
+// se désagrège au défilement ; on plonge vers lui, un anneau de lentille lumineux s'ouvre, la mise au point se fait,
+// l'oculaire (clip-path circulaire centré sur la motte) s'ouvre et l'on entre dans le sol vivant : un vrai sol
+// au microscope (agrégats, sable, pores, gouttes d'eau — SoilCanvas), racines qui se dessinent,
+// micro-organismes reliés par un réseau d'hyphes (canvas).
 // Trois chapitres (rhizosphère, souchothèque, remédiation) apparaissent aux points de repos.
 // Sans JS : hero classique d'un écran (voir .hero-scene dans index.css).
 import { useRef } from 'react';
@@ -9,6 +11,8 @@ import { ArrowRight, ArrowDown } from 'lucide-react';
 import { useLang } from '../i18n/LangProvider';
 import RhizoScene from './RhizoScene';
 import MicroCanvas from './MicroCanvas';
+import SoilCanvas from './SoilCanvas';
+import FieldCanvas from './FieldCanvas';
 import { gsap, useGSAP, prefersReducedMotion } from '../lib/gsap';
 import { openPois } from '../lib/pois';
 
@@ -40,6 +44,7 @@ export default function HeroMicroscope() {
   const { t, p, lang } = useLang();
   const ref = useRef(null);
   const micro = useRef(null);
+  const soil = useRef(null);
   const orb = useRef(null);
 
   useGSAP(() => {
@@ -58,12 +63,15 @@ export default function HeroMicroscope() {
     // Descente : une seule timeline pilotée par le défilement (0 → 1 sur toute la scène).
     const fmt = new Intl.NumberFormat({ fr: 'fr-FR', en: 'en-GB', es: 'es-ES' }[lang] || 'fr-FR');
     const mag = q('.hud-mag')[0];
+    // Diamètre final de l'oculaire : clip-path circle(150 %) se rapporte à √(l² + h²) / √2
+    const eyeD = () => { const b = q('.hero-micro')[0]; return b ? (Math.hypot(b.clientWidth, b.clientHeight) / Math.SQRT2) * 3 : 0; };
     const tl = gsap.timeline({
       defaults: { ease: 'none' },
       scrollTrigger: {
-        trigger: ref.current, start: 'top top', end: 'bottom bottom', scrub: 0.6,
+        trigger: ref.current, start: 'top top', end: 'bottom bottom', scrub: 0.6, invalidateOnRefresh: true,
         onUpdate: (self) => {
           micro.current?.set(self.progress);
+          soil.current?.set(self.progress);
           orb.current?.set?.(self.progress);
           const k = Math.min(1, Math.max(0, (self.progress - 0.06) / 0.7));
           if (mag) mag.textContent = `×${fmt.format(Math.round(Math.pow(1000, k) / (k > 0.4 ? 10 : 1)) * (k > 0.4 ? 10 : 1))}`;
@@ -72,9 +80,17 @@ export default function HeroMicroscope() {
     });
     tl.to(q('.h-content'), { opacity: 0, y: -70, filter: 'blur(10px)', duration: 0.12 }, 0.02)
       .to(q('.h-hint'), { opacity: 0, duration: 0.04 }, 0)
-      .to(q('.hero-atmo'), { opacity: 0, duration: 0.1 }, 0.2)
+      .to(q('.hero-land'), { scale: 7, duration: 0.26, ease: 'power3.in' }, 0.02) // on plonge dans le sol du champ
+      .to(q('.hero-land'), { opacity: 0, duration: 0.08 }, 0.22)
       .fromTo(q('.hero-micro'), { '--eye': '0%' }, { '--eye': '150%', duration: 0.2, ease: 'power2.in' }, 0.14)
-      .fromTo(q('.micro-inner'), { scale: 1.7 }, { scale: 1, duration: 0.45, ease: 'power2.out' }, 0.14)
+      // Anneau de la lentille : suit exactement le bord de l'oculaire (même rayon, même courbe)
+      .fromTo(q('.eye-ring'), { width: 0, height: 0, opacity: 1 }, { width: eyeD, height: eyeD, duration: 0.2, ease: 'power2.in' }, 0.14)
+      .to(q('.eye-ring'), { opacity: 0, duration: 0.05 }, 0.29)
+      .fromTo(q('.micro-inner'), { scale: 2.4 }, { scale: 1, duration: 0.45, ease: 'power2.out' }, 0.14);
+    // Mise au point : flou → net (ordinateur) ; sur mobile, simple fondu, plus léger à animer
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) tl.fromTo(q('.micro-inner'), { filter: 'blur(8px) brightness(1.3)' }, { filter: 'blur(0px) brightness(1)', duration: 0.08, ease: 'power2.out' }, 0.16);
+    else tl.fromTo(q('.micro-inner'), { opacity: 0.35 }, { opacity: 1, duration: 0.16 }, 0.16);
+    tl
       .to(q('.hero-hud'), { opacity: 1, duration: 0.05 }, 0.22)
       .to(q('.hud-bar'), { scaleX: 1, duration: 0.76 }, 0.22)
       .to(q('.root-main, .root-core'), { strokeDashoffset: 0, duration: 0.5, stagger: 0.03 }, 0.24)
@@ -96,35 +112,44 @@ export default function HeroMicroscope() {
     <section ref={ref} data-horizon="surface" className="hero-scene relative bg-fi-bg pt-[var(--header-h)]">
       {/* Fenêtre sombre arrondie sous la barre de navigation : rien du hero n'est masqué par l'en-tête */}
       <div className="sticky top-[var(--header-h)] mx-2 sm:mx-3 h-[calc(100svh-var(--header-h)-0.5rem)] flex items-end overflow-hidden rounded-[28px] bg-fi-deep text-white">
-        {/* Échelle macro : atmosphère de laboratoire + motte de terre vivante en 3D */}
-        <div aria-hidden className="hero-atmo absolute inset-0" />
+        {/* Échelle macro : champ au couchant + lueur autour de la motte de terre vivante en 3D */}
+        <div aria-hidden className="hero-land absolute inset-0 will-change-transform">
+          <FieldCanvas />
+          <div className="hero-atmo absolute inset-0" />
+        </div>
         <RhizoScene api={orb} t={t} />
-        <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-fi-deep via-fi-deep/40 to-transparent md:bg-gradient-to-r md:from-fi-deep/90 md:via-fi-deep/30" />
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#06120c] via-[#06120c]/45 to-transparent md:bg-gradient-to-r md:from-[#06120c]/90 md:via-[#06120c]/30" />
 
         {/* Échelle micro : le sol vivant, révélé par l'oculaire */}
         <div aria-hidden className="hero-micro absolute inset-0 overflow-hidden" style={{ background: 'radial-gradient(ellipse at 50% 60%, rgb(var(--fi-soil) / 0.9) 0%, #1d140b 48%, #0a170c 100%)' }}>
           <div className="micro-inner absolute inset-0 will-change-transform">
+            <SoilCanvas api={soil} />
             {GRAINS.map((g, i) => (
               <span key={i} data-speed={g.sp} className="grain-blob absolute" style={{
-                left: g.l, top: g.t, width: `min(${g.s}px, ${g.s / 9}vw)`, aspectRatio: '1.15', opacity: 0.5,
-                borderRadius: '42% 58% 63% 37% / 45% 39% 61% 55%', filter: `blur(${g.sp > 70 ? 6 : 1}px)`,
-                background: 'radial-gradient(circle at 35% 30%, rgb(var(--fi-loam) / 0.9), rgb(var(--fi-soil) / 0.6) 60%, transparent 75%)',
+                // Mottes au premier plan, hors de la mise au point (flou de profondeur de champ)
+                left: g.l, top: g.t, width: `max(${g.s * 0.45}px, min(${g.s}px, ${g.s / 9}vw))`, aspectRatio: '1.15', opacity: g.sp > 70 ? 0.85 : 0.6,
+                borderRadius: '42% 58% 63% 37% / 45% 39% 61% 55%', filter: `blur(${g.sp > 70 ? 10 : 3}px)`,
+                background: 'radial-gradient(circle at 35% 30%, #6b4a2c, #3a2414 55%, #170e07 80%, transparent 82%)',
               }} />
             ))}
             <svg className="absolute inset-0 h-full w-full" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
-              {ROOTS.map((d, i) => <path key={i} className="root-main" d={d} pathLength="1" fill="none" stroke="rgb(var(--fi-loam) / 0.5)" strokeWidth={22 - i * 5} strokeLinecap="round" strokeDasharray="1" strokeDashoffset="1" />)}
-              {ROOTS.map((d, i) => <path key={`c${i}`} className="root-core" d={d} pathLength="1" fill="none" stroke="rgb(var(--fi-light) / 0.35)" strokeWidth={3} strokeLinecap="round" strokeDasharray="1" strokeDashoffset="1" />)}
-              {HAIRS.map((d, i) => <path key={i} className="root-hair" d={d} pathLength="1" fill="none" stroke="rgb(var(--fi-light) / 0.4)" strokeWidth={1.5} strokeLinecap="round" strokeDasharray="1" strokeDashoffset="1" />)}
-              {NODULES.map(([cx, cy], i) => <circle key={i} className="nodule" cx={cx} cy={cy} r={7} fill="rgb(var(--fi-accent) / 0.8)" />)}
+              {ROOTS.map((d, i) => <path key={i} className="root-main" d={d} pathLength="1" fill="none" stroke="rgb(226 205 168 / 0.62)" strokeWidth={22 - i * 5} strokeLinecap="round" strokeDasharray="1 2" strokeDashoffset="1" />)}
+              {ROOTS.map((d, i) => <path key={`c${i}`} className="root-core" d={d} pathLength="1" fill="none" stroke="rgb(255 247 228 / 0.55)" strokeWidth={3} strokeLinecap="round" strokeDasharray="1 2" strokeDashoffset="1" />)}
+              {HAIRS.map((d, i) => <path key={i} className="root-hair" d={d} pathLength="1" fill="none" stroke="rgb(240 228 204 / 0.55)" strokeWidth={1.5} strokeLinecap="round" strokeDasharray="1 2" strokeDashoffset="1" />)}
+              {NODULES.map(([cx, cy], i) => <circle key={i} className="nodule" cx={cx} cy={cy} r={8} fill="#e7a1a8" stroke="#fff3f0" strokeOpacity={0.5} strokeWidth={2} />)}
             </svg>
             <MicroCanvas api={micro} />
           </div>
-          {/* Vignette de l'oculaire + réticule discret */}
-          <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 45%, rgb(0 0 0 / 0.65) 100%)' }} />
+          {/* Vignette de l'oculaire, liseré irisé (aberration chromatique) + réticule discret */}
+          <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 45%, rgb(120 200 255 / 0.07) 58%, rgb(255 140 90 / 0.07) 63%, rgb(0 0 0 / 0.7) 100%)' }} />
           <svg className="absolute left-1/2 top-1/2 h-[70vmin] w-[70vmin] -translate-x-1/2 -translate-y-1/2 opacity-[0.12]" viewBox="0 0 100 100" fill="none" stroke="white" strokeWidth="0.15">
             <circle cx="50" cy="50" r="49" /><path d="M50 0v8M50 92v8M0 50h8M92 50h8M46 50h8M50 46v8" />
           </svg>
+          {/* Voile sous les textes des chapitres : lisibles sur le sol */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0603]/85 via-[#0a0603]/40 to-[#0a0603]/10 md:bg-gradient-to-r md:from-[#0a0603]/80 md:via-[#0a0603]/30 md:to-transparent" />
         </div>
+        {/* Anneau lumineux de la lentille, au bord de l'oculaire qui s'ouvre */}
+        <div aria-hidden className="eye-ring pointer-events-none absolute z-[1] rounded-full" />
 
         {/* Grain dans un calque séparé : la classe .grain impose position: relative, ce qui annulerait le sticky */}
         <div aria-hidden className="pointer-events-none absolute inset-0 z-[1]"><div className="grain h-full" /></div>

@@ -1,5 +1,6 @@
-// Pied de page : grand appel à l'action, racines qui poussent dans le sol à l'arrivée,
-// filigrane de la marque qui glisse au défilement, puis les colonnes d'informations.
+// Pied de page : frange d'herbe et racines qui poussent dans le sol à l'arrivée, grand appel à l'action,
+// colonnes d'informations. La description commence par la marque taillée dans un profil de sol : des pousses
+// sortent des lettres, une lampe (souris, ou balayage automatique sur mobile) éclaire le sol vivant dedans.
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUp, ArrowUpRight, Linkedin, MapPin, Phone, Mail } from 'lucide-react';
@@ -10,6 +11,9 @@ import { useSite, useImage } from '../site/SiteProvider';
 import { horairesAffichage } from '../data/infos';
 import { getLenis } from '../hooks/useSmoothScroll';
 
+const MARK = 'Fertil’Innov';
+const SPROUT_ON = [0, 3, 5, 7]; // lettres hautes : F, t, l, I
+
 export default function Footer() {
   const { t, p, L, lang, path } = useLang();
   const site = useSite();
@@ -19,21 +23,31 @@ export default function Footer() {
   const toTop = () => { const l = getLenis(); if (l) l.scrollTo(0); else window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const ref = useRef(null);
   const onContact = path.replace(/\/$/, '') === '/contact';
+  // Description : la marque animée remplace le nom en tête de phrase, le reste suit
+  const descRest = t('footer_description').replace(/^\s*Fertil[’']\s*Innov\s*/i, '');
+  // Lampe : suit le pointeur sur la marque (le balayage automatique CSS reprend en sortant)
+  const light = (ev) => { const el = ev.currentTarget; const r = el.getBoundingClientRect(); el.style.setProperty('--mx', `${((ev.clientX - r.left) / r.width) * 100}%`); el.style.setProperty('--my', `${((ev.clientY - r.top) / r.height) * 100}%`); el.classList.add('is-lit'); };
+  const unlight = (ev) => ev.currentTarget.classList.remove('is-lit');
   useGSAP(() => {
     const q = gsap.utils.selector(ref);
     const roots = q('.f-root');
-    roots.forEach((r) => { r.style.strokeDasharray = '1'; r.style.strokeDashoffset = prefersReducedMotion() ? '0' : '1'; });
+    roots.forEach((r) => { r.style.strokeDasharray = '1 2'; r.style.strokeDashoffset = prefersReducedMotion() ? '0' : '1'; });
     if (prefersReducedMotion()) return;
     gsap.to(roots, { strokeDashoffset: 0, duration: 2.2, ease: 'power2.out', stagger: 0.12, scrollTrigger: { trigger: ref.current, start: 'top 85%', once: true } });
     gsap.fromTo(q('.f-cta-title'), { clipPath: 'inset(0% 0% 100% 0%)', yPercent: 30 }, { clipPath: 'inset(-20% -5% -25% -5%)', yPercent: 0, duration: 1.3, ease: 'expo.out', scrollTrigger: { trigger: ref.current, start: 'top 80%', once: true } });
-    gsap.fromTo(q('.f-mark'), { xPercent: 12 }, { xPercent: -12, ease: 'none', scrollTrigger: { trigger: ref.current, start: 'top bottom', end: 'bottom bottom', scrub: true } });
+    // La marque sort de terre, puis les pousses germent au sommet des lettres
+    const st = { trigger: q('.f-mark')[0], start: 'top 92%', once: true };
+    gsap.fromTo(q('.f-word'), { yPercent: 45, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1.4, ease: 'expo.out', scrollTrigger: st });
+    gsap.fromTo(q('.f-sprout'), { scale: 0 }, { scale: 1, duration: 1.1, ease: 'back.out(2)', stagger: 0.15, delay: 0.6, scrollTrigger: st });
   }, { scope: ref });
 
   return (
     <footer ref={ref} className="relative mt-8 overflow-hidden bg-fi-deep text-white">
       <div aria-hidden className="pointer-events-none absolute inset-0"><div className="grain h-full" /></div>
+      {/* Frange d'herbe : la surface du sol, d'où partent les racines */}
+      <div aria-hidden className="f-grass pointer-events-none absolute inset-x-0 top-0 z-[1] h-7" />
       {/* Racines qui descendent depuis la surface (haut du pied de page) */}
-      <svg aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-64 w-full text-fi-loam/50" viewBox="0 0 1440 260" preserveAspectRatio="none" fill="none" stroke="currentColor" strokeLinecap="round">
+      <svg aria-hidden className="pointer-events-none absolute inset-x-0 top-7 h-64 w-full text-fi-loam/50" viewBox="0 0 1440 260" preserveAspectRatio="none" fill="none" stroke="currentColor" strokeLinecap="round">
         <path className="f-root" pathLength="1" strokeWidth="3" d="M180 0 C 190 60, 150 100, 170 160 S 220 230, 200 260" />
         <path className="f-root" pathLength="1" strokeWidth="1.5" d="M172 90 C 140 110, 110 120, 80 160" />
         <path className="f-root" pathLength="1" strokeWidth="3" d="M720 0 C 700 50, 760 90, 730 150 S 690 220, 720 260" />
@@ -58,7 +72,27 @@ export default function Footer() {
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-12">
           <div className="lg:col-span-5">
             <img {...img('logo_rond')} alt={site.nom} width={112} height={112} className="h-24 w-24 rounded-full bg-white p-1 object-contain" loading="lazy" decoding="async" />
-            <p className="mt-5 max-w-md text-white/75 leading-relaxed">{t('footer_description')}</p>
+            {/* La marque animée ouvre la description : lettres taillées dans un profil de sol, pousses, lampe */}
+            <p className="mt-6 max-w-md text-white/75 leading-relaxed">
+              <span aria-hidden className="f-mark relative mb-2 block w-max pt-[0.3em] font-display text-[clamp(2.4rem,4.4vw,3.4rem)] font-bold leading-none tracking-tight" onPointerMove={light} onPointerLeave={unlight}>
+                <span className="f-word block whitespace-nowrap">
+                  {[...MARK].map((c, i) => (
+                    <span key={i} className="relative">{c}{SPROUT_ON.includes(i) && (
+                      // Pousse plantée au sommet de la lettre (F, t, l, I)
+                      <svg className="f-sprout pointer-events-none absolute left-1/2 top-[0.24em] w-[0.26em] -translate-x-1/2 -translate-y-full" style={{ '--d': `${-i * 0.6}s` }} viewBox="0 0 40 48" fill="none">
+                        <path d="M20 48 C 20 38, 21 30, 20 20" stroke="#8bc34a" strokeWidth="2.6" strokeLinecap="round" />
+                        <path d="M20 28 C 12 20, 4 22, 2 28 C 8 33, 15 33, 20 28 Z" fill="#7cb342" />
+                        <path d="M20 22 C 28 12, 37 14, 39 20 C 33 26, 25 27, 20 22 Z" fill="#9ccc65" />
+                        <path d="M20 21 C 17 14, 18 8, 20 4 C 22 8, 23 14, 20 21 Z" fill="#aed581" />
+                      </svg>
+                    )}</span>
+                  ))}
+                </span>
+                <span className="f-word f-word-lit pointer-events-none absolute bottom-0 left-0 block whitespace-nowrap">{MARK}</span>
+              </span>
+              <span className="sr-only">{MARK} </span>
+              {descRest}
+            </p>
             <p className="mt-4 text-sm text-fi-accent/90">{t('footer_certifs')}</p>
             <div className="mt-5 flex items-center gap-3">
               <a href={e.linkedin} target="_blank" rel="noreferrer" aria-label="LinkedIn" className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 hover:bg-fi-accent hover:text-fi-deep transition-colors"><Linkedin size={18} /></a>
@@ -106,8 +140,6 @@ export default function Footer() {
           <button type="button" onClick={toTop} className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 hover:bg-white/10 transition-colors min-h-[40px]">{t('footer_haut')} <ArrowUp size={14} aria-hidden /></button>
         </div>
       </div>
-      {/* Filigrane de la marque */}
-      <p aria-hidden className="f-mark pointer-events-none select-none whitespace-nowrap text-center font-display text-[11vw] font-bold leading-[0.85] tracking-tighter text-white/[0.05] pb-4">Fertil’Innov</p>
     </footer>
   );
 }
