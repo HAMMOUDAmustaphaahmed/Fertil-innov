@@ -15,7 +15,7 @@ export default function Expertise() {
   return (
     <>
       <SEO title={t('expertise_titre')} description={t('seo_expertise')} path="/expertise" breadcrumb={[{ name: t('nav_accueil'), path: '/' }, { name: t('nav_expertise'), path: '/expertise' }]} />
-      <PageHero title={t('expertise_titre')} text={t('expertise_texte')} image="/images/microscope.webp" />
+      <PageHero variant="scope" title={t('expertise_titre')} text={t('expertise_texte')} image="/images/microscope.webp" />
       <section ref={ref} className="section">
         <div className="wrap">
           <div className="grid gap-5 md:grid-cols-2">

@@ -21,7 +21,7 @@ export default function Formations() {
   return (
     <>
       <SEO title={t('formations_titre')} description={t('seo_formations')} path="/formations" jsonLd={jsonLd} breadcrumb={[{ name: t('nav_accueil'), path: '/' }, { name: t('nav_formations'), path: '/formations' }]} />
-      <PageHero variant="rings" title={t('formations_titre')} text={t('formations_texte')} image="/images/labo-recherche.webp">
+      <PageHero variant="wood" title={t('formations_titre')} text={t('formations_texte')} image="/images/labo-recherche.webp">
         <p className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm"><span className="font-display text-xl font-semibold text-fi-accent">98 %</span> {t('formations_satisfaction')}</p>
       </PageHero>
 

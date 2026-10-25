@@ -2,12 +2,18 @@
 // chaque visuel réagit aussi au défilement (rotation / parallaxe via la variable --ph-p, 0 → 1).
 //  petri     Services    : grande boîte de Petri, colonies qui poussent, loupe à la souris
 //  dna       Activités   : double hélice d'ADN réaliste (modèle moléculaire en perspective)
-//  rings     Formations  : cernes de croissance qui se tracent
-//  contours  Chiffres    : courbes de niveau / données qui ondulent
-//  network   Équipe      : réseau de personnes, signaux qui circulent
-//  waves     Blog        : ondes de diffusion + égaliseur
+//  scope     Expertise   : oculaire de microscope en fond noir, micro-organismes vivants
+//  wood      Formations  : tranche de tronc, cernes, anneau de lumière, lampe à la souris
+//  data      Chiffres    : champ de colonnes 3D qui ondule, se soulève à la souris
+//  myco      Équipe      : réseau mycorhizien, impulsions de nutriments
+//  leaves    Blog        : feuilles nervurées qui dérivent dans la brise
+//  iris      FAQ         : bulles irisées qui éclatent à la souris
+//  rings     (réserve)   : cernes de croissance qui se tracent
+//  contours  (réserve)   : courbes de niveau / données qui ondulent
+//  network   (réserve)   : réseau de personnes, signaux qui circulent
+//  waves     (réserve)   : ondes de diffusion + égaliseur
 //  horizons  Guide       : horizons de sol en parallaxe
-//  bubbles   FAQ         : bulles de culture qui montent (certaines « ? »)
+//  bubbles   (réserve)   : bulles de culture qui montent (certaines « ? »)
 //  radar     Contact     : radar et points de présence
 import { useEffect, useRef } from 'react';
 import { gsap } from '../lib/gsap';
@@ -365,7 +371,316 @@ function Radar() {
   );
 }
 
-const ARTS = { petri: Petri, dna: Dna, rings: Rings, contours: Contours, network: Network, waves: Waves, horizons: Horizons, bubbles: Bubbles, radar: Radar };
+// Expertise : oculaire de microscope en fond noir. Micro-organismes vivants (bacilles, coques, paramécie aux
+// cils battants, diatomées vitreuses, hyphes) ; la souris déplace la platine ; réticule et barre d'échelle.
+function Scope() {
+  const ref = useRef(null);
+  const pt = usePointer(ref);
+  const st = useRef(null);
+  useLoop(ref, (t) => {
+    const cv = ref.current; if (!cv) return;
+    const [ctx, w, h, dpr] = fit(cv);
+    if (!w || !h) return;
+    const R = Math.min(w, h) * 0.44; const cx = w / 2; const cy = h / 2;
+    if (!st.current) {
+      const r = rand(31); const Rn = (a, b) => a + r() * (b - a);
+      const pos = () => [Rn(-1.3, 1.3), Rn(-1.3, 1.3)];
+      st.current = {
+        rods: Array.from({ length: 46 }, () => { const [x, y] = pos(); return { x, y, a: Rn(0, 6.28), l: Rn(0.035, 0.07), v: Rn(0.02, 0.06), ph: Rn(0, 6.28) }; }),
+        cocci: Array.from({ length: 14 }, () => { const [x, y] = pos(); const n = 2 + ((r() * 5) | 0); return { x, y, n, a: Rn(0, 6.28), v: Rn(0.005, 0.015) }; }),
+        para: Array.from({ length: 2 }, (_, i) => ({ x: i ? 0.5 : -0.6, y: i ? -0.3 : 0.4, a: Rn(0, 6.28), v: Rn(0.05, 0.08), ph: Rn(0, 6.28) })),
+        diat: Array.from({ length: 7 }, (_, i) => { const [x, y] = pos(); return { x, y, a: Rn(0, 6.28), va: Rn(-0.1, 0.1), k: i % 3 === 0 ? 'c' : 'p', s: Rn(0.06, 0.1) }; }),
+        hyph: Array.from({ length: 3 }, () => { let [x, y] = pos(); let a = Rn(0, 6.28); const pts = []; for (let k = 0; k < 40; k++) { a += Rn(-0.25, 0.25); x += Math.cos(a) * 0.04; y += Math.sin(a) * 0.04; pts.push([x, y]); } return pts; }),
+        pan: [0, 0],
+      };
+    }
+    const S = st.current; const P = pt.current;
+    S.pan[0] += ((P.in ? -P.x * 0.6 : Math.sin(t * 0.07) * 0.2) - S.pan[0]) * 0.03;
+    S.pan[1] += ((P.in ? -P.y * 0.6 : Math.cos(t * 0.05) * 0.2) - S.pan[1]) * 0.03;
+    const X = (x) => cx + (x + S.pan[0]) * R; const Y = (y) => cy + (y + S.pan[1]) * R;
+    ctx.clearRect(0, 0, w, h);
+    // Corps de l'oculaire (bague métallique)
+    let g = ctx.createRadialGradient(cx, cy, R, cx, cy, R * 1.12); g.addColorStop(0, '#0b0f0c'); g.addColorStop(0.4, '#3a4440'); g.addColorStop(0.7, '#1a201d'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R * 1.12, 0, 6.283); ctx.fill();
+    ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.283); ctx.clip();
+    g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R); g.addColorStop(0, '#0d1a16'); g.addColorStop(0.8, '#060c0a'); g.addColorStop(1, '#000');
+    ctx.fillStyle = g; ctx.fillRect(cx - R, cy - R, R * 2, R * 2);
+    ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
+    // Hyphes
+    ctx.strokeStyle = 'rgba(190,230,210,0.22)'; ctx.lineWidth = R * 0.008;
+    for (const hp of S.hyph) { ctx.beginPath(); hp.forEach(([x, y], k) => (k ? ctx.lineTo(X(x), Y(y)) : ctx.moveTo(X(x), Y(y)))); ctx.stroke(); }
+    // Bacilles : bâtonnets lumineux qui frétillent et avancent
+    for (const b of S.rods) {
+      b.a += Math.sin(t * 2 + b.ph) * 0.01; b.x += Math.cos(b.a) * b.v * 0.016; b.y += Math.sin(b.a) * b.v * 0.016;
+      if (b.x > 1.4) b.x = -1.4; if (b.x < -1.4) b.x = 1.4; if (b.y > 1.4) b.y = -1.4; if (b.y < -1.4) b.y = 1.4;
+      const dx = Math.cos(b.a) * b.l * R / 2; const dy = Math.sin(b.a) * b.l * R / 2;
+      ctx.strokeStyle = 'rgba(160,230,220,0.18)'; ctx.lineWidth = R * 0.03; ctx.beginPath(); ctx.moveTo(X(b.x) - dx, Y(b.y) - dy); ctx.lineTo(X(b.x) + dx, Y(b.y) + dy); ctx.stroke();
+      ctx.strokeStyle = 'rgba(220,255,245,0.75)'; ctx.lineWidth = R * 0.012; ctx.beginPath(); ctx.moveTo(X(b.x) - dx, Y(b.y) - dy); ctx.lineTo(X(b.x) + dx, Y(b.y) + dy); ctx.stroke();
+    }
+    // Coques en grappes
+    for (const c of S.cocci) {
+      c.x += Math.cos(c.a) * c.v * 0.016; c.y += Math.sin(c.a) * c.v * 0.016;
+      for (let k = 0; k < c.n; k++) { const kx = X(c.x) + Math.cos(k * 2.1) * R * 0.018 * (k ? 1 : 0); const ky = Y(c.y) + Math.sin(k * 2.1) * R * 0.018 * (k ? 1 : 0);
+        ctx.fillStyle = 'rgba(200,250,190,0.6)'; ctx.beginPath(); ctx.arc(kx, ky, R * 0.011, 0, 6.283); ctx.fill(); }
+    }
+    // Diatomées : coques de verre striées (pennées et centriques)
+    for (const d of S.diat) {
+      d.a += d.va * 0.016; ctx.save(); ctx.translate(X(d.x), Y(d.y)); ctx.rotate(d.a);
+      const L = d.s * R;
+      ctx.strokeStyle = 'rgba(240,250,255,0.55)'; ctx.lineWidth = dpr;
+      if (d.k === 'p') {
+        ctx.beginPath(); ctx.ellipse(0, 0, L, L * 0.22, 0, 0, 6.283); ctx.stroke();
+        ctx.strokeStyle = 'rgba(240,250,255,0.25)'; for (let k = -8; k <= 8; k++) { const x = (k / 8) * L * 0.9; const hh = L * 0.22 * Math.sqrt(1 - (x / L) ** 2); ctx.beginPath(); ctx.moveTo(x, -hh); ctx.lineTo(x, hh); ctx.stroke(); }
+        ctx.beginPath(); ctx.moveTo(-L, 0); ctx.lineTo(L, 0); ctx.stroke();
+      } else {
+        ctx.beginPath(); ctx.arc(0, 0, L * 0.5, 0, 6.283); ctx.stroke();
+        ctx.strokeStyle = 'rgba(240,250,255,0.25)'; for (let k = 0; k < 24; k++) { const a = (k / 24) * 6.283; ctx.beginPath(); ctx.moveTo(Math.cos(a) * L * 0.12, Math.sin(a) * L * 0.12); ctx.lineTo(Math.cos(a) * L * 0.48, Math.sin(a) * L * 0.48); ctx.stroke(); }
+      }
+      ctx.restore();
+    }
+    // Paramécies : corps en pantoufle, vacuoles, cils qui battent
+    for (const pa of S.para) {
+      pa.a += Math.sin(t * 0.4 + pa.ph) * 0.004; pa.x += Math.cos(pa.a) * pa.v * 0.016; pa.y += Math.sin(pa.a) * pa.v * 0.016;
+      if (Math.hypot(pa.x, pa.y) > 1.3) pa.a += Math.PI;
+      ctx.save(); ctx.translate(X(pa.x), Y(pa.y)); ctx.rotate(pa.a);
+      const L = R * 0.2; const W2 = L * 0.38;
+      g = ctx.createRadialGradient(0, 0, 0, 0, 0, L); g.addColorStop(0, 'rgba(120,200,170,0.12)'); g.addColorStop(1, 'rgba(120,200,170,0.04)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(0, 0, L, W2, 0, 0, 6.283); ctx.fill();
+      ctx.strokeStyle = 'rgba(210,255,235,0.6)'; ctx.lineWidth = dpr * 1.2; ctx.beginPath(); ctx.ellipse(0, 0, L, W2, 0, 0, 6.283); ctx.stroke();
+      ctx.strokeStyle = 'rgba(210,255,235,0.35)'; ctx.lineWidth = dpr * 0.8;
+      for (let k = 0; k < 40; k++) { const a = (k / 40) * 6.283; const ex = Math.cos(a) * L; const ey = Math.sin(a) * W2; const beat = Math.sin(t * 9 - k * 0.6) * 0.5; const nx = Math.cos(a + beat) * L * 0.12; const ny = Math.sin(a + beat) * L * 0.12; ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex + nx, ey + ny); ctx.stroke(); }
+      ctx.fillStyle = 'rgba(200,255,220,0.35)'; [[-0.4, 0.1, 0.12], [0.3, -0.1, 0.1], [0, 0.05, 0.16]].forEach(([vx, vy, vr]) => { ctx.beginPath(); ctx.arc(vx * L, vy * W2 * 2, vr * W2, 0, 6.283); ctx.fill(); });
+      ctx.restore();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    // Réticule et barre d'échelle
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = dpr;
+    ctx.beginPath(); ctx.moveTo(cx - R, cy); ctx.lineTo(cx + R, cy); ctx.moveTo(cx, cy - R); ctx.lineTo(cx, cy + R); ctx.stroke();
+    for (let k = -10; k <= 10; k++) { ctx.beginPath(); ctx.moveTo(cx + k * R * 0.05, cy - (k % 5 ? 4 : 9) * dpr); ctx.lineTo(cx + k * R * 0.05, cy + (k % 5 ? 4 : 9) * dpr); ctx.stroke(); }
+    ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.fillRect(cx + R * 0.35, cy + R * 0.7, R * 0.2, dpr * 2);
+    ctx.font = `${11 * dpr}px Manrope, sans-serif`; ctx.fillText('10 µm', cx + R * 0.38, cy + R * 0.68);
+    g = ctx.createRadialGradient(cx, cy, R * 0.7, cx, cy, R); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.85)');
+    ctx.fillStyle = g; ctx.fillRect(cx - R, cy - R, R * 2, R * 2);
+    ctx.restore();
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)'; ctx.lineWidth = dpr * 1.5; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.283); ctx.stroke();
+    for (let k = 0; k < 90; k++) { const a = (k / 90) * 6.283 + t * 0.02; ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * R * 1.05, cy + Math.sin(a) * R * 1.05); ctx.lineTo(cx + Math.cos(a) * R * 1.1, cy + Math.sin(a) * R * 1.1); ctx.stroke(); }
+  });
+  return <canvas ref={ref} aria-hidden className="absolute right-[-38%] top-1/2 aspect-square w-[min(120vw,46rem)] -translate-y-1/2 md:right-[-4%]" />;
+}
+
+// Formations : tranche de tronc réaliste. Cernes de largeurs variées (bois de printemps clair, bois d'été
+// sombre), moelle, écorce, fentes radiales, grain du bois ; un anneau de lumière part du cœur, année après
+// année ; la souris éclaire le bois comme une lampe. La tranche tourne au défilement.
+function Wood() {
+  const ref = useRef(null);
+  const pt = usePointer(ref);
+  const st = useRef(null);
+  useLoop(ref, (t) => {
+    const cv = ref.current; if (!cv) return;
+    const [ctx, w, h] = fit(cv);
+    if (!w || !h) return;
+    const R = Math.min(w, h) * 0.45; const cx = w / 2; const cy = h / 2;
+    if (!st.current || st.current.w !== w) {
+      const r = rand(9); const Rn = (a, b) => a + r() * (b - a);
+      const off = document.createElement('canvas'); off.width = w; off.height = h; const o = off.getContext('2d');
+      const ph = [Rn(0, 6), Rn(0, 6), Rn(0, 6)];
+      const shape = (a) => 1 + 0.05 * Math.sin(a * 2 + ph[0]) + 0.03 * Math.sin(a * 3 + ph[1]) + 0.015 * Math.sin(a * 7 + ph[2]);
+      const ox = cx - R * 0.06; const oy = cy + R * 0.04; // cœur légèrement décentré
+      const ring = (rad, fill) => { o.beginPath(); for (let k = 0; k <= 120; k++) { const a = (k / 120) * 6.283; const rr = rad * shape(a); const x = ox + Math.cos(a) * rr; const y = oy + Math.sin(a) * rr; if (k) o.lineTo(x, y); else o.moveTo(x, y); } o.closePath(); o.fillStyle = fill; o.fill(); };
+      // Écorce
+      ring(R, '#3b2414'); ring(R * 0.97, '#5a3820'); ring(R * 0.93, '#2f1c0f');
+      // Cernes, de l'extérieur vers le cœur
+      const radii = []; let rad = R * 0.9; while (rad > R * 0.03) { radii.push(rad); rad -= R * Rn(0.025, 0.06); }
+      radii.forEach((rr, i) => { const tone = Rn(-12, 12); ring(rr, `rgb(${168 + tone},${116 + tone},${66 + tone})`); ring(rr * 0.985, `rgb(${226 + tone},${190 + tone},${140 + tone})`); });
+      ring(R * 0.03, '#6b4424');
+      // Grain et fentes radiales
+      for (let i = 0; i < 4000; i++) { const a = Rn(0, 6.283); const d = Math.sqrt(r()) * R * 0.9; o.fillStyle = `rgba(${r() < 0.5 ? '90,50,20' : '255,240,210'},${Rn(0.05, 0.15)})`; o.fillRect(ox + Math.cos(a) * d, oy + Math.sin(a) * d, Rn(1, 3), 1); }
+      for (let k = 0; k < 3; k++) { const a = Rn(0, 6.283); o.strokeStyle = 'rgba(40,20,8,0.7)'; o.lineWidth = Rn(1.5, 3); o.beginPath(); o.moveTo(ox + Math.cos(a) * R * 0.92, oy + Math.sin(a) * R * 0.92); for (let s2 = 1; s2 <= 10; s2++) { const d = R * 0.92 * (1 - s2 / 10 * Rn(0.4, 0.6)); o.lineTo(ox + Math.cos(a + Rn(-0.02, 0.02)) * d, oy + Math.sin(a + Rn(-0.02, 0.02)) * d); } o.stroke(); }
+      st.current = { w, off, shape, ox, oy };
+    }
+    const S = st.current; const P = pt.current;
+    const p = Number(getComputedStyle(cv).getPropertyValue('--ph-p')) || 0;
+    ctx.clearRect(0, 0, w, h);
+    let g = ctx.createRadialGradient(cx + R * 0.06, cy + R * 0.1, R * 0.8, cx, cy, R * 1.25); g.addColorStop(0, 'rgba(0,0,0,0.5)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(p * 0.8 + t * 0.01); ctx.translate(-cx, -cy); ctx.drawImage(S.off, 0, 0);
+    // Anneau de lumière qui grandit, année après année
+    const k = (t * 0.12) % 1; const rr = R * 0.9 * k;
+    ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = `rgba(197,255,120,${0.5 * (1 - k)})`; ctx.lineWidth = R * 0.012;
+    ctx.beginPath(); for (let s2 = 0; s2 <= 120; s2++) { const a = (s2 / 120) * 6.283; const r2 = rr * S.shape(a); const x = S.ox + Math.cos(a) * r2; const y = S.oy + Math.sin(a) * r2; if (s2) ctx.lineTo(x, y); else ctx.moveTo(x, y); } ctx.stroke();
+    ctx.restore();
+    // Lampe : la souris éclaire le bois
+    const lx = P.in ? P.px * (w / cv.clientWidth) : cx - R * 0.4; const ly = P.in ? P.py * (h / cv.clientHeight) : cy - R * 0.4;
+    ctx.globalCompositeOperation = 'soft-light';
+    g = ctx.createRadialGradient(lx, ly, 0, lx, ly, R * 0.9); g.addColorStop(0, 'rgba(255,240,200,0.9)'); g.addColorStop(1, 'rgba(0,0,0,0.6)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.283); ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+  });
+  return <canvas ref={ref} aria-hidden className="absolute right-[-38%] top-1/2 aspect-square w-[min(120vw,46rem)] -translate-y-1/2 md:right-[-4%]" />;
+}
+
+// Chiffres : champ de données en 3D isométrique. Des colonnes ondulent comme un champ de blé sous le vent,
+// plus lumineuses quand elles montent ; elles se soulèvent autour de la souris.
+function DataField() {
+  const ref = useRef(null);
+  const pt = usePointer(ref);
+  useLoop(ref, (t) => {
+    const cv = ref.current; if (!cv) return;
+    const [ctx, w, h] = fit(cv);
+    if (!w || !h) return;
+    const N = 12; const cw = Math.min(w / (N * 2.9), h / (N * 1.9)); const ch = cw * 0.55;
+    const ox = w * 0.68; const oy = h * 0.58 - N * ch * 0.6;
+    const P = pt.current; const mx = P.in ? P.px * (w / cv.clientWidth) : -9999; const my = P.in ? P.py * (h / cv.clientHeight) : -9999;
+    const p = Number(getComputedStyle(cv).getPropertyValue('--ph-p')) || 0;
+    ctx.clearRect(0, 0, w, h);
+    // Sol : grille
+    ctx.strokeStyle = 'rgba(200,230,201,0.08)'; ctx.lineWidth = 1;
+    for (let i = 0; i <= N; i++) { ctx.beginPath(); ctx.moveTo(ox + (i - 0) * cw, oy + (i + 0) * ch); ctx.lineTo(ox + (i - N) * cw, oy + (i + N) * ch); ctx.stroke(); ctx.beginPath(); ctx.moveTo(ox - i * cw, oy + i * ch); ctx.lineTo(ox + (N - i) * cw, oy + (N + i) * ch); ctx.stroke(); }
+    for (let s2 = 0; s2 <= 2 * (N - 1); s2++) for (let i = 0; i < N; i++) {
+      const j = s2 - i; if (j < 0 || j >= N) continue;
+      const bx = ox + (i - j) * cw; const by = oy + (i + j + 1) * ch;
+      let v = 0.5 + 0.5 * Math.sin(i * 0.45 + t * 1.2 + p * 4) * Math.cos(j * 0.38 - t * 0.8);
+      const near = Math.hypot(bx - mx, by - ch - my); if (near < cw * 4) v += (1 - near / (cw * 4)) * 0.9;
+      const H = (0.15 + v * 1.1) * ch * 4.2;
+      const lum = Math.min(1, v);
+      const top = `rgb(${120 + lum * 110},${180 + lum * 60},${70 + lum * 40})`;
+      // face gauche, face droite, dessus
+      ctx.fillStyle = `rgb(${20 + lum * 30},${70 + lum * 40},${35 + lum * 15})`;
+      ctx.beginPath(); ctx.moveTo(bx - cw, by - ch); ctx.lineTo(bx, by); ctx.lineTo(bx, by - H); ctx.lineTo(bx - cw, by - ch - H); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = `rgb(${35 + lum * 40},${100 + lum * 50},${45 + lum * 20})`;
+      ctx.beginPath(); ctx.moveTo(bx + cw, by - ch); ctx.lineTo(bx, by); ctx.lineTo(bx, by - H); ctx.lineTo(bx + cw, by - ch - H); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = top; ctx.beginPath(); ctx.moveTo(bx, by - H); ctx.lineTo(bx - cw, by - ch - H); ctx.lineTo(bx, by - 2 * ch - H); ctx.lineTo(bx + cw, by - ch - H); ctx.closePath(); ctx.fill();
+      if (lum > 0.85) { ctx.globalCompositeOperation = 'lighter'; const g = ctx.createRadialGradient(bx, by - ch - H, 0, bx, by - ch - H, cw * 2); g.addColorStop(0, 'rgba(220,255,160,0.35)'); g.addColorStop(1, 'rgba(220,255,160,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(bx, by - ch - H, cw * 2, 0, 6.283); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; }
+    }
+  });
+  return <canvas ref={ref} aria-hidden className="absolute inset-y-0 right-0 h-full w-full md:w-2/3" />;
+}
+
+// Équipe : réseau mycorhizien. Les membres sont des spores lumineuses reliées par des hyphes organiques où
+// circulent des impulsions de nutriments ; près de la souris le réseau s'éclaire et échange davantage.
+function Myco() {
+  const ref = useRef(null);
+  const pt = usePointer(ref);
+  const st = useRef(null);
+  useLoop(ref, (t) => {
+    const cv = ref.current; if (!cv) return;
+    const [ctx, w, h, dpr] = fit(cv);
+    if (!w || !h) return;
+    if (!st.current || st.current.w !== w) {
+      const r = rand(13); const Rn = (a, b) => a + r() * (b - a);
+      const nodes = Array.from({ length: 11 }, () => ({ x: Rn(0.12, 0.92) * w, y: Rn(0.12, 0.88) * h, r: Rn(5, 9) * dpr, ph: Rn(0, 6) }));
+      const edges = [];
+      nodes.forEach((a, i) => nodes.forEach((b, j) => { if (j <= i) return; const d = Math.hypot(a.x - b.x, a.y - b.y); if (d < Math.min(w, h) * 0.45) { const mx = (a.x + b.x) / 2 + Rn(-0.25, 0.25) * d; const my = (a.y + b.y) / 2 + Rn(-0.25, 0.25) * d; edges.push({ a, b, c: [mx, my] }); } }));
+      const twigs = Array.from({ length: 60 }, () => { const n = nodes[(r() * nodes.length) | 0]; let x = n.x; let y = n.y; let a = Rn(0, 6.28); const pts = [[x, y]]; for (let k = 0; k < 8; k++) { a += Rn(-0.5, 0.5); x += Math.cos(a) * 10 * dpr; y += Math.sin(a) * 10 * dpr; pts.push([x, y]); } return pts; });
+      st.current = { w, nodes, edges, twigs, pulses: [] };
+    }
+    const S = st.current; const P = pt.current;
+    const mx = P.in ? P.px * dpr : -9999; const my = P.in ? P.py * dpr : -9999;
+    const at = (e, u) => { const v = 1 - u; return [v * v * e.a.x + 2 * v * u * e.c[0] + u * u * e.b.x, v * v * e.a.y + 2 * v * u * e.c[1] + u * u * e.b.y]; };
+    ctx.clearRect(0, 0, w, h);
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = 'rgba(230,220,190,0.12)'; ctx.lineWidth = dpr * 0.8;
+    for (const tw of S.twigs) { ctx.beginPath(); tw.forEach(([x, y], k) => (k ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke(); }
+    for (const e of S.edges) {
+      const near = Math.max(0, 1 - Math.hypot(e.c[0] - mx, e.c[1] - my) / (Math.min(w, h) * 0.35));
+      ctx.strokeStyle = `rgba(235,225,195,${0.18 + near * 0.35})`; ctx.lineWidth = dpr * (1 + near * 1.2);
+      ctx.beginPath(); ctx.moveTo(e.a.x, e.a.y); ctx.quadraticCurveTo(e.c[0], e.c[1], e.b.x, e.b.y); ctx.stroke();
+      if (Math.random() < 0.006 + near * 0.05) S.pulses.push({ e, u: 0, dir: Math.random() < 0.5, v: 0.004 + Math.random() * 0.006 });
+    }
+    ctx.globalCompositeOperation = 'lighter';
+    for (let k = S.pulses.length - 1; k >= 0; k--) {
+      const pu = S.pulses[k]; pu.u += pu.v; if (pu.u >= 1) { S.pulses.splice(k, 1); continue; }
+      for (let tr = 0; tr < 6; tr++) { const u = Math.max(0, pu.u - tr * 0.015); const [x, y] = at(pu.e, pu.dir ? u : 1 - u); ctx.fillStyle = `rgba(170,240,110,${0.7 * (1 - tr / 6)})`; ctx.beginPath(); ctx.arc(x, y, dpr * (3 - tr * 0.35), 0, 6.283); ctx.fill(); }
+    }
+    for (const n of S.nodes) {
+      const near = Math.max(0, 1 - Math.hypot(n.x - mx, n.y - my) / (Math.min(w, h) * 0.3));
+      const pulse = 1 + 0.15 * Math.sin(t * 2 + n.ph) + near * 0.5;
+      const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 4 * pulse); g.addColorStop(0, 'rgba(180,240,130,0.45)'); g.addColorStop(1, 'rgba(180,240,130,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(n.x, n.y, n.r * 4 * pulse, 0, 6.283); ctx.fill();
+      const g2 = ctx.createRadialGradient(n.x - n.r * 0.3, n.y - n.r * 0.3, 0, n.x, n.y, n.r); g2.addColorStop(0, '#ffffff'); g2.addColorStop(0.4, '#c5e1a5'); g2.addColorStop(1, '#558b2f');
+      ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(n.x, n.y, n.r * pulse, 0, 6.283); ctx.fill();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+  });
+  return <canvas ref={ref} aria-hidden className="absolute inset-y-0 right-0 h-full w-full md:w-3/5" />;
+}
+
+// Blog : feuilles du savoir. Feuilles nervurées (vertes, dorées, automnales) qui dérivent, se retournent et
+// tournoient en profondeur, poussées par une brise qui suit la souris.
+function Leaves() {
+  const ref = useRef(null);
+  const pt = usePointer(ref);
+  const st = useRef(null);
+  useLoop(ref, (t) => {
+    const cv = ref.current; if (!cv) return;
+    const [ctx, w, h, dpr] = fit(cv);
+    if (!w || !h) return;
+    if (!st.current) {
+      const r = rand(21); const Rn = (a, b) => a + r() * (b - a);
+      const pal = [['#9ccc65', '#558b2f'], ['#c5e1a5', '#7cb342'], ['#f2c46d', '#c98a2b'], ['#e7a15a', '#a85a24'], ['#8bc34a', '#33691e']];
+      st.current = { leaves: Array.from({ length: 22 }, () => ({ x: Rn(0, 1), y: Rn(-0.2, 1.1), z: Rn(0.3, 1), a: Rn(0, 6.28), va: Rn(-0.6, 0.6), f: Rn(0, 6.28), vf: Rn(0.8, 2), vy: Rn(0.02, 0.05), sw: Rn(0, 6.28), c: pal[(r() * pal.length) | 0] })), wind: 0 };
+    }
+    const S = st.current; const P = pt.current;
+    S.wind += ((P.in ? P.x * 0.12 : 0.02) - S.wind) * 0.02;
+    ctx.clearRect(0, 0, w, h);
+    const sorted = [...S.leaves].sort((a, b) => a.z - b.z);
+    for (const l of sorted) {
+      l.y += l.vy * 0.016 * l.z; l.x += (S.wind + Math.sin(t * 0.8 + l.sw) * 0.02) * 0.016 * l.z; l.a += l.va * 0.016; l.f += l.vf * 0.016;
+      if (l.y > 1.15) { l.y = -0.15; l.x = Math.random(); } if (l.x > 1.1) l.x = -0.1; if (l.x < -0.1) l.x = 1.1;
+      const s = (14 + l.z * 30) * dpr; const flip = Math.cos(l.f);
+      ctx.save(); ctx.translate(l.x * w, l.y * h); ctx.rotate(l.a); ctx.scale(Math.max(0.08, Math.abs(flip)), 1);
+      ctx.globalAlpha = 0.35 + l.z * 0.65;
+      const g = ctx.createLinearGradient(-s, 0, s, 0); g.addColorStop(0, flip > 0 ? l.c[0] : '#e8f0d8'); g.addColorStop(1, l.c[1]);
+      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(-s, 0); ctx.bezierCurveTo(-s * 0.4, -s * 0.55, s * 0.5, -s * 0.5, s, 0); ctx.bezierCurveTo(s * 0.5, s * 0.5, -s * 0.4, s * 0.55, -s, 0); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,230,0.55)'; ctx.lineWidth = dpr; ctx.beginPath(); ctx.moveTo(-s * 1.15, 0); ctx.lineTo(s * 0.95, 0); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,230,0.3)'; for (let k = -3; k <= 3; k++) { if (!k) continue; const x0 = (k / 4) * s * 0.8; ctx.beginPath(); ctx.moveTo(x0, 0); ctx.lineTo(x0 + s * 0.25, -s * 0.28); ctx.moveTo(x0, 0); ctx.lineTo(x0 + s * 0.25, s * 0.28); ctx.stroke(); }
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+  });
+  return <canvas ref={ref} aria-hidden className="absolute inset-y-0 right-0 h-full w-full md:w-3/5" />;
+}
+
+// FAQ : bulles irisées (film arc-en-ciel, reflet), certaines portent un « ? » ; elles éclatent au contact de la
+// souris puis remontent.
+function Iris() {
+  const ref = useRef(null);
+  const pt = usePointer(ref);
+  const st = useRef(null);
+  useLoop(ref, (t) => {
+    const cv = ref.current; if (!cv) return;
+    const [ctx, w, h, dpr] = fit(cv);
+    if (!w || !h) return;
+    if (!st.current) {
+      const r = rand(41); const Rn = (a, b) => a + r() * (b - a);
+      st.current = { b: Array.from({ length: 16 }, (_, i) => ({ x: Rn(0.05, 0.95), y: Rn(0, 1.2), r: Rn(18, 52), v: Rn(0.025, 0.06), ph: Rn(0, 6.28), q: i % 4 === 0, pop: 0 })), sparks: [] };
+    }
+    const S = st.current; const P = pt.current;
+    const mx = P.in ? P.px * dpr : -9999; const my = P.in ? P.py * dpr : -9999;
+    ctx.clearRect(0, 0, w, h);
+    for (const b of S.b) {
+      if (b.pop > 0) { b.pop -= 0.016; if (b.pop <= 0) { b.y = 1.25; b.x = Math.random() * 0.9 + 0.05; } continue; }
+      b.y -= b.v * 0.016; if (b.y < -0.2) { b.y = 1.25; b.x = Math.random() * 0.9 + 0.05; }
+      const x = b.x * w + Math.sin(t * 0.9 + b.ph) * 14 * dpr; const y = b.y * h; const rr = b.r * dpr * (1 + 0.03 * Math.sin(t * 3 + b.ph));
+      if (Math.hypot(x - mx, y - my) < rr) { b.pop = 1.2; for (let k = 0; k < 14; k++) { const a = (k / 14) * 6.283; S.sparks.push({ x: x + Math.cos(a) * rr, y: y + Math.sin(a) * rr, vx: Math.cos(a) * 2 * dpr, vy: Math.sin(a) * 2 * dpr, l: 1 }); } continue; }
+      // Film irisé
+      const cg = ctx.createConicGradient ? ctx.createConicGradient(t * 0.6 + b.ph, x, y) : null;
+      if (cg) { ['rgba(255,120,200,0.35)', 'rgba(120,200,255,0.35)', 'rgba(140,255,170,0.3)', 'rgba(255,230,120,0.35)', 'rgba(255,120,200,0.35)'].forEach((c, k) => cg.addColorStop(k / 4, c)); }
+      ctx.save(); ctx.beginPath(); ctx.arc(x, y, rr, 0, 6.283); ctx.clip();
+      const rg = ctx.createRadialGradient(x, y, rr * 0.55, x, y, rr); rg.addColorStop(0, 'rgba(255,255,255,0)'); rg.addColorStop(1, 'rgba(255,255,255,0.22)');
+      ctx.fillStyle = rg; ctx.fillRect(x - rr, y - rr, rr * 2, rr * 2);
+      if (cg) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.55; ctx.lineWidth = rr * 0.22; ctx.strokeStyle = cg; ctx.beginPath(); ctx.arc(x, y, rr * 0.9, 0, 6.283); ctx.stroke(); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
+      ctx.restore();
+      ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = dpr; ctx.beginPath(); ctx.arc(x, y, rr, 0, 6.283); ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.beginPath(); ctx.ellipse(x - rr * 0.38, y - rr * 0.42, rr * 0.22, rr * 0.1, -0.7, 0, 6.283); ctx.fill();
+      if (b.q) { ctx.fillStyle = 'rgba(197,255,120,0.9)'; ctx.font = `700 ${rr}px "Bricolage Grotesque", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('?', x, y + rr * 0.05); }
+    }
+    for (let k = S.sparks.length - 1; k >= 0; k--) { const s2 = S.sparks[k]; s2.x += s2.vx; s2.y += s2.vy; s2.l -= 0.04; if (s2.l <= 0) { S.sparks.splice(k, 1); continue; } ctx.fillStyle = `rgba(220,255,240,${s2.l})`; ctx.beginPath(); ctx.arc(s2.x, s2.y, dpr * 2 * s2.l, 0, 6.283); ctx.fill(); }
+  });
+  return <canvas ref={ref} aria-hidden className="absolute inset-y-0 right-0 h-full w-full md:w-3/5" />;
+}
+
+const ARTS = { petri: Petri, dna: Dna, scope: Scope, wood: Wood, data: DataField, myco: Myco, leaves: Leaves, iris: Iris, rings: Rings, contours: Contours, network: Network, waves: Waves, horizons: Horizons, bubbles: Bubbles, radar: Radar };
 
 /** Visuel de l'en-tête ; progress (0→1) du défilement transmis par PageHero via --ph-p. */
 export default function HeroArt({ variant }) {

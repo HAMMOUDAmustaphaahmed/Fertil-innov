@@ -34,7 +34,7 @@ export default function Faq() {
   return (
     <>
       <SEO title={t('faq_titre')} description={t('seo_faq')} path="/faq" jsonLd={jsonLd} breadcrumb={[{ name: t('nav_accueil'), path: '/' }, { name: t('nav_faq'), path: '/faq' }]} />
-      <PageHero variant="bubbles" title={t('faq_titre')} text={t('faq_texte')}>
+      <PageHero variant="iris" title={t('faq_titre')} text={t('faq_texte')}>
         <nav aria-label={t('nav_faq')} className="mt-8 flex flex-wrap gap-2">
           <a href="#questions" className="rounded-full bg-fi-accent px-3.5 py-2 text-sm font-semibold text-fi-deep min-h-[40px] inline-flex items-center gap-1.5"><Icon name="clipboard" size="h-4 w-4" />{t('nav_faq')}</a>
           {GUIDE.map((g) => <a key={g.id} href={`#${g.id}`} className="rounded-full bg-white/10 px-3.5 py-2 text-sm text-white/90 hover:bg-white hover:text-fi-deep transition-colors min-h-[40px] inline-flex items-center gap-1.5"><Icon emoji={g.emoji} size="h-4 w-4" />{L(g.titre)}</a>)}

@@ -22,7 +22,7 @@ export default function Equipe() {
   return (
     <>
       <SEO title={t('equipe_page_titre')} description={t('seo_equipe')} path="/equipe" jsonLd={jsonLd} breadcrumb={[{ name: t('nav_accueil'), path: '/' }, { name: t('nav_equipe'), path: '/equipe' }]} />
-      <PageHero variant="network" kicker={t('equipe_kicker')} title={t('equipe_page_titre')} text={t('equipe_page_texte')} image="/images/labo-recherche.webp" />
+      <PageHero variant="myco" kicker={t('equipe_kicker')} title={t('equipe_page_titre')} text={t('equipe_page_texte')} image="/images/labo-recherche.webp" />
       <section ref={ref} className="section">
         <div className="wrap">
           <SectionHeader kicker={t('equipe_kicker')} title={t('equipe_titre')} />

@@ -1,6 +1,6 @@
 // Pied de page : dégradé vert foncé → vert clair avec courbes de niveau, colonnes d'informations, herbe
 // au-dessus de la ligne du copyright. La description commence par la marque taillée dans un profil de sol :
-// des pousses sortent des lettres, une lampe (souris, ou balayage automatique sur mobile) éclaire le sol dedans.
+// des pousses sortent des lettres et se balancent.
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUp, Linkedin, MapPin, Phone, Mail } from 'lucide-react';
@@ -30,9 +30,6 @@ export default function Footer() {
   const onContact = path.replace(/\/$/, '') === '/contact';
   // Description : la marque animée remplace le nom en tête de phrase, le reste suit
   const descRest = t('footer_description').replace(/^\s*Fertil[’']\s*Innov\s*/i, '');
-  // Lampe : suit le pointeur sur la marque (le balayage automatique CSS reprend en sortant)
-  const light = (ev) => { const el = ev.currentTarget; const r = el.getBoundingClientRect(); el.style.setProperty('--mx', `${((ev.clientX - r.left) / r.width) * 100}%`); el.style.setProperty('--my', `${((ev.clientY - r.top) / r.height) * 100}%`); el.classList.add('is-lit'); };
-  const unlight = (ev) => ev.currentTarget.classList.remove('is-lit');
   useGSAP(() => {
     const q = gsap.utils.selector(ref);
     if (prefersReducedMotion()) return;
@@ -51,9 +48,9 @@ export default function Footer() {
           <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-12">
             <div className="lg:col-span-5">
               <img {...img('logo_rond')} alt={site.nom} width={112} height={112} className="h-28 w-28 rounded-full bg-white object-cover ring-4 ring-white/15 shadow-[0_10px_40px_-10px_rgb(0_0_0/0.45)]" loading="lazy" decoding="async" />
-              {/* La marque animée ouvre la description : lettres taillées dans un profil de sol, pousses, lampe */}
+              {/* La marque animée ouvre la description : lettres taillées dans un profil de sol, pousses */}
               <p className="mt-6 max-w-md text-white/85 leading-relaxed">
-                <span aria-hidden className="f-mark relative mb-2 block w-max pt-[0.3em] font-display text-[clamp(2.4rem,4.4vw,3.4rem)] font-bold leading-none tracking-tight" onPointerMove={light} onPointerLeave={unlight}>
+                <span aria-hidden className="f-mark relative mb-2 block w-max pt-[0.3em] font-display text-[clamp(2.4rem,4.4vw,3.4rem)] font-bold leading-none tracking-tight">
                   <span className="f-word block whitespace-nowrap">
                     {[...MARK].map((c, i) => (
                       <span key={i} className="relative">{c}{SPROUT_ON.includes(i) && (
@@ -67,7 +64,6 @@ export default function Footer() {
                       )}</span>
                     ))}
                   </span>
-                  <span className="f-word f-word-lit pointer-events-none absolute bottom-0 left-0 block whitespace-nowrap">{MARK}</span>
                 </span>
                 <span className="sr-only">{MARK} </span>
                 {descRest}
