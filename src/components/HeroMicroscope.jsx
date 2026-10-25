@@ -64,11 +64,14 @@ export default function HeroMicroscope() {
     const fmt = new Intl.NumberFormat({ fr: 'fr-FR', en: 'en-GB', es: 'es-ES' }[lang] || 'fr-FR');
     const mag = q('.hud-mag')[0];
     // Diamètre final de l'oculaire : clip-path circle(150 %) se rapporte à √(l² + h²) / √2
-    const eyeD = () => { const b = q('.hero-micro')[0]; return b ? (Math.hypot(b.clientWidth, b.clientHeight) / Math.SQRT2) * 3 : 0; };
+    // (taille posée en variable CSS au redimensionnement : surtout pas invalidateOnRefresh, qui ré-enregistrerait
+    // l'état de départ des animations à la position de défilement courante et figerait le hero à mi-plongée)
+    const sizeEye = () => { const b = q('.hero-micro')[0]; if (b) ref.current.style.setProperty('--eye-d', `${(Math.hypot(b.clientWidth, b.clientHeight) / Math.SQRT2) * 3}px`); };
+    sizeEye(); window.addEventListener('resize', sizeEye);
     const tl = gsap.timeline({
       defaults: { ease: 'none' },
       scrollTrigger: {
-        trigger: ref.current, start: 'top top', end: 'bottom bottom', scrub: 0.6, invalidateOnRefresh: true,
+        trigger: ref.current, start: 'top top', end: 'bottom bottom', scrub: 0.6,
         onUpdate: (self) => {
           micro.current?.set(self.progress);
           soil.current?.set(self.progress);
@@ -84,7 +87,7 @@ export default function HeroMicroscope() {
       .to(q('.hero-land'), { opacity: 0, duration: 0.08 }, 0.22)
       .fromTo(q('.hero-micro'), { '--eye': '0%' }, { '--eye': '150%', duration: 0.2, ease: 'power2.in' }, 0.14)
       // Anneau de la lentille : suit exactement le bord de l'oculaire (même rayon, même courbe)
-      .fromTo(q('.eye-ring'), { width: 0, height: 0, opacity: 1 }, { width: eyeD, height: eyeD, duration: 0.2, ease: 'power2.in' }, 0.14)
+      .fromTo(q('.eye-ring'), { '--k': 0, opacity: 1 }, { '--k': 1, duration: 0.2, ease: 'power2.in' }, 0.14)
       .to(q('.eye-ring'), { opacity: 0, duration: 0.05 }, 0.29)
       .fromTo(q('.micro-inner'), { scale: 2.4 }, { scale: 1, duration: 0.45, ease: 'power2.out' }, 0.14);
     // Mise au point : flou → net (ordinateur) ; sur mobile, simple fondu, plus léger à animer
@@ -102,7 +105,7 @@ export default function HeroMicroscope() {
         .to(el, { opacity: 0, y: -50, filter: 'blur(14px)', duration: 0.07, ease: 'power2.in' }, i < 2 ? CH_AT[i] + 0.15 : 0.93);
     });
     tl.set({}, {}, 1);
-    return () => window.removeEventListener('fi:loader-done', play);
+    return () => { window.removeEventListener('fi:loader-done', play); window.removeEventListener('resize', sizeEye); };
   }, { scope: ref, dependencies: [lang] });
 
   const title = t('hero_titre');
