@@ -3,7 +3,8 @@
 //  petri     Services    : grande boîte de Petri, colonies qui poussent, loupe à la souris
 //  dna       Activités   : double hélice d'ADN réaliste (modèle moléculaire en perspective)
 //  scope     Expertise   : oculaire de microscope en fond noir, micro-organismes vivants
-//  wood      Formations  : tranche de tronc, cernes, anneau de lumière, lampe à la souris
+//  parcours  Formations  : parcours d'apprentissage dans une carotte de sol (vraies formations)
+//  wood      (réserve)   : tranche de tronc, cernes, anneau de lumière, lampe à la souris
 //  data      Chiffres    : champ de colonnes 3D qui ondule, se soulève à la souris
 //  myco      Équipe      : réseau mycorhizien, impulsions de nutriments
 //  leaves    Blog        : feuilles nervurées qui dérivent dans la brise
@@ -17,6 +18,8 @@
 //  radar     Contact     : radar et points de présence
 import { useEffect, useRef } from 'react';
 import { gsap } from '../lib/gsap';
+import { useLang } from '../i18n/LangProvider';
+import { useSite } from '../site/SiteProvider';
 
 const reduced = () => false; // animations sur tous les appareils (voir lib/gsap.js)
 
@@ -680,7 +683,115 @@ function Iris() {
   return <canvas ref={ref} aria-hidden className="absolute inset-y-0 right-0 h-full w-full md:w-3/5" />;
 }
 
-const ARTS = { petri: Petri, dna: Dna, scope: Scope, wood: Wood, data: DataField, myco: Myco, leaves: Leaves, iris: Iris, rings: Rings, contours: Contours, network: Network, waves: Waves, horizons: Horizons, bubbles: Bubbles, radar: Radar };
+// Formations : parcours d'apprentissage dans une carotte de sol. Un tube de carottage en verre contient un sol
+// à horizons ; une plantule pousse dessus et sa racine descend : à chaque horizon atteint, un module de
+// formation s'allume (vraie liste des formations, dans la langue du site) et sa fiche apparaît. Au bout du
+// parcours, la plante a grandi et un sceau « Certifiée » apparaît ; des nutriments descendent ensuite la racine.
+function Parcours() {
+  const ref = useRef(null);
+  const pt = usePointer(ref);
+  const { L, t: tr } = useLang();
+  const { listes } = useSite();
+  const mods = (listes.formations || []).filter((f) => f.visible !== false).slice(0, 5).map((f) => ({ titre: L(f.titre), duree: f.duree }));
+  const data = useRef({ mods, cert: tr('formations_certifiee'), days: tr('formations_jours_court') });
+  data.current = { mods, cert: tr('formations_certifiee'), days: tr('formations_jours_court') };
+  const st = useRef(null);
+  useLoop(ref, (t) => {
+    const cv = ref.current; if (!cv) return;
+    const [ctx, w, h, dpr] = fit(cv);
+    if (!w || !h) return;
+    const D = data.current; const n = Math.max(1, D.mods.length);
+    const wide = w / h > 1.1;
+    const cw = Math.min(w * (wide ? 0.13 : 0.22), h * 0.2); const top = h * 0.4; const bot = h * 0.96;
+    const cx = w * (wide ? 0.8 : 0.82);
+    if (!st.current || st.current.w !== w || st.current.h !== h) {
+      const r = rand(77); const Rn = (a, b) => a + r() * (b - a);
+      const core = document.createElement('canvas'); core.width = w; core.height = h; const c = core.getContext('2d');
+      const x0 = cx - cw / 2; const H = bot - top;
+      const bands = [['#2b1a0d', 0.12], ['#4a3018', 0.28], ['#6f4b2c', 0.27], ['#9a7148', 0.2], ['#a99d8a', 0.13]];
+      let y = top;
+      for (const [col, f] of bands) {
+        const hh = H * f; const g = c.createLinearGradient(x0, 0, x0 + cw, 0); g.addColorStop(0, col); g.addColorStop(0.5, col); g.addColorStop(1, 'rgba(0,0,0,0.5)');
+        c.fillStyle = g; c.beginPath(); c.moveTo(x0, y); for (let k = 0; k <= 10; k++) c.lineTo(x0 + (cw * k) / 10, y + Math.sin(k * 1.7 + y) * hh * 0.06); c.lineTo(x0 + cw, y + hh); c.lineTo(x0, y + hh); c.closePath(); c.fill();
+        y += hh;
+      }
+      for (let i = 0; i < 1600; i++) { const gx = x0 + r() * cw; const gy = top + r() * H; const deep = (gy - top) / H; c.fillStyle = r() < 0.5 ? `rgba(220,190,140,${Rn(0.1, 0.35)})` : `rgba(10,6,3,${Rn(0.15, 0.4)})`; c.beginPath(); c.arc(gx, gy, Rn(0.5, 1.6) * dpr * (deep > 0.85 ? 2.2 : 1), 0, 6.283); c.fill(); }
+      // Tube de verre : reflets verticaux
+      c.fillStyle = 'rgba(255,255,255,0.08)'; c.fillRect(x0 - cw * 0.08, top - cw * 0.25, cw * 1.16, H + cw * 0.3);
+      c.fillStyle = 'rgba(255,255,255,0.28)'; c.fillRect(x0 + cw * 0.1, top - cw * 0.2, cw * 0.06, H + cw * 0.2);
+      c.fillStyle = 'rgba(255,255,255,0.12)'; c.fillRect(x0 + cw * 0.82, top - cw * 0.2, cw * 0.04, H + cw * 0.2);
+      c.strokeStyle = 'rgba(255,255,255,0.35)'; c.lineWidth = dpr * 1.2; c.strokeRect(x0 - cw * 0.08, top - cw * 0.25, cw * 1.16, H + cw * 0.3);
+      // graduations du tube
+      c.strokeStyle = 'rgba(255,255,255,0.35)'; for (let k = 0; k <= 10; k++) { const gy = top + (H * k) / 10; c.beginPath(); c.moveTo(x0 + cw * 1.08, gy); c.lineTo(x0 + cw * (k % 5 ? 0.98 : 0.9), gy); c.stroke(); }
+      // racine : chemin sinueux de la surface au fond
+      const root = []; let rx = cx; let vx = 0; for (let k = 0; k <= 60; k++) { const ry = top + (H * 0.94 * k) / 60; vx = vx * 0.85 + Rn(-1, 1) * cw * 0.012; rx += vx; rx = Math.max(x0 + cw * 0.25, Math.min(x0 + cw * 0.75, rx)); root.push([rx, ry]); }
+      st.current = { w, h, core, root, x0, H, t0: t };
+    }
+    const S = st.current; const P = pt.current;
+    const el = t - S.t0; const grow = Math.min(1, el / 7.5); // la racine met 7,5 s à descendre
+    ctx.clearRect(0, 0, w, h);
+    ctx.save(); ctx.translate(P.in ? P.x * 10 * dpr : 0, 0);
+    ctx.drawImage(S.core, 0, 0);
+    // Racine qui pousse
+    const upto = Math.max(1, Math.floor(grow * (S.root.length - 1)));
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.strokeStyle = 'rgba(243,230,200,0.95)'; ctx.lineWidth = dpr * 3;
+    ctx.beginPath(); S.root.slice(0, upto + 1).forEach(([x, y], k) => (k ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke();
+    ctx.strokeStyle = 'rgba(243,230,200,0.5)'; ctx.lineWidth = dpr;
+    for (let k = 4; k < upto; k += 5) { const [x, y] = S.root[k]; const s = k % 10 ? 1 : -1; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + s * cw * 0.15, y + cw * 0.05, x + s * cw * 0.28, y + cw * 0.15); ctx.stroke(); }
+    // Plantule : tige et feuilles qui grandissent avec le parcours
+    const stem = cw * (0.45 + grow * 0.7); const sx = cx; const sy = top;
+    ctx.strokeStyle = '#8bc34a'; ctx.lineWidth = dpr * 3; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.quadraticCurveTo(sx - cw * 0.1, sy - stem * 0.5, sx, sy - stem); ctx.stroke();
+    const leaf = (lx, ly, s, a) => { ctx.save(); ctx.translate(lx, ly); ctx.rotate(a + Math.sin(t * 1.4) * 0.06); const g = ctx.createLinearGradient(0, 0, s, 0); g.addColorStop(0, '#558b2f'); g.addColorStop(1, '#9ccc65'); ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(0, 0); ctx.bezierCurveTo(s * 0.3, -s * 0.45, s * 0.8, -s * 0.35, s, 0); ctx.bezierCurveTo(s * 0.8, s * 0.3, s * 0.3, s * 0.35, 0, 0); ctx.fill(); ctx.restore(); };
+    const ls = cw * 0.55;
+    leaf(sx, sy - stem * 0.45, ls * Math.min(1, grow * 2), -0.4); leaf(sx, sy - stem * 0.45, ls * Math.min(1, grow * 2), Math.PI + 0.4);
+    if (grow > 0.5) { const k2 = (grow - 0.5) * 2; leaf(sx, sy - stem * 0.85, ls * 0.8 * k2, -0.7); leaf(sx, sy - stem * 0.85, ls * 0.8 * k2, Math.PI + 0.7); }
+    // Modules : un par horizon, s'allument quand la racine les atteint
+    const fs = Math.max(11 * dpr, Math.min(15 * dpr, w * 0.011));
+    D.mods.forEach((m, i) => {
+      const f = (i + 0.7) / (n + 0.2); const idx = Math.floor(f * 0.94 * (S.root.length - 1)); const [nx, ny] = S.root[Math.min(idx, S.root.length - 1)];
+      const on = grow * 0.94 >= f * 0.94 - 0.001 ? Math.min(1, (grow - f) * 6 + 1) : 0;
+      if (on <= 0) return;
+      const pulse = 1 + 0.12 * Math.sin(t * 3 + i);
+      ctx.globalCompositeOperation = 'lighter';
+      let g = ctx.createRadialGradient(nx, ny, 0, nx, ny, cw * 0.5 * pulse); g.addColorStop(0, `rgba(190,255,120,${0.55 * on})`); g.addColorStop(1, 'rgba(190,255,120,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(nx, ny, cw * 0.5 * pulse, 0, 6.283); ctx.fill();
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = '#c5e1a5'; ctx.beginPath(); ctx.arc(nx, ny, dpr * 5, 0, 6.283); ctx.fill();
+      // fiche du module, à gauche du tube, reliée par un trait (grand écran seulement)
+      if (!wide) return;
+      ctx.font = `600 ${fs}px Manrope, system-ui, sans-serif`;
+      const label = m.titre; const sub = `${m.duree} ${D.days}`; const tw = Math.max(ctx.measureText(label).width, ctx.measureText(sub).width);
+      const bw = tw + fs * 2.4; const bh = fs * 3.2;
+      const lx = S.x0 - cw * 0.35 - bw; const ly = ny; ctx.globalAlpha = on;
+      ctx.strokeStyle = 'rgba(197,255,120,0.6)'; ctx.lineWidth = dpr; ctx.setLineDash([3 * dpr, 3 * dpr]); ctx.beginPath(); ctx.moveTo(nx - dpr * 6, ny); ctx.lineTo(lx + bw, ly); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(12,40,22,0.72)'; ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(lx, ly - bh / 2, bw, bh, fs * 0.8) : ctx.rect(lx, ly - bh / 2, bw, bh); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#8bc34a'; ctx.beginPath(); ctx.arc(lx + fs * 0.9, ly - fs * 0.45, fs * 0.28, 0, 6.283); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.textBaseline = 'middle'; ctx.fillText(label, lx + fs * 1.5, ly - fs * 0.45);
+      ctx.font = `500 ${fs * 0.85}px Manrope, system-ui, sans-serif`; ctx.fillStyle = 'rgba(197,255,120,0.85)'; ctx.fillText(sub, lx + fs * 1.5, ly + fs * 0.7);
+      ctx.globalAlpha = 1;
+    });
+    // Nutriments qui descendent la racine, une fois le parcours terminé
+    if (grow >= 1) {
+      ctx.globalCompositeOperation = 'lighter';
+      for (let k = 0; k < 4; k++) { const u = ((t * 0.18 + k / 4) % 1); const [x, y] = S.root[Math.floor(u * (S.root.length - 1))]; const g = ctx.createRadialGradient(x, y, 0, x, y, dpr * 9); g.addColorStop(0, 'rgba(200,255,140,0.9)'); g.addColorStop(1, 'rgba(200,255,140,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, dpr * 9, 0, 6.283); ctx.fill(); }
+      ctx.globalCompositeOperation = 'source-over';
+      // Sceau « Certifiée » à côté de la plante
+      const k2 = Math.min(1, (el - 7.5) / 0.8); const bx = S.x0 - cw * 0.75; const by = top - cw * 0.05; const br = cw * 0.38 * (0.6 + 0.4 * k2);
+      ctx.globalAlpha = k2;
+      ctx.fillStyle = '#e8c77a'; for (let s2 = 0; s2 < 16; s2++) { const a = (s2 / 16) * 6.283 + t * 0.2; ctx.beginPath(); ctx.arc(bx + Math.cos(a) * br, by + Math.sin(a) * br, br * 0.22, 0, 6.283); ctx.fill(); }
+      const g = ctx.createRadialGradient(bx - br * 0.3, by - br * 0.3, 0, bx, by, br); g.addColorStop(0, '#fff3c4'); g.addColorStop(1, '#c9982f');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(bx, by, br, 0, 6.283); ctx.fill();
+      ctx.fillStyle = '#5a3d0a'; ctx.font = `700 ${br * 0.36}px Manrope, system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('✓', bx, by - br * 0.22); ctx.font = `700 ${br * 0.24}px Manrope, system-ui, sans-serif`; ctx.fillText(D.cert, bx, by + br * 0.25); ctx.textAlign = 'start';
+      ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+  });
+  return <canvas ref={ref} aria-hidden className="absolute inset-y-0 right-0 h-full w-full md:w-[62%]" />;
+}
+
+const ARTS = { petri: Petri, dna: Dna, scope: Scope, parcours: Parcours, wood: Wood, data: DataField, myco: Myco, leaves: Leaves, iris: Iris, rings: Rings, contours: Contours, network: Network, waves: Waves, horizons: Horizons, bubbles: Bubbles, radar: Radar };
 
 /** Visuel de l'en-tête ; progress (0→1) du défilement transmis par PageHero via --ph-p. */
 export default function HeroArt({ variant }) {

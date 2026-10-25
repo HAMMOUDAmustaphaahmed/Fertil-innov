@@ -139,6 +139,8 @@ export const CONTENT = {
 
   // ---------- Formations ----------
   formations_titre: K('formations', 'Page Formations — titre', 'Formations professionnelles', 'Professional training', 'Formación profesional'),
+  formations_certifiee: K('formations', 'En-tête — sceau de fin de parcours', 'Certifiée', 'Certified', 'Certificada'),
+  formations_jours_court: K('formations', 'En-tête — unité de durée abrégée', 'j', 'd', 'd'),
   formations_texte: K('formations', 'Page Formations — introduction', 'Des programmes certifiés pour maîtriser les techniques de microbiologie appliquée.', 'Certified programmes to master applied microbiology techniques.', 'Programas certificados para dominar las técnicas de microbiología aplicada.'),
   formations_formats_titre: K('formations', 'Formations — formats : titre', 'Trois formats, un même niveau d’exigence', 'Three formats, one level of rigour', 'Tres formatos, el mismo nivel de exigencia'),
   formations_presentiel: K('formations', 'Format — présentiel', 'Présentiel', 'In person', 'Presencial'),
