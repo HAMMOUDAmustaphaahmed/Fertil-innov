@@ -124,7 +124,7 @@ export default function HeroMicroscope() {
           <div className="hero-atmo absolute inset-0" />
         </div>
         <RhizoScene api={orb} t={t} />
-        <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#06120c] via-[#06120c]/45 to-transparent md:bg-gradient-to-r md:from-[#06120c]/90 md:via-[#06120c]/30" />
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#06120c] via-[#06120c]/45 to-transparent md:bg-gradient-to-r md:from-[#0b0d08]/70 md:via-[#0b0d08]/25" />
 
         {/* Échelle micro : le sol vivant, révélé par l'oculaire */}
         <div aria-hidden className="hero-micro absolute inset-0 overflow-hidden" style={{ background: 'radial-gradient(ellipse at 50% 60%, rgb(var(--fi-soil) / 0.9) 0%, #1d140b 48%, #0a170c 100%)' }}>

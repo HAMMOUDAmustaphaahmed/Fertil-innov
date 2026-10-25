@@ -213,10 +213,13 @@ export default function SoilCanvas({ api }) {
     // Peinture au premier temps libre (le sol est prêt avant l'ouverture de l'oculaire)
     const idle = window.requestIdleCallback ? window.requestIdleCallback(() => { if (!painted) size(); }, { timeout: 4000 }) : setTimeout(() => { if (!painted) size(); }, 1500);
     const ro = new ResizeObserver(() => { if (!painted) return; clearTimeout(timer); timer = setTimeout(size, 250); });
+    // Canvas vidé par le navigateur (mémoire graphique) : on repeint le sol à sa restauration
+    const restore = () => { if (!painted) return; glints = []; sc = paint(cv, glints); bugs = creatures(cv.width, cv.height, sc, coarse); };
+    cv.addEventListener('contextrestored', restore);
     const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; kick(); });
     ro.observe(cv); io.observe(cv);
     return () => {
-      cancelAnimationFrame(raf); clearTimeout(timer); ro.disconnect(); io.disconnect(); api.current = null;
+      cancelAnimationFrame(raf); clearTimeout(timer); ro.disconnect(); io.disconnect(); api.current = null; cv.removeEventListener('contextrestored', restore);
       if (window.cancelIdleCallback) window.cancelIdleCallback(idle); else clearTimeout(idle);
     };
   }, [api]);

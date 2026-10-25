@@ -1,12 +1,10 @@
-// Bas de page en deux blocs : l'appel à l'action « Parlons de vos sols » sur fond clair (aurore de lumières
-// qui dérivent, racines qui poussent, dernier mot souligné à la main), puis le pied de page émeraude
-// (colonnes d'informations, herbe au-dessus de la ligne du copyright). La description commence par la marque taillée dans un profil de sol : des pousses
-// sortent des lettres, une lampe (souris, ou balayage automatique sur mobile) éclaire le sol vivant dedans.
+// Pied de page : dégradé vert foncé → vert clair avec courbes de niveau, colonnes d'informations, herbe
+// au-dessus de la ligne du copyright. La description commence par la marque taillée dans un profil de sol :
+// des pousses sortent des lettres, une lampe (souris, ou balayage automatique sur mobile) éclaire le sol dedans.
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUp, ArrowUpRight, Linkedin, MapPin, Phone, Mail } from 'lucide-react';
+import { ArrowUp, Linkedin, MapPin, Phone, Mail } from 'lucide-react';
 import { gsap, useGSAP, prefersReducedMotion } from '../lib/gsap';
-import { openPois } from '../lib/pois';
 import { useLang } from '../i18n/LangProvider';
 import { useSite, useImage } from '../site/SiteProvider';
 import { horairesAffichage } from '../data/infos';
@@ -26,21 +24,12 @@ export default function Footer() {
   const onContact = path.replace(/\/$/, '') === '/contact';
   // Description : la marque animée remplace le nom en tête de phrase, le reste suit
   const descRest = t('footer_description').replace(/^\s*Fertil[’']\s*Innov\s*/i, '');
-  // Titre de l'appel : le dernier mot est mis en valeur
-  const ctaWords = t('footer_cta_titre').trim().split(/\s+/);
-  const ctaLast = ctaWords.pop();
-  const ctaHead = ctaWords.join(' ');
   // Lampe : suit le pointeur sur la marque (le balayage automatique CSS reprend en sortant)
   const light = (ev) => { const el = ev.currentTarget; const r = el.getBoundingClientRect(); el.style.setProperty('--mx', `${((ev.clientX - r.left) / r.width) * 100}%`); el.style.setProperty('--my', `${((ev.clientY - r.top) / r.height) * 100}%`); el.classList.add('is-lit'); };
   const unlight = (ev) => ev.currentTarget.classList.remove('is-lit');
   useGSAP(() => {
     const q = gsap.utils.selector(ref);
-    const roots = q('.f-root');
-    roots.forEach((r) => { r.style.strokeDasharray = '1 2'; r.style.strokeDashoffset = prefersReducedMotion() ? '0' : '1'; });
     if (prefersReducedMotion()) return;
-    gsap.to(roots, { strokeDashoffset: 0, duration: 2.2, ease: 'power2.out', stagger: 0.12, scrollTrigger: { trigger: ref.current, start: 'top 85%', once: true } });
-    gsap.fromTo(q('.f-cta-title'), { clipPath: 'inset(0% 0% 100% 0%)', yPercent: 30 }, { clipPath: 'inset(-20% -5% -25% -5%)', yPercent: 0, duration: 1.3, ease: 'expo.out', scrollTrigger: { trigger: ref.current, start: 'top 80%', once: true } });
-    gsap.fromTo(q('.f-scribble'), { strokeDasharray: '1 2', strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.1, ease: 'power2.inOut', delay: 0.7, scrollTrigger: { trigger: ref.current, start: 'top 80%', once: true } });
     // La marque sort de terre, puis les pousses germent au sommet des lettres
     const st = { trigger: q('.f-mark')[0], start: 'top 92%', once: true };
     gsap.fromTo(q('.f-word'), { yPercent: 45, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1.4, ease: 'expo.out', scrollTrigger: st });
@@ -49,43 +38,7 @@ export default function Footer() {
 
   return (
     <div ref={ref} className="mt-8">
-      {/* Appel à l'action, bloc à part sur fond de terre (sauf sur la page Contact, qui est déjà le formulaire) */}
-      {!onContact && <section className="f-cta relative mx-2 sm:mx-3 overflow-hidden rounded-[28px] text-fi-text print:hidden">
-        <div aria-hidden className="pointer-events-none absolute inset-0">
-          <span className="f-blob f-blob-1" /><span className="f-blob f-blob-2" /><span className="f-blob f-blob-3" />
-          <div className="f-dots absolute inset-0" />
-        </div>
-        {/* Racines qui descendent depuis la surface */}
-        <svg aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-64 w-full text-fi-secondary/35" viewBox="0 0 1440 260" preserveAspectRatio="none" fill="none" stroke="currentColor" strokeLinecap="round">
-          <path className="f-root" pathLength="1" strokeWidth="3" d="M180 0 C 190 60, 150 100, 170 160 S 220 230, 200 260" />
-          <path className="f-root" pathLength="1" strokeWidth="1.5" d="M172 90 C 140 110, 110 120, 80 160" />
-          <path className="f-root" pathLength="1" strokeWidth="3" d="M720 0 C 700 50, 760 90, 730 150 S 690 220, 720 260" />
-          <path className="f-root" pathLength="1" strokeWidth="1.5" d="M735 70 C 780 90, 820 100, 860 140" />
-          <path className="f-root" pathLength="1" strokeWidth="1.5" d="M725 140 C 690 160, 650 170, 610 210" />
-          <path className="f-root" pathLength="1" strokeWidth="2.5" d="M1260 0 C 1280 70, 1230 110, 1250 170 S 1300 220, 1280 260" />
-          <path className="f-root" pathLength="1" strokeWidth="1.5" d="M1255 110 C 1300 120, 1340 140, 1380 180" />
-        </svg>
-        <div className="wrap relative pt-24 pb-16 md:pt-32 md:pb-20 text-center">
-          <p className="inline-flex items-center gap-2 rounded-full border border-fi-primary/15 bg-white/70 px-4 py-1.5 text-sm font-medium text-fi-primary backdrop-blur"><span className="h-1.5 w-1.5 rounded-full bg-fi-accent" aria-hidden />{t('footer_cta_kicker')}</p>
-          <h2 className="f-cta-title mx-auto mt-5 max-w-4xl font-display text-[clamp(2.6rem,8vw,6.5rem)] font-semibold leading-[0.95] tracking-tight !text-[#173d22]">
-            {ctaHead}{ctaHead && ' '}
-            {/* Dernier mot : dégradé de vert et soulignement tracé à la main */}
-            <span className="relative inline-block whitespace-nowrap">
-              <span className="f-cta-word">{ctaLast}</span>
-              <svg aria-hidden className="absolute -bottom-[0.12em] left-0 h-[0.22em] w-full overflow-visible" viewBox="0 0 200 20" preserveAspectRatio="none" fill="none">
-                <path className="f-scribble" pathLength="1" d="M4 13 C 40 4, 90 6, 120 9 S 176 14, 196 6" stroke="#8bc34a" strokeWidth="5" strokeLinecap="round" />
-              </svg>
-            </span>
-          </h2>
-          <p className="mx-auto mt-6 max-w-xl text-lg text-fi-text/70">{t('footer_cta_texte')}</p>
-          <div className="mt-9 flex flex-wrap justify-center gap-3">
-            <Link to={p('/contact')} state={{ subject: 'devis' }} className="btn-primary">{t('nav_bouton')} <ArrowUpRight size={18} aria-hidden /></Link>
-            <button type="button" onClick={() => openPois()} className="btn-ghost">{t('hero_bouton_2')}</button>
-          </div>
-        </div>
-      </section>}
-
-      <footer className={`f-foot relative overflow-hidden text-white ${!onContact ? 'mt-3' : ''}`}>
+      <footer className="f-foot relative overflow-hidden text-white">
         <div aria-hidden className="pointer-events-none absolute inset-0"><div className="grain h-full" /></div>
 
         <div className={`wrap relative pb-10 ${!onContact ? 'pt-16' : 'pt-48'}`}>
@@ -157,9 +110,9 @@ export default function Footer() {
 
           {/* Herbe qui pousse au-dessus de la ligne du copyright */}
           <div aria-hidden className="f-grass pointer-events-none mt-12 h-7" />
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-white/10 pt-6 text-xs text-white/75">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-white/20 pt-6 text-xs text-white">
             <p>© {new Date().getFullYear()} {site.nom}. {t('footer_droits')}</p>
-            <button type="button" onClick={toTop} className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 hover:bg-white/10 transition-colors min-h-[40px]">{t('footer_haut')} <ArrowUp size={14} aria-hidden /></button>
+            <button type="button" onClick={toTop} className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/10 px-4 py-2 hover:bg-white/20 transition-colors min-h-[40px]">{t('footer_haut')} <ArrowUp size={14} aria-hidden /></button>
           </div>
         </div>
       </footer>
