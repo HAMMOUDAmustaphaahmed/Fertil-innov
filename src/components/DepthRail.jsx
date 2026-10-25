@@ -23,10 +23,15 @@ export default function DepthRail({ scope }) {
   useEffect(() => {
     const root = scope?.current;
     if (!root || !marker.current) return undefined;
+    // translate (composité) plutôt que top : pas de recalcul de mise en page à chaque défilement.
+    // Hauteur du rail mesurée seulement aux rafraîchissements (redimensionnement…).
+    let railH = 0;
+    const place = (p) => { if (marker.current) marker.current.style.translate = `0 ${p * railH}px`; };
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
         trigger: root, start: 'top top', end: 'bottom bottom',
-        onUpdate: (self) => gsap.set(marker.current, { top: `${self.progress * 100}%` }),
+        onRefresh: (self) => { railH = marker.current?.parentElement?.clientHeight || 0; place(self.progress); },
+        onUpdate: (self) => place(self.progress),
       });
       root.querySelectorAll('[data-horizon]').forEach((el) => {
         ScrollTrigger.create({ trigger: el, start: 'top 55%', end: 'bottom 55%', onToggle: (self) => { if (self.isActive) setActive(el.dataset.horizon); } });
@@ -38,7 +43,7 @@ export default function DepthRail({ scope }) {
   return (
     <aside aria-hidden className="hidden xl:flex fixed left-6 top-1/2 -translate-y-1/2 z-30 h-[52vh] flex-col justify-between pointer-events-none mix-blend-difference text-white">
       <div className="absolute left-[5px] top-0 bottom-0 w-px bg-white/30" />
-      <span ref={marker} className="absolute -left-[1px] h-3 w-3 -translate-y-1/2 rounded-full bg-fi-accent ring-4 ring-fi-accent/25 transition-[top] duration-150" style={{ top: 0 }} />
+      <span ref={marker} className="absolute -left-[1px] h-3 w-3 -translate-y-1/2 rounded-full bg-fi-accent ring-4 ring-fi-accent/25 transition-[translate] duration-150" style={{ top: 0 }} />
       {HORIZONS.map((h) => (
         <div key={h.id} className="relative pl-6">
           <span className={`absolute left-[3px] top-1/2 h-[5px] w-[5px] -translate-y-1/2 rounded-full transition-colors ${active === h.id ? 'bg-fi-accent' : 'bg-white/40'}`} />

@@ -10,8 +10,9 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- Polices chargées sans bloquer le premier affichage (media=print → all une fois prêtes) -->
-    <link id="site-fonts" rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Manrope:wght@400;500;600;700&display=swap" />
+    <!-- Polices chargées sans bloquer le premier affichage (media=print → all une fois prêtes, par le script plus bas :
+         pas d'attribut onload, qu'interdirait la Content-Security-Policy) -->
+    <link id="site-fonts" rel="stylesheet" media="print" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Manrope:wght@400;500;600;700&display=swap" />
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Manrope:wght@400;500;600;700&display=swap" /></noscript>
     <title>Fertil'Innov Environnement | Ingénierie écologique & microbiologie des sols</title>
     <!--app-head-->
@@ -19,6 +20,8 @@
       // Classe .js immédiate (évite le saut de mise en page) + loader « germination » à chaque chargement complet du site.
       (function () {
         var d = document.documentElement; d.classList.add('js');
+        var f = document.getElementById('site-fonts');
+        if (f) { var on = function () { f.media = 'all'; }; if (f.sheet) on(); else f.addEventListener('load', on); }
         try {
           if (/^\/admin/.test(location.pathname)) return;
           if (/bot|crawl|spider|slurp|facebookexternalhit|embedly|preview/i.test(navigator.userAgent)) return; // robots : page directement
@@ -156,7 +159,8 @@
         var pct = document.getElementById('fi-pct'), step = document.getElementById('fi-step'), bars = el.querySelectorAll('.steps i'), dot = document.getElementById('fi-dot');
         var seed = el.querySelector('.seed'), crack = el.querySelector('.crack'), stem = el.querySelector('.stem');
         var roots = el.querySelectorAll('.root'), hairs = el.querySelectorAll('.hair'), cotys = el.querySelectorAll('.coty'), leaves = el.querySelectorAll('.leaf');
-        var t0 = performance.now(), MIN = 2200, MAX = 5000, shown = 0, target = 15, done = false, cur = -1;
+        // Même animation, jouée plus vite : durée minimale 1,2 s (au lieu de 2,2 s), plafond 4 s (au lieu de 5 s).
+        var t0 = performance.now(), MIN = 1200, MAX = 4000, shown = 0, target = 15, done = false, cur = -1;
         step.textContent = STEPS[0];
         function bump(v) { if (v > target) target = v; }
         document.addEventListener('DOMContentLoaded', function () { bump(45); });

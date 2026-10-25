@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, timingSafeEqual } from 'node:crypto';
 import { env } from './env.js';
 
 export function json(data, init = {}) {
@@ -18,6 +18,13 @@ export async function readJson(request) {
   } catch {
     return null;
   }
+}
+
+// Comparaison de secrets à temps constant (empreintes SHA-256 : longueurs égales, rien ne fuit par le délai de réponse).
+export function safeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || !b) return false;
+  const h = (v) => createHash('sha256').update(v).digest();
+  return timingSafeEqual(h(a), h(b));
 }
 
 // Adresse IP du visiteur derrière le proxy Vercel.

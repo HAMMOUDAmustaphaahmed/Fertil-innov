@@ -2,7 +2,7 @@
 // → cookie HttpOnly signé, valable 7 jours.
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { env, assertEnv } from './env.js';
-import { parseCookies } from './http.js';
+import { parseCookies, safeEqual } from './http.js';
 
 const COOKIE = 'fi_admin';
 const MAX_AGE = 60 * 60 * 24 * 7;
@@ -35,7 +35,5 @@ export function isAdmin(request) {
 
 export function checkPassword(pwd) {
   if (!env.adminPassword) return false;
-  const a = Buffer.from(String(pwd || ''));
-  const b = Buffer.from(env.adminPassword);
-  return a.length === b.length && timingSafeEqual(a, b);
+  return safeEqual(String(pwd || ''), env.adminPassword); // temps constant, longueur comprise
 }

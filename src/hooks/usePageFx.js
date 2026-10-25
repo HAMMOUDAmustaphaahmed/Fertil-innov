@@ -8,6 +8,7 @@
 // Exclusions : hero d'accueil (.hero-scene), éléments [data-fx-off], contenus « sticky ».
 import { useEffect } from 'react';
 import { gsap, ScrollTrigger, prefersReducedMotion } from '../lib/gsap';
+import { rafThrottle } from '../lib/raf';
 
 const SKIP = '.hero-scene, [data-fx-off], .marquee, [class*="sticky"]';
 const ok = (el) => !el.closest(SKIP);
@@ -76,7 +77,10 @@ export function usePageFx(ref) {
         card.style.setProperty('--mx', `${x * 100}%`); card.style.setProperty('--my', `${y * 100}%`); card.style.setProperty('--shine', '1');
       };
       const reset = () => { rx(0); ry(0); card.style.setProperty('--shine', '0'); };
-      if (fine) { on(card, 'pointermove', tilt); on(card, 'pointerleave', reset); }
+      if (fine) {
+        const move = rafThrottle(tilt); offs.push(move.cancel);
+        on(card, 'pointermove', move); on(card, 'pointerleave', () => { move.cancel(); reset(); });
+      }
       else { on(card, 'pointerdown', tilt, { passive: true }); on(card, 'pointerup', reset); on(card, 'pointercancel', reset); on(card, 'pointerleave', reset); }
     });
 
@@ -88,14 +92,23 @@ export function usePageFx(ref) {
       if (fine) {
         const mx = gsap.quickTo(b, 'x', { duration: 0.5, ease: 'power3.out' });
         const my = gsap.quickTo(b, 'y', { duration: 0.5, ease: 'power3.out' });
-        on(b, 'pointermove', (e) => { const r = b.getBoundingClientRect(); mx((e.clientX - r.left - r.width / 2) * 0.22); my((e.clientY - r.top - r.height / 2) * 0.3); });
-        on(b, 'pointerleave', () => { mx(0); my(0); });
+        const move = rafThrottle((e) => { const r = b.getBoundingClientRect(); mx((e.clientX - r.left - r.width / 2) * 0.22); my((e.clientY - r.top - r.height / 2) * 0.3); });
+        offs.push(move.cancel);
+        on(b, 'pointermove', move);
+        on(b, 'pointerleave', () => { move.cancel(); mx(0); my(0); });
       } else {
         on(b, 'pointerdown', () => gsap.to(b, { scale: 0.95, duration: 0.12, overwrite: 'auto' }), { passive: true });
         const up = () => gsap.to(b, { scale: 1, duration: 0.6, ease: 'elastic.out(1, 0.4)', overwrite: 'auto' });
         on(b, 'pointerup', up); on(b, 'pointercancel', up);
       }
     });
+
+    // 7. Animations CSS en boucle (boîtes de Petri, orbites, spores, bandeau…) suspendues hors écran :
+    //    rien ne change à l'œil, mais le navigateur ne recalcule plus des animations invisibles.
+    const io = new IntersectionObserver((entries) => entries.forEach((e) => e.target.toggleAttribute('data-offscreen', !e.isIntersecting)), { rootMargin: '200px 0px' });
+    root.querySelectorAll('section').forEach((el) => io.observe(el));
+    document.querySelectorAll('footer').forEach((el) => io.observe(el));
+    offs.push(() => { io.disconnect(); document.querySelectorAll('[data-offscreen]').forEach((el) => el.removeAttribute('data-offscreen')); });
 
     // Les mesures changent quand les images / polices arrivent
     const refresh = () => ScrollTrigger.refresh();

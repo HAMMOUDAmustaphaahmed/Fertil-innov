@@ -8,6 +8,7 @@
 
 import { env } from './env.js';
 import { store } from './store.js';
+import { checkPassword } from './admin.js';
 import { uploadImage, getSettings, IMAGE_SLOTS } from './settings.js';
 import { horairesAffichage } from '../../src/data/infos.js';
 import { siteMenu, couleursMenu, policeMenu, horairesMenu, infoMenu, chiffresMenu, textesMenu, photosMenu, listeMenu, handleMenuCallback, LISTE_LABEL } from './telegram-menus.js';
@@ -231,7 +232,17 @@ export async function handleUpdate(update) {
       const pwd = text.replace(/^\/start\s*/, '').trim();
       if (!chat) {
         if (!env.adminPassword) return send(chatId, "⚠️ ADMIN_PASSWORD n'est pas configuré sur le serveur.");
-        if (pwd !== env.adminPassword) return tg('sendMessage', { chat_id: chatId, text: `Bonjour ${name} 👋 Ce bot est réservé à l'équipe de Fertil'Innov.\nPour vous connecter, envoyez :\n/start VOTRE_MOT_DE_PASSE` });
+        // Le mot de passe ne reste pas affiché dans l'historique de la conversation.
+        if (pwd) tg('deleteMessage', { chat_id: chatId, message_id: msg.message_id }).catch(() => {});
+        // Anti force brute : 5 essais par heure et par conversation, 30 par heure au total.
+        if (pwd) {
+          const [mine, all] = await Promise.all([
+            store().bumpCounter(`tg-login:${chatId}`, 3600).catch(() => 0),
+            store().bumpCounter('tg-login:*', 3600).catch(() => 0),
+          ]);
+          if (mine > 5 || all > 30) return tg('sendMessage', { chat_id: chatId, text: '⏳ Trop de tentatives de connexion. Réessayez dans une heure.' });
+        }
+        if (!checkPassword(pwd)) return tg('sendMessage', { chat_id: chatId, text: `Bonjour ${name} 👋 Ce bot est réservé à l'équipe de Fertil'Innov.\nPour vous connecter, envoyez :\n/start VOTRE_MOT_DE_PASSE` });
         await store().authorizeChefChat(key, name);
         await ensureCommandsRegistered();
         const s = await getSettings();

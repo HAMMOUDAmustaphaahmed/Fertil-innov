@@ -215,14 +215,18 @@ function paint(cv, vxPct) {
 // Le paysage est peint une fois dans un calque en mémoire ; le canvas visible en affiche une copie, agrandie
 // autour du point de plongée pendant la descente (api.zoom). Pas de zoom CSS : un calque agrandi ×7 faisait
 // dégrader sa résolution par le navigateur, et le champ pouvait rester flou ou vide au retour en haut.
+// Paysages déjà peints, gardés d'une visite de l'accueil à l'autre (le dessin est déterminé par la graine : identique) :
+// revenir sur l'accueil (logo, menu) ne repeint plus le champ, ce qui bloquait la transition de page.
+const PAINTED = new Map(); // clé (taille, point de fuite) → calque ; quelques entrées au plus
+
 export default function FieldCanvas({ api }) {
   const ref = useRef(null);
   useEffect(() => {
     const cv = ref.current; const host = cv.closest('section') || cv.parentElement;
-    const cache = document.createElement('canvas');
+    let cache = null;
     let last = ''; let timer = 0; let zoom = 1; let origin = [0.5, 0.66];
     const render = () => {
-      if (!cache.width || !cv.width) return;
+      if (!cache?.width || !cv.width) return;
       const ctx = cv.getContext('2d');
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       if (zoom > 1.0005) {
@@ -237,17 +241,23 @@ export default function FieldCanvas({ api }) {
       const dpr = Math.min(window.devicePixelRatio || 1, coarse ? 1.25 : 1.5);
       const w = Math.round(cv.clientWidth * dpr); const h = Math.round(cv.clientHeight * dpr);
       const css = getComputedStyle(host);
-      const ox = parseFloat(css.getPropertyValue('--orb-x')) || (w / h > 1.1 ? 72 : 50);
-      const oy = parseFloat(css.getPropertyValue('--dive-y')) || (w / h > 1.1 ? 82 : 66);
+      const num = (v, d) => (Number.isFinite(v) && v ? v : d); // « NaN% » / « Infinity% » → valeur par défaut
+      const ox = num(parseFloat(css.getPropertyValue('--orb-x')), w / h > 1.1 ? 72 : 50);
+      const oy = num(parseFloat(css.getPropertyValue('--dive-y')), w / h > 1.1 ? 82 : 66);
       const key = `${w}x${h}@${ox.toFixed(1)}/${oy}`;
       if (!w || !h || key === last) return;
       last = key; origin = [ox / 100, oy / 100];
-      cache.width = w; cache.height = h; paint(cache, ox / 100);
+      cache = PAINTED.get(key);
+      if (!cache) {
+        cache = document.createElement('canvas'); cache.width = w; cache.height = h; paint(cache, ox / 100);
+        PAINTED.set(key, cache);
+        if (PAINTED.size > 4) PAINTED.delete(PAINTED.keys().next().value);
+      }
       cv.width = w; cv.height = h; render();
     };
     if (api) api.current = { zoom: (z) => { if (Math.abs(z - zoom) < 0.0005) return; zoom = z; render(); } };
     const later = () => { clearTimeout(timer); timer = setTimeout(draw, 200); };
-    const repaint = () => { last = ''; draw(); };
+    const repaint = () => { last = ''; PAINTED.clear(); draw(); }; // calques peut-être vidés eux aussi
     draw();
     // Canvas vidé par le navigateur (mémoire graphique) : on repeint à sa restauration, et on vérifie en
     // revenant en haut de page qu'il n'est pas resté vide.

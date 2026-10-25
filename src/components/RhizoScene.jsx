@@ -259,6 +259,19 @@ const HORIZONS = [
   { code: 'C', label: 'hero_hz_c', at: [-W / 2, (-0.62 + BOT) / 2, D / 2] },
 ];
 
+// Prise en charge de WebGL testée une seule fois par visite, et le contexte de test aussitôt rendu au navigateur.
+// Recréé à chaque passage sur l'accueil sans être libéré, il s'accumulait (Chrome limite à ~16 contextes par onglet) :
+// la création devenait de plus en plus lente et l'accueil pouvait rester figé ou vide après quelques allers-retours.
+let webgl = null;
+function hasWebGL() {
+  if (webgl === null) {
+    const gl = document.createElement('canvas').getContext('webgl2') || document.createElement('canvas').getContext('webgl');
+    webgl = !!gl;
+    gl?.getExtension('WEBGL_lose_context')?.loseContext();
+  }
+  return webgl;
+}
+
 export default function RhizoScene({ api, t = (k) => k }) {
   const wrap = useRef(null);
   const labels = useRef([]);
@@ -268,14 +281,15 @@ export default function RhizoScene({ api, t = (k) => k }) {
   useEffect(() => {
     const el = wrap.current;
     if (!el) return undefined;
-    const probe = document.createElement('canvas');
-    if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) return undefined;
 
     let disposed = false; let cleanup = () => {};
-    // Three.js se télécharge pendant le loader ; la scène démarre dès qu'il se termine.
+    // Three.js se télécharge pendant le loader et la scène y est préparée (géométrie, shaders compilés) sans rien
+    // afficher ; l'animation ne démarre qu'à la fin du loader, qui n'a donc plus ce gros calcul à absorber.
+    let live = !document.documentElement.classList.contains('fi-loading');
+    let wake = () => {};
     const three = import('../lib/three-lite');
     const start = () => three.then((THREE) => {
-      if (disposed) return;
+      if (disposed || !hasWebGL()) return; // test fait ici (différé), pas au montage : il crée lui aussi un contexte
       const coarse = window.matchMedia('(pointer: coarse)').matches;
       const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, powerPreference: 'high-performance' });
       const dpr = Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 1.75);
@@ -313,6 +327,7 @@ export default function RhizoScene({ api, t = (k) => k }) {
       const host = el.closest('section') || el;
       const layout = () => {
         const w = el.clientWidth; const h = el.clientHeight;
+        if (!w || !h) return; // scène sans taille (pendant une transition de page) : w / h serait infini
         renderer.setSize(w, h, false);
         camera.aspect = w / h; camera.updateProjectionMatrix(); uniforms.uAspect.value = w / h;
         const wide = w / h > 1.1;
@@ -328,9 +343,16 @@ export default function RhizoScene({ api, t = (k) => k }) {
       const toNdc = (x, y) => { const r = el.getBoundingClientRect(); return [((x - r.left) / r.width) * 2 - 1, 1 - ((y - r.top) / r.height) * 2]; };
       let lensTarget = 0; let tapped = false;
       const target = { x: 0, y: 0 }; let drag = 0; let lastX = null;
+      // Souris : l'événement ne fait que noter la position ; la mesure du canvas (getBoundingClientRect) se fait
+      // une fois par image dans frame(), et non à chaque mouvement (lecture de mise en page forcée).
+      let pointer = null;
       const onMove = (e) => {
         target.y = (e.clientX / window.innerWidth - 0.5) * 0.8; target.x = (e.clientY / window.innerHeight - 0.5) * 0.3;
-        const m = toNdc(e.clientX, e.clientY); uniforms.uMouse.value = m;
+        pointer = [e.clientX, e.clientY];
+      };
+      const applyPointer = () => {
+        if (!pointer) return;
+        const m = toNdc(pointer[0], pointer[1]); pointer = null; uniforms.uMouse.value = m;
         lensTarget = Math.abs(m[0]) <= 1 && Math.abs(m[1]) <= 1 ? 1 : 0;
       };
       const onTouchStart = (e) => { lastX = e.touches[0].clientX; uniforms.uMouse.value = toNdc(lastX, e.touches[0].clientY); lensTarget = 1; };
@@ -352,10 +374,13 @@ export default function RhizoScene({ api, t = (k) => k }) {
       } else window.addEventListener('pointermove', onMove, { passive: true });
 
       const v3 = new THREE.Vector3();
+      // Étiquette transparente : visibility hidden en plus, pour que son flou d'arrière-plan (backdrop-filter)
+      // ne soit plus recalculé à chaque image derrière une étiquette qu'on ne voit pas.
+      const show = (node, alpha) => { node.style.opacity = String(alpha); node.style.visibility = alpha > 0.001 ? '' : 'hidden'; };
       const placeAt = (node, a, alpha, w, h) => {
         v3.set(...a); spin.localToWorld(v3); v3.project(camera);
         node.style.transform = `translate(${((v3.x + 1) / 2) * w}px, ${((1 - v3.y) / 2) * h}px)`;
-        node.style.opacity = String(alpha);
+        show(node, alpha);
       };
       let hintAlpha = 0;
       const placeLabels = (alpha) => {
@@ -366,7 +391,7 @@ export default function RhizoScene({ api, t = (k) => k }) {
           const node = horizons.current[i]; if (!node) return;
           placeAt(node, H.at, alpha * 0.9, w, h);
           const near = Math.max(0, 1 - Math.hypot((v3.x - mx) * w, (v3.y - my) * h) / 2 / 170) * lens;
-          node.lastChild.firstChild.style.opacity = String(Math.min(1, near * 2.2));
+          show(node.lastChild.firstChild, Math.min(1, near * 2.2));
         });
         // Invite « touchez le sol » sous le bloc, jusqu'au premier clic / toucher
         hintAlpha += ((tapped ? 0 : alpha * Math.min(1, Math.max(0, time - 2.2))) - hintAlpha) * 0.08;
@@ -376,7 +401,7 @@ export default function RhizoScene({ api, t = (k) => k }) {
           if (!node || !a) return;
           v3.set(...a); spin.localToWorld(v3); v3.project(camera);
           node.style.transform = `translate(${((v3.x + 1) / 2) * w}px, ${((1 - v3.y) / 2) * h}px)`;
-          node.style.opacity = String(alpha);
+          show(node, alpha);
         });
       };
 
@@ -385,6 +410,7 @@ export default function RhizoScene({ api, t = (k) => k }) {
         raf = 0;
         const dt = Math.min(clock.getDelta(), 0.05); time += dt;
         uniforms.uTime.value = time;
+        applyPointer();
         const intro = Math.min(1, time / 1.8); uniforms.uIntro.value = 1 - Math.pow(1 - intro, 2);
         uniforms.uLens.value += (lensTarget * (1 - Math.min(1, progress * 8)) - uniforms.uLens.value) * 0.08;
         const ex = Math.min(1, Math.max(0, (progress - 0.03) / 0.27));
@@ -398,11 +424,13 @@ export default function RhizoScene({ api, t = (k) => k }) {
         placeLabels(Math.max(0, 1 - ex * 4) * Math.min(1, Math.max(0, (time - 1.4) / 0.7)));
         if (visible && progress < 0.36) raf = requestAnimationFrame(frame);
       };
-      const kick = () => { if (!raf && visible && progress < 0.36) { clock.getDelta(); raf = requestAnimationFrame(frame); } };
+      const kick = () => { if (live && !raf && visible && progress < 0.36) { clock.getDelta(); raf = requestAnimationFrame(frame); } };
+      wake = kick;
       api.current = { set: (v) => { progress = v; kick(); } };
 
       const ro = new ResizeObserver(layout); ro.observe(el); layout();
       const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; kick(); }); io.observe(el);
+      if (!live) renderer.compile(scene, camera); // shaders prêts avant la première image
       kick();
 
       cleanup = () => {
@@ -411,20 +439,31 @@ export default function RhizoScene({ api, t = (k) => k }) {
         host.removeEventListener('touchstart', onTouchStart); host.removeEventListener('touchmove', onTouchMove);
         host.removeEventListener('touchend', onTouchEnd); host.removeEventListener('pointerdown', onTap);
         parts.forEach(({ geo, mat }) => { geo.dispose(); mat.dispose(); });
-        renderer.dispose(); renderer.domElement.remove();
+        // forceContextLoss : dispose() seul ne rend pas le contexte WebGL au navigateur (voir hasWebGL)
+        renderer.dispose(); renderer.forceContextLoss(); renderer.domElement.remove();
         api.current = null;
       };
     });
 
-    // Démarre à la fin du loader (ou tout de suite s'il n'y en a pas).
-    const go = () => requestAnimationFrame(start);
-    if (document.documentElement.classList.contains('fi-loading')) window.addEventListener('fi:loader-done', go, { once: true });
-    else go();
-    return () => { disposed = true; window.removeEventListener('fi:loader-done', go); cleanup(); };
+    // Préparée au premier temps libre pendant le loader, animée à sa fin. Sans loader (arrivée par un lien du site,
+    // ex. le logo), démarrée une fois la transition de page finie (~0,35 s + 0,35 s) : la création du contexte WebGL
+    // bloque le navigateur un instant, ce qui figeait la transition (ancienne page ou page vide à l'écran).
+    let idle = 0; let timer = 0;
+    const go = () => { live = true; wake(); };
+    if (!live) {
+      window.addEventListener('fi:loader-done', go, { once: true });
+      idle = window.requestIdleCallback ? window.requestIdleCallback(start, { timeout: 1500 }) : setTimeout(start, 300);
+    } else timer = setTimeout(() => requestAnimationFrame(start), 450);
+    return () => {
+      disposed = true; window.removeEventListener('fi:loader-done', go);
+      if (window.cancelIdleCallback) window.cancelIdleCallback(idle); else clearTimeout(idle);
+      clearTimeout(timer);
+      cleanup();
+    };
   }, [api]);
 
   return (
-    <div ref={wrap} aria-hidden className="absolute inset-0">
+    <div ref={wrap} aria-hidden className="hero-orb absolute inset-0">
       {/* Rayons de lumière au-dessus de la plantule */}
       <div className="hero-rays pointer-events-none absolute" />
       {/* Étiquettes projetées depuis la scène */}

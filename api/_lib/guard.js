@@ -28,18 +28,45 @@ Réponds UNIQUEMENT par le mot OK ou le mot HORS, rien d'autre.`;
  */
 export async function checkScope(message, recent = []) {
   if (!env.guardEnabled) return { ok: true, source: 'off' };
-  try {
-    const context = recent.slice(-4).map((m) => `${m.from === 'user' ? 'Visiteur' : 'Petit Pois'} : ${String(m.text).slice(0, 300)}`).join('\n');
-    const user = `${context ? `Échanges précédents :\n${context}\n\n` : ''}Dernier message du visiteur à évaluer :\n"""${message}"""`;
-    const raw = await complete({ system: GUARD_SYSTEM, user, maxTokens: 400 });
-    const verdict = raw.trim().toUpperCase();
-    if (!verdict) console.warn('guard: réponse vide, message accepté par défaut');
-    return { ok: !/^\W*HORS/.test(verdict), source: 'guard' };
-  } catch (e) {
-    console.error('guard', e?.message || e);
-    return { ok: true, source: 'error' };
+  // Les attaques évidentes sont bloquées sans attendre le modèle (et même s'il est indisponible).
+  if (looksLikeAttack(message)) return { ok: false, source: 'local' };
+  const context = recent.slice(-4).map((m) => `${m.from === 'user' ? 'Visiteur' : 'Petit Pois'} : ${String(m.text).slice(0, 300)}`).join('\n');
+  const user = `${context ? `Échanges précédents :\n${context}\n\n` : ''}Dernier message du visiteur à évaluer :\n"""${message}"""`;
+  // Deux essais : une erreur passagère (réseau, saturation) ne suffit plus à désactiver le filtre.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const verdict = (await complete({ system: GUARD_SYSTEM, user, maxTokens: 400 })).trim().toUpperCase();
+      if (verdict) return { ok: !/^\W*HORS/.test(verdict), source: 'guard' };
+      console.warn('guard: réponse vide');
+    } catch (e) {
+      console.error('guard', e?.message || e);
+    }
   }
+  // Filtre indisponible : le visiteur garde l'accès à Petit Pois (disponibilité), mais seul le filtre local
+  // décide. Les messages franchement hors sujet sont alors refusés ; le reste passe, protégé par les
+  // consignes de Petit Pois et le contrôle de sa réponse (looksOutOfScope).
+  return { ok: !looksOffTopic(message), source: 'fallback' };
 }
+
+// Filtre local, sans modèle : tentatives de détournement de l'assistant (FR / EN / ES).
+const ATTACK = [
+  /\b(ignore[sz]?|oublie[sz]?|disregard|forget|olvida|ignora)\b.{0,40}\b(instructions?|consignes?|r[èe]gles?|rules?|prompt|instrucciones|reglas)\b/i,
+  /\b(system ?prompt|prompt syst[èe]me|developer mode|mode d[ée]veloppeur|modo desarrollador|jailbreak)\b/i,
+  /\b(tu es|you are|eres) (maintenant|now|ahora)\b/i,
+  // Possessif exigé (« tes consignes », « your instructions ») : « montrez les consignes d'épandage » reste une vraie
+  // question ; pas « outils » / « tools » non plus (« montrez vos outils de diagnostic »).
+  /\b(r[ée]v[èe]le|montre|affiche|r[ée]p[èe]te|reveal|show|print|repeat|muestra|revela)\b.{0,20}\b(ton|tes|your|tu|tus) (prompt|instructions?|consignes?|instrucciones)\b/i,
+  /<\s*\/?\s*(script|system|instructions?)\b/i,
+];
+// Hors sujet évident (utilisé seulement quand le filtre IA est indisponible).
+const OFFTOPIC = [
+  /```|\b(def|function|class|import|SELECT|#include)\b.*[({;]/i,
+  // (?<!\p{L}) / (?!\p{L}) au lieu de \b : en JavaScript, \b ne voit pas « é » comme une lettre (« écris »).
+  /(?<!\p{L})(code|script|python|javascript|java|c\+\+|sql|html|css)(?!\p{L}).{0,40}(?<!\p{L})([ée]cri[st]|g[ée]n[èe]re|write|generate|escribe|genera|debug|corrige)(?!\p{L})/iu,
+  /(?<!\p{L})([ée]cri[st]|g[ée]n[èe]re|write|generate|escribe|genera)(?!\p{L}).{0,40}(?<!\p{L})(code|script|po[èe]me|poem|poema|essay|dissertation)(?!\p{L})/iu,
+];
+export const looksLikeAttack = (text) => ATTACK.some((r) => r.test(String(text || '')));
+const looksOffTopic = (text) => OFFTOPIC.some((r) => r.test(String(text || '')));
 
 const N = ENTREPRISE.nomCourt;
 export const OFFTOPIC_REPLIES = {

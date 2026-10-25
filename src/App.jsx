@@ -80,9 +80,12 @@ function AppContent() {
     <div className="min-h-screen flex flex-col">
       {!isAdmin && <Navbar />}
       <main id="main-content" className="flex-grow">
-        <Suspense fallback={<PageFallback />}>
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div key={location.pathname} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}>
+        {/* Suspense À L'INTÉRIEUR de chaque page animée : placé autour d'AnimatePresence, le chargement d'une page
+            (lazy) remplaçait toute la transition par le fallback, qui perdait alors son état — l'ancienne page restait
+            affichée, ou la nouvelle restait invisible (opacité 0), par exemple au clic sur le logo. */}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div key={location.pathname} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}>
+            <Suspense fallback={<PageFallback />}>
               <FxScope off={isAdmin}>
                 <Routes location={location}>
                   {PREFIXES.flatMap((prefix) => PAGES.map(({ path, Component }) => (
@@ -94,9 +97,9 @@ function AppContent() {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </FxScope>
-            </motion.div>
-          </AnimatePresence>
-        </Suspense>
+            </Suspense>
+          </motion.div>
+        </AnimatePresence>
       </main>
       {!isAdmin && <Footer />}
       {!isAdmin && <Chatbot />}

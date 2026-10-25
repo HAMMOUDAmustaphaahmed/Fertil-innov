@@ -207,8 +207,12 @@ export default function SoilCanvas({ api }) {
       }
       if (visible && prog > 0.12 && prog < 0.99) raf = requestAnimationFrame(draw);
     };
-    const kick = () => { if (!painted) size(); if (!raf && visible && prog > 0.12 && prog < 0.99) raf = requestAnimationFrame(draw); };
-    api.current = { set: (v) => { prog = v; if (v > 0.02) kick(); } };
+    // Peinture synchrone seulement si l'oculaire va s'ouvrir ; sinon elle se fait au premier temps libre (idle plus bas).
+    // Avant, l'IntersectionObserver appelait kick() dès le montage et peignait le sol pendant la transition de page.
+    const kick = () => { if (!painted && prog > 0.1) size(); if (!raf && visible && prog > 0.12 && prog < 0.99) raf = requestAnimationFrame(draw); };
+    // Peinture forcée seulement juste avant l'ouverture de l'oculaire (0,14) : à 0,02, une mesure de défilement
+    // encore approximative au montage de la page la déclenchait pendant la transition (blocage de ~0,3 s).
+    api.current = { set: (v) => { prog = v; if (v > 0.1) kick(); } };
 
     // Peinture au premier temps libre (le sol est prêt avant l'ouverture de l'oculaire)
     const idle = window.requestIdleCallback ? window.requestIdleCallback(() => { if (!painted) size(); }, { timeout: 4000 }) : setTimeout(() => { if (!painted) size(); }, 1500);

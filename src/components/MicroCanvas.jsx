@@ -47,13 +47,17 @@ export default function MicroCanvas({ api }) {
         pts.push({ sx, sy, p, fade });
       }
       // Hyphes : fils fins entre organismes proches
-      const maxD = 150 * dpr;
+      const maxD = 150 * dpr; const maxD2 = maxD * maxD;
       ctx.lineWidth = dpr;
       for (let i = 0; i < pts.length; i++) {
+        const a = pts[i];
         for (let j = i + 1; j < pts.length; j++) {
-          const a = pts[i]; const b = pts[j];
-          const dx = a.sx - b.sx; const dy = a.sy - b.sy; const d = Math.hypot(dx, dy);
-          if (d > maxD) continue;
+          const b = pts[j];
+          // Rejet rapide (boîte puis carré de la distance) avant la racine carrée : la plupart des paires sont loin
+          const dx = a.sx - b.sx; if (dx > maxD || dx < -maxD) continue;
+          const dy = a.sy - b.sy; if (dy > maxD || dy < -maxD) continue;
+          const d2 = dx * dx + dy * dy; if (d2 > maxD2) continue;
+          const d = Math.sqrt(d2);
           ctx.strokeStyle = `rgba(${colors[1]},${(1 - d / maxD) * 0.16 * Math.min(a.fade, b.fade)})`;
           ctx.beginPath(); ctx.moveTo(a.sx, a.sy);
           ctx.quadraticCurveTo((a.sx + b.sx) / 2 + dy * 0.12, (a.sy + b.sy) / 2 - dx * 0.12, b.sx, b.sy);

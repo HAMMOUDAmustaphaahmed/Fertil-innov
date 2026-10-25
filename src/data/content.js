@@ -23,7 +23,7 @@ export const CONTENT = {
   nav_langue: K('global', 'Libellé du sélecteur de langue', 'Langue', 'Language', 'Idioma'),
 
   // ---------- Accueil : hero ----------
-  hero_kicker: K('accueil', 'Hero — petite ligne', 'Ingénierie écologique & microbiologie des sols · Grabels, Occitanie', 'Ecological engineering & soil microbiology · Grabels, Occitanie', 'Ingeniería ecológica y microbiología de suelos · Grabels, Occitania'),
+  hero_kicker: K('accueil', 'Hero — petite ligne', 'Ingénierie écologique & microbiologie des sols', 'Ecological engineering & soil microbiology', 'Ingeniería ecológica y microbiología de suelos'),
   hero_titre: K('accueil', 'Hero — grand titre', 'Redonnons vie aux sols, cultivons l’avenir', 'Bringing soils back to life, growing the future', 'Devolvamos la vida a los suelos, cultivemos el futuro'),
   hero_sous_titre: K('accueil', 'Hero — sous-titre', 'Diagnostic microbiologique, biofertilisation et remédiation écologique : des solutions biologiques mesurables pour les agriculteurs, les industriels et les collectivités.', 'Microbiological diagnosis, biofertilisation and ecological remediation: measurable biological solutions for farmers, industry and local authorities.', 'Diagnóstico microbiológico, biofertilización y remediación ecológica: soluciones biológicas medibles para agricultores, industria y administraciones.'),
   hero_bouton_1: K('accueil', 'Hero — bouton principal', 'Diagnostic microbiologique avancé', 'Advanced microbiological diagnosis', 'Diagnóstico microbiológico avanzado'),

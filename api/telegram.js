@@ -2,14 +2,17 @@
 // Enregistrement (une fois, après déploiement) :
 //   https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<site>/api/telegram&secret_token=<TELEGRAM_WEBHOOK_SECRET>
 import { env } from './_lib/env.js';
-import { json, error, readJson } from './_lib/http.js';
+import { json, error, readJson, safeEqual } from './_lib/http.js';
 import { handleUpdate } from './_lib/telegram.js';
 
 export const maxDuration = 60;
 
 export async function POST(request) {
   if (!env.telegramToken) return error(503, 'TELEGRAM_BOT_TOKEN manquant.');
-  if (env.telegramWebhookSecret && request.headers.get('x-telegram-bot-api-secret-token') !== env.telegramWebhookSecret) return error(401, 'Non autorisé.');
+  // En production le secret est obligatoire : sans lui, n'importe qui pourrait envoyer de faux messages au bot.
+  if (!env.telegramWebhookSecret) {
+    if (env.isProd) return error(503, 'TELEGRAM_WEBHOOK_SECRET manquant.');
+  } else if (!safeEqual(request.headers.get('x-telegram-bot-api-secret-token'), env.telegramWebhookSecret)) return error(401, 'Non autorisé.');
   const update = await readJson(request);
   if (!update) return error(400, 'Requête invalide.');
   await handleUpdate(update);

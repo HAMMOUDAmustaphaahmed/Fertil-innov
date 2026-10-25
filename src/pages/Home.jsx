@@ -12,6 +12,7 @@ import { useSite, useImage, imgSrc } from '../site/SiteProvider';
 import { useReveal } from '../hooks/useReveal';
 import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from '../lib/gsap';
 import { openPois, teasePois } from '../lib/pois';
+import { rafThrottle } from '../lib/raf';
 
 const vis = (list) => (list || []).filter((x) => x.visible !== false);
 const fmtDate = (iso, lang) => new Intl.DateTimeFormat({ fr: 'fr-FR', en: 'en-GB', es: 'es-ES' }[lang], { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${iso}T12:00:00Z`));
@@ -59,19 +60,24 @@ function Services() {
   const services = vis(listes.services);
   const ref = useRef(null);
   useReveal([services.length], ref);
-  useGSAP(() => {
+  useGSAP((context, contextSafe) => {
     if (prefersReducedMotion()) return;
     const cards = gsap.utils.toArray(ref.current.querySelectorAll('.stack-card'));
     cards.forEach((card, i) => {
-      // Colonies qui poussent quand la carte arrive
-      gsap.from(card.querySelectorAll('.petri-col'), { scale: 0, duration: 0.8, ease: 'back.out(2.5)', stagger: 0.04, scrollTrigger: { trigger: card, start: 'top 75%', once: true } });
+      // Colonies qui poussent quand la carte arrive. Tween créé seulement quand la carte approche (encore hors
+      // écran, d'où aucun saut visible) : GSAP mesure chaque colonie SVG (getBBox), et les ~190 mesures faites
+      // d'un coup au montage de l'accueil figeaient la transition de page.
+      ScrollTrigger.create({
+        trigger: card, start: 'top bottom+=400', once: true,
+        // contextSafe : créé plus tard, le tween reste rattaché au contexte (nettoyé en quittant l'accueil)
+        onEnter: contextSafe(() => gsap.from(card.querySelectorAll('.petri-col'), { scale: 0, duration: 0.8, ease: 'back.out(2.5)', stagger: 0.04, scrollTrigger: { trigger: card, start: 'top 75%', once: true } })),
+      });
       const next = cards[i + 1];
       if (!next) return;
-      // filter en fromTo explicite : depuis « none », GSAP partirait de brightness(0) (carte noire)
-      gsap.fromTo(card.querySelector('.stack-inner'), { filter: 'brightness(1)' }, {
-        scale: 0.9, rotationX: -8, transformPerspective: 1200, transformOrigin: '50% 0%', filter: 'brightness(0.94)', ease: 'none',
-        scrollTrigger: { trigger: next, start: 'top bottom', end: 'top 30%', scrub: true },
-      });
+      // Assombrissement : voile noir à 6 % (identique à brightness(0.94)) animé en opacité, sans repeindre la carte
+      const st = { trigger: next, start: 'top bottom', end: 'top 30%', scrub: true };
+      gsap.to(card.querySelector('.stack-inner'), { scale: 0.9, rotationX: -8, transformPerspective: 1200, transformOrigin: '50% 0%', ease: 'none', scrollTrigger: st });
+      gsap.fromTo(card.querySelector('.stack-shade'), { opacity: 0 }, { opacity: 0.06, ease: 'none', scrollTrigger: { ...st } });
     });
   }, { scope: ref, dependencies: [services.length] });
 
@@ -108,6 +114,7 @@ function Services() {
                   </div>
                   {/* Mobile : petite boîte de Petri en coin */}
                   <Petri seed={s.i + 3} dark={dark} className="md:hidden absolute -right-6 -top-6 w-28 opacity-80" />
+                  <span aria-hidden className="stack-shade pointer-events-none absolute inset-0 bg-black opacity-0" />
                 </Link>
               </li>
             );
@@ -203,9 +210,9 @@ const SPORES = [[12, 0, 4], [26, 1.4, 3], [41, 0.6, 5], [58, 2.1, 3], [69, 0.9, 
 const GPS = { montpellier: '43.61° N · 3.88° E', 'béziers': '43.34° N · 3.22° E', toulouse: '43.60° N · 1.44° E', 'nîmes': '43.84° N · 4.36° E', perpignan: '42.70° N · 2.90° E' };
 const gpsOf = (lieu = '') => GPS[lieu.split(',')[0].trim().toLowerCase()] || '';
 // Pointeur → variables CSS : origine du cercle de couleur, réticule, parallaxe
-const aim = (e) => {
-  const el = e.currentTarget; const r = el.getBoundingClientRect();
-  const x = (e.clientX - r.left) / r.width; const y = (e.clientY - r.top) / r.height;
+const aimAt = (el, cx, cy) => {
+  const r = el.getBoundingClientRect();
+  const x = (cx - r.left) / r.width; const y = (cy - r.top) / r.height;
   el.style.setProperty('--px', `${x * 100}%`); el.style.setProperty('--py', `${y * 100}%`);
   el.style.setProperty('--dx', (x - 0.5).toFixed(3)); el.style.setProperty('--dy', (y - 0.5).toFixed(3));
 };
@@ -217,6 +224,9 @@ function Realisations() {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const [inView, setInView] = useState(false);
+  // Suivi du pointeur limité à une mesure par image (currentTarget est relu ici : React le vide après l'événement)
+  const [aimMove] = useState(() => rafThrottle(({ el, x, y }) => aimAt(el, x, y)));
+  useEffect(() => aimMove.cancel, [aimMove]);
   useReveal([list.length], ref);
   useEffect(() => {
     const io = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { threshold: 0.35 });
@@ -248,7 +258,7 @@ function Realisations() {
           {list.map((r, i) => {
             const on = i === active;
             return (
-              <button key={r.id} type="button" aria-expanded={on} onClick={() => open(i)} onMouseEnter={(e) => { aim(e); hover(i); }} onPointerMove={aim} onFocus={() => open(i)}
+              <button key={r.id} type="button" aria-expanded={on} onClick={() => open(i)} onMouseEnter={(e) => { aimAt(e.currentTarget, e.clientX, e.clientY); hover(i); }} onPointerMove={(e) => aimMove({ el: e.currentTarget, x: e.clientX, y: e.clientY })} onFocus={() => open(i)}
                 className={`core relative overflow-hidden rounded-[1.75rem] text-left ring-1 ring-white/10 outline-none transition-all duration-700 ease-[cubic-bezier(.7,0,.2,1)] focus-visible:ring-2 focus-visible:ring-fi-accent ${on ? 'h-[25rem] md:h-auto md:flex-[5]' : 'h-[4.5rem] md:h-auto md:flex-[1]'}`}>
                 {/* Fond : la photo en bichromie verte (panneau fermé) */}
                 <span aria-hidden className="core-duo absolute inset-0">
@@ -500,9 +510,9 @@ function PoisSection() {
     const m = q('.mascot')[0];
     if (fine) {
       const mx = gsap.quickTo(m, 'x', { duration: 0.8, ease: 'power3.out' }); const my = gsap.quickTo(m, 'y', { duration: 0.8, ease: 'power3.out' });
-      const move = (e) => { const r = ref.current.getBoundingClientRect(); mx(((e.clientX - r.left) / r.width - 0.5) * 30); my(((e.clientY - r.top) / r.height - 0.5) * 24); };
+      const move = rafThrottle((e) => { const r = ref.current.getBoundingClientRect(); mx(((e.clientX - r.left) / r.width - 0.5) * 30); my(((e.clientY - r.top) / r.height - 0.5) * 24); });
       ref.current.addEventListener('pointermove', move);
-      return () => ref.current?.removeEventListener('pointermove', move);
+      return () => { move.cancel(); ref.current?.removeEventListener('pointermove', move); };
     }
     gsap.to(m, { y: -12, duration: 2.2, ease: 'sine.inOut', yoyo: true, repeat: -1 });
     return undefined;

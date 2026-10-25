@@ -6,6 +6,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
 import { loadEnv } from 'vite';
 
 Object.assign(process.env, Object.fromEntries(Object.entries(loadEnv('production', process.cwd(), '')).filter(([k]) => process.env[k] === undefined)));
@@ -31,6 +32,33 @@ try {
 const siteUrl = (site?.entreprise?.siteUrl || 'https://www.fertilinnov-environnement.com').replace(/\/$/, '');
 globalThis.window = undefined; // sécurité : aucun accès window côté serveur
 
+// Content-Security-Policy par page : seuls les scripts du site s'exécutent (fichiers de /assets + scripts en ligne
+// de cette page, autorisés par leur empreinte SHA-256). Un script injecté (texte malveillant dans la configuration,
+// extension, faille future) est refusé par le navigateur. frame-ancestors (anti-iframe) est dans vercel.json :
+// cette directive n'est pas lue dans une balise <meta>.
+function cspMeta(page) {
+  const hashes = [];
+  for (const [, attrs, body] of page.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)) {
+    if (/\bsrc=/.test(attrs) || /application\/ld\+json/.test(attrs) || !body) continue; // fichiers externes / données JSON-LD
+    // Le navigateur normalise les fins de ligne (\r\n → \n) avant de calculer l'empreinte : on fait de même.
+    hashes.push(`'sha256-${createHash('sha256').update(body.replace(/\r\n?/g, '\n')).digest('base64')}'`);
+  }
+  const policy = [
+    "default-src 'self'",
+    `script-src 'self' ${hashes.join(' ')}`,
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", // styles en ligne : mise en page pré-rendue, animations
+    "font-src 'self' https://fonts.gstatic.com data:",
+    "img-src 'self' data: blob: https:", // photos envoyées via le Chef (Supabase), tuiles de la carte
+    "connect-src 'self'",
+    "frame-src 'none'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "manifest-src 'self'",
+  ].join('; ');
+  return `<meta http-equiv="Content-Security-Policy" content="${policy}" />\n`;
+}
+
 let ok = 0; let ko = 0;
 const urls = [];
 for (const l of LANGS) for (const p of PATHS) {
@@ -38,12 +66,14 @@ for (const l of LANGS) for (const p of PATHS) {
   urls.push(url);
   try {
     const { html, head, htmlAttrs } = await ssr.render(url, site);
-    const injected = `<script>window.__SITE__=${JSON.stringify(site || null).replace(/</g, '\u003c')};window.__SITE_URL__=${JSON.stringify(siteUrl)};</script>`;
+    // '\\u003c' : « < » échappé en JSON, un texte du site contenant </script> ne peut plus fermer la balise.
+    const injected = `<script>window.__SITE__=${JSON.stringify(site || null).replace(/</g, '\\u003c')};window.__SITE_URL__=${JSON.stringify(siteUrl)};</script>`;
     let page = template
       .replace('<html lang="fr">', `<html ${htmlAttrs || 'lang="fr"'}>`)
       .replace(/<title>[^<]*<\/title>/, '')
-      .replace('<!--app-head-->', `${head}\n${injected}`)
+      .replace('<!--app-head-->', `<!--csp-->${head}\n${injected}`)
       .replace('<div id="root"><!--app-html--></div>', `<div id="root" data-prerendered="1">${html}</div>`);
+    page = page.replace('<!--csp-->', cspMeta(page));
     const out = path.join(DIST, url === '/' ? '' : url.slice(1), 'index.html');
     mkdirSync(path.dirname(out), { recursive: true });
     writeFileSync(out, page);

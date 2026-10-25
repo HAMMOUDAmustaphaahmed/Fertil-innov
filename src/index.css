@@ -187,6 +187,9 @@
 }
 .nav-glass.is-scrolled { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 18px 50px -20px rgb(var(--fi-deep) / 0.45); }
 
+/* Sections hors écran (usePageFx) : animations CSS en pause, reprises à l'identique au retour */
+[data-offscreen] *, [data-offscreen] *::before, [data-offscreen] *::after { animation-play-state: paused !important; }
+
 /* Effets de défilement globaux (usePageFx) : états initiaux posés avant la peinture quand JS est actif */
 .fx-shine { position: relative; overflow: hidden; }
 .fx-shine::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;

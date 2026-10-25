@@ -75,7 +75,8 @@ export default function HeroMicroscope() {
       soil.current?.set(p);
       orb.current?.set?.(p);
       const k = Math.min(1, Math.max(0, (p - 0.06) / 0.7));
-      if (mag) mag.textContent = `×${fmt.format(Math.round(Math.pow(1000, k) / (k > 0.4 ? 10 : 1)) * (k > 0.4 ? 10 : 1))}`;
+      const txt = `×${fmt.format(Math.round(Math.pow(1000, k) / (k > 0.4 ? 10 : 1)) * (k > 0.4 ? 10 : 1))}`;
+      if (mag && mag.textContent !== txt) mag.textContent = txt; // pas de recalcul du texte si la valeur n'a pas changé
     };
     const dive = { z: 1 };
     const tl = gsap.timeline({
@@ -100,6 +101,12 @@ export default function HeroMicroscope() {
     // Mise au point : flou → net (ordinateur) ; sur mobile, simple fondu, plus léger à animer
     if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) tl.fromTo(q('.micro-inner'), { filter: 'blur(8px) brightness(1.3)' }, { filter: 'blur(0px) brightness(1)', duration: 0.08, ease: 'power2.out' }, 0.16);
     else tl.fromTo(q('.micro-inner'), { opacity: 0.35 }, { opacity: 1, duration: 0.16 }, 0.16);
+    // Calques devenus invisibles retirés du rendu (visibility, réversible au défilement inverse) : le navigateur
+    // ne les recompose plus à chaque image de la plongée. Aucun changement à l'écran.
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) tl.set(q('.micro-inner'), { filter: 'none' }, 0.241); // flou fini : plus de filtre actif sur toute la vue micro
+    tl.set(q('.h-content'), { visibility: 'hidden' }, 0.141) // titre totalement estompé
+      .set(q('.hero-land'), { visibility: 'hidden' }, 0.301) // champ totalement estompé
+      .set(q('.hero-orb, .hero-veil, .eye-ring'), { visibility: 'hidden' }, 0.345); // oculaire grand ouvert : motte 3D, rayons et voile entièrement recouverts
     tl
       .to(q('.hero-hud'), { opacity: 1, duration: 0.05 }, 0.22)
       .to(q('.hud-bar'), { scaleX: 1, duration: 0.76 }, 0.22)
@@ -145,7 +152,7 @@ export default function HeroMicroscope() {
           <div className="hero-atmo absolute inset-0" />
         </div>
         <RhizoScene api={orb} t={t} />
-        <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#06120c] via-[#06120c]/45 to-transparent md:bg-gradient-to-r md:from-[#0b0d08]/70 md:via-[#0b0d08]/25" />
+        <div aria-hidden className="hero-veil absolute inset-0 bg-gradient-to-t from-[#06120c] via-[#06120c]/45 to-transparent md:bg-gradient-to-r md:from-[#0b0d08]/70 md:via-[#0b0d08]/25" />
 
         {/* Échelle micro : le sol vivant, révélé par l'oculaire */}
         <div aria-hidden className="hero-micro absolute inset-0 overflow-hidden" style={{ background: 'radial-gradient(ellipse at 50% 60%, rgb(var(--fi-soil) / 0.9) 0%, #1d140b 48%, #0a170c 100%)' }}>
@@ -182,9 +189,9 @@ export default function HeroMicroscope() {
         <div aria-hidden className="pointer-events-none absolute inset-0 z-[1]"><div className="grain h-full" /></div>
 
         {/* Chapitre 0 : le contenu d'origine (titre, boutons, chiffres) */}
-        <div className="h-content wrap relative z-[2] pb-10 pt-8 md:pb-16 md:pt-12">
+        <div className="h-content wrap relative z-[2] pb-10 pt-16 md:pb-16 md:pt-24">
           <p className="h-sub text-xs sm:text-sm md:text-base font-medium text-fi-accent">{t('hero_kicker')}</p>
-          <h1 className="mt-3 md:mt-4 text-[2.35rem] leading-[1] tracking-[-0.03em] sm:text-display-xl !text-white max-w-3xl">
+          <h1 className="mt-3 md:mt-4 text-[2rem] leading-[1] tracking-[-0.03em] sm:text-[clamp(2.2rem,4.8vw,4.2rem)] sm:leading-[0.98] !text-white max-w-3xl">
             <span className="block overflow-hidden"><span className="h-line block">{l1}</span></span>
             {l2 && <span className="block overflow-hidden"><span className="h-line block text-fi-accent">{l2}</span></span>}
           </h1>
