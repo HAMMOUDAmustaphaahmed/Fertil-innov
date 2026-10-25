@@ -130,6 +130,11 @@
   animation: hero-rays 40s linear infinite; mix-blend-mode: screen; }
 @keyframes hero-rays { to { rotate: 360deg; } }
 
+/* Réalisations : version « sol épuisé » de la photo (grise, sépia, terne), retirée en cercle à l'ouverture */
+.core-dull { filter: grayscale(1) sepia(.35) brightness(.55) contrast(1.1); transition: clip-path 1.2s cubic-bezier(.7, 0, .2, 1); }
+.core-progress { width: 0; animation: core-fill linear forwards; }
+@keyframes core-fill { to { width: 100%; } }
+
 /* Pied de page : dégradé vert foncé → vert clair (on « remonte vers la lumière »), courbes de niveau
    d'une carte topographique en filigrane, lueur dorée en bas à droite */
 .f-foot { background:

@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight, Check } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Check, MapPin } from 'lucide-react';
 import SEO from '../components/SEO';
 import Icon, { SERVICE_ICON } from '../components/Icons';
 import DepthRail from '../components/DepthRail';
@@ -190,39 +190,34 @@ function Process() {
 }
 
 // ---------------------------------------------------------------------------
-// Réalisations : bande horizontale en « cover-flow » 3D pilotée par le défilement (toutes tailles),
-// puis compteurs.
+// Réalisations : accordéon de « carottes de sol ». Les panneaux fermés sont étroits et ternes (sol épuisé,
+// gris-sépia, titre vertical) ; le panneau ouvert s'élargit et sa photo reprend vie en couleur par un cercle
+// qui s'ouvre depuis le centre. Ouverture au survol (souris), au toucher ou au clavier ; défilement
+// automatique toutes les 6 s tant que la section est visible et que le visiteur n'a pas interagi.
 // ---------------------------------------------------------------------------
+const CORE_DELAY = 6000;
 function Realisations() {
   const { t, L } = useLang();
   const { listes, chiffres } = useSite();
   const list = vis(listes.realisations);
   const ref = useRef(null);
+  const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [inView, setInView] = useState(false);
   useReveal([list.length], ref);
-  useGSAP(() => {
-    const track = ref.current?.querySelector('.track');
-    if (!track || prefersReducedMotion()) return undefined;
-    const zone = ref.current.querySelector('.sticky-zone');
-    const cards = gsap.utils.toArray(track.querySelectorAll('.flow-card'));
-    const dist = () => Math.max(0, track.scrollWidth - track.parentElement.clientWidth);
-    // La zone collante mesure 100vh + distance horizontale : le défilement vertical « pousse » la bande.
-    const size = () => zone.style.setProperty('--track-extra', `${dist()}px`);
-    size();
-    ScrollTrigger.addEventListener('refreshInit', size);
-    // Cover-flow : inclinaison et échelle selon la distance au centre de l'écran
-    const flow = () => {
-      const mid = window.innerWidth / 2;
-      cards.forEach((c) => {
-        const r = c.getBoundingClientRect();
-        const off = Math.max(-1, Math.min(1, (r.left + r.width / 2 - mid) / (window.innerWidth * 0.6)));
-        gsap.set(c, { rotationY: off * -28, scale: 1 - Math.abs(off) * 0.1, z: -Math.abs(off) * 120, transformPerspective: 1400 });
-        const img = c.querySelector('img'); if (img) gsap.set(img, { xPercent: off * -8, scale: 1.18 });
-      });
-    };
-    gsap.to(track, { x: () => -dist(), ease: 'none', scrollTrigger: { trigger: zone, start: 'top top', end: () => `+=${dist()}`, scrub: 0.8, invalidateOnRefresh: true, onUpdate: flow, onRefresh: flow } });
-    flow();
-    return () => { ScrollTrigger.removeEventListener('refreshInit', size); zone.style.removeProperty('--track-extra'); };
-  }, { scope: ref, dependencies: [list.length] });
+  useEffect(() => {
+    const io = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { threshold: 0.35 });
+    if (ref.current) io.observe(ref.current);
+    return () => io.disconnect();
+  }, []);
+  const auto = inView && !paused && list.length > 1;
+  useEffect(() => {
+    if (!auto) return undefined;
+    const id = setTimeout(() => setActive((a) => (a + 1) % list.length), CORE_DELAY);
+    return () => clearTimeout(id);
+  }, [auto, active, list.length]);
+  const open = (i) => { setActive(i); setPaused(true); };
+  const hover = (i) => { if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) open(i); };
 
   const counters = [
     { v: chiffres.projets, suffix: '', k: 'compteur_projets' },
@@ -232,31 +227,47 @@ function Realisations() {
   ];
 
   return (
-    <section ref={ref} id="realisations" data-horizon="b" className="relative bg-fi-deep text-white">
-      <div className="sticky-zone h-[calc(100vh+var(--track-extra,0px))]">
-        <div className="sticky top-0 h-screen flex flex-col justify-center overflow-hidden pt-[var(--header-h)]">
-          <div aria-hidden className="pointer-events-none absolute inset-0 opacity-50"><div className="grain h-full" /></div>
-          <div className="wrap relative">
-            <SectionHeader dark kicker={t('realisations_kicker')} title={t('realisations_titre')} text={t('realisations_texte')} />
-          </div>
-          <div className="relative mt-8 lg:mt-12 px-4 sm:px-6 lg:px-8 [perspective:1400px]">
-            <div className="track flex gap-5 w-max lg:pl-[max(0px,calc((100vw-76rem)/2))] [transform-style:preserve-3d]">
-              {list.map((r, i) => (
-                <article key={r.id} className="flow-card relative w-[74vw] max-w-[440px] sm:w-[380px] shrink-0 overflow-hidden rounded-[1.75rem] bg-white/5 ring-1 ring-white/10 will-change-transform">
-                  <div className="overflow-hidden"><img src={imgSrc(r.image)} alt={L(r.titre)} width={800} height={600} loading="lazy" decoding="async" data-fx-off className="aspect-[4/3] w-full object-cover" /></div>
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-fi-deep via-fi-deep/75 to-transparent p-5 pt-20">
-                    <p className="flex items-center gap-2 text-xs font-semibold text-fi-accent"><span className="tabular-nums text-white/40">{pad(i + 1)}</span>{L(r.categorie)}</p>
-                    <h3 className="mt-1 text-display-sm !text-white">{L(r.titre)}</h3>
-                    <p className="text-sm text-white/70">{r.lieu}</p>
-                  </div>
-                </article>
-              ))}
-              <div className="w-[10vw] shrink-0 lg:w-[calc((100vw-76rem)/2)]" aria-hidden />
-            </div>
-          </div>
+    <section ref={ref} id="realisations" data-horizon="b" className="relative overflow-hidden bg-fi-deep py-20 md:py-28 text-white">
+      <div aria-hidden className="pointer-events-none absolute inset-0 opacity-50"><div className="grain h-full" /></div>
+      <div className="wrap relative">
+        <SectionHeader dark kicker={t('realisations_kicker')} title={t('realisations_titre')} text={t('realisations_texte')} />
+        <div className="reveal mt-10 flex flex-col gap-3 md:mt-14 md:h-[34rem] md:flex-row">
+          {list.map((r, i) => {
+            const on = i === active;
+            return (
+              <button key={r.id} type="button" aria-expanded={on} onClick={() => open(i)} onMouseEnter={() => hover(i)} onFocus={() => open(i)}
+                className={`core relative overflow-hidden rounded-[1.75rem] text-left ring-1 ring-white/10 outline-none transition-all duration-700 ease-[cubic-bezier(.7,0,.2,1)] focus-visible:ring-2 focus-visible:ring-fi-accent ${on ? 'h-[25rem] md:h-auto md:flex-[5]' : 'h-[4.5rem] md:h-auto md:flex-[1]'}`}>
+                {/* Photo en couleur, et sa version « sol épuisé » qui se retire en cercle à l'ouverture */}
+                <img src={imgSrc(r.image)} alt={L(r.titre)} width={800} height={600} loading="lazy" decoding="async" data-fx-off className={`absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] ease-out ${on ? 'scale-100' : 'scale-110'}`} />
+                <img src={imgSrc(r.image)} alt="" aria-hidden width={800} height={600} loading="lazy" decoding="async" data-fx-off className="core-dull absolute inset-0 h-full w-full object-cover" style={{ clipPath: on ? 'circle(0% at 50% 60%)' : 'circle(150% at 50% 60%)' }} />
+                <span aria-hidden className={`absolute inset-0 transition-opacity duration-700 ${on ? 'bg-gradient-to-t from-black/85 via-black/25 to-transparent' : 'bg-fi-deep/45'}`} />
+                {/* Panneau fermé : numéro et titre (vertical sur grand écran) */}
+                <span aria-hidden className={`absolute inset-0 transition-opacity ${on ? 'opacity-0 duration-100' : 'opacity-100 delay-300 duration-500'}`}>
+                  <span className="absolute inset-y-0 left-0 flex items-center gap-3 px-5 md:hidden">
+                    <span className="font-display text-sm tabular-nums text-fi-accent">{pad(i + 1)}</span>
+                    <span className="font-semibold text-white/90">{L(r.titre)}</span>
+                  </span>
+                  <span className="absolute inset-0 hidden flex-col items-center justify-between py-7 md:flex">
+                    <span className="font-display text-sm tabular-nums text-fi-accent">{pad(i + 1)}</span>
+                    <span className="whitespace-nowrap text-sm font-semibold tracking-wide text-white/90 [writing-mode:vertical-rl] rotate-180">{L(r.titre)}</span>
+                  </span>
+                </span>
+                {/* Panneau ouvert : détails */}
+                <span className={`absolute inset-x-0 bottom-0 block p-6 md:p-8 transition-all duration-700 ${on ? 'translate-y-0 opacity-100 delay-300' : 'pointer-events-none translate-y-6 opacity-0'}`}>
+                  <span className="flex items-center gap-3 text-xs font-semibold">
+                    <span className="tabular-nums text-white/50">{pad(i + 1)} / {pad(list.length)}</span>
+                    <span className="rounded-full border border-fi-accent/40 bg-fi-accent/15 px-3 py-1 text-fi-accent backdrop-blur">{L(r.categorie)}</span>
+                  </span>
+                  <span className="mt-3 block font-display text-display-sm md:text-display-md text-white">{L(r.titre)}</span>
+                  <span className="mt-2 flex items-center gap-1.5 text-sm text-white/75"><MapPin size={15} className="text-fi-accent" aria-hidden />{r.lieu}</span>
+                  {on && auto && <span aria-hidden className="mt-5 block h-0.5 w-full overflow-hidden rounded-full bg-white/15"><span key={active} className="core-progress block h-full bg-fi-accent" style={{ animationDuration: `${CORE_DELAY}ms` }} /></span>}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
-      <div className="wrap relative pb-24">
+      <div className="wrap relative mt-14">
         <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[1.75rem] bg-white/10 md:grid-cols-4">
           {counters.map((c) => (
             <div key={c.k} className="reveal bg-fi-deep p-6 md:p-8">

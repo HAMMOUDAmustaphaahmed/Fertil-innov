@@ -50,7 +50,7 @@ export default function Footer() {
         <div className={`wrap relative pb-6 ${!onContact ? 'pt-16' : 'pt-48'}`}>
           <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-12">
             <div className="lg:col-span-5">
-              <img {...img('logo_rond')} alt={site.nom} width={112} height={112} className="h-24 w-24 rounded-full bg-white p-1 object-contain" loading="lazy" decoding="async" />
+              <img {...img('logo_rond')} alt={site.nom} width={112} height={112} className="h-28 w-28 rounded-full bg-white object-cover ring-4 ring-white/15 shadow-[0_10px_40px_-10px_rgb(0_0_0/0.45)]" loading="lazy" decoding="async" />
               {/* La marque animée ouvre la description : lettres taillées dans un profil de sol, pousses, lampe */}
               <p className="mt-6 max-w-md text-white/85 leading-relaxed">
                 <span aria-hidden className="f-mark relative mb-2 block w-max pt-[0.3em] font-display text-[clamp(2.4rem,4.4vw,3.4rem)] font-bold leading-none tracking-tight" onPointerMove={light} onPointerLeave={unlight}>
