@@ -85,6 +85,9 @@ export default function HeroMicroscope() {
       .to(q('.h-hint'), { opacity: 0, duration: 0.04 }, 0)
       .to(q('.hero-land'), { scale: 7, duration: 0.26, ease: 'power3.in' }, 0.02) // on plonge dans le sol du champ
       .to(q('.hero-land'), { opacity: 0, duration: 0.08 }, 0.22)
+      // Verrou : la vue micro (et l'anneau) restent masqués tant que l'oculaire n'est pas ouvert, même si un
+      // navigateur applique mal le clip-path (le sol flou ne doit jamais recouvrir le champ en haut de page)
+      .fromTo(q('.hero-micro, .eye-ring'), { visibility: 'hidden' }, { visibility: 'visible', duration: 0.001 }, 0.14)
       .fromTo(q('.hero-micro'), { '--eye': '0%' }, { '--eye': '150%', duration: 0.2, ease: 'power2.in' }, 0.14)
       // Anneau de la lentille : suit exactement le bord de l'oculaire (même rayon, même courbe)
       .fromTo(q('.eye-ring'), { '--k': 0, opacity: 1 }, { '--k': 1, duration: 0.2, ease: 'power2.in' }, 0.14)
