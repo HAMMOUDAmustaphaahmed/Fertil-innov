@@ -41,7 +41,7 @@ export default function Footer() {
       <footer className="f-foot relative overflow-hidden text-white">
         <div aria-hidden className="pointer-events-none absolute inset-0"><div className="grain h-full" /></div>
 
-        <div className={`wrap relative pb-10 ${!onContact ? 'pt-16' : 'pt-48'}`}>
+        <div className={`wrap relative pb-6 ${!onContact ? 'pt-16' : 'pt-48'}`}>
           <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-12">
             <div className="lg:col-span-5">
               <img {...img('logo_rond')} alt={site.nom} width={112} height={112} className="h-24 w-24 rounded-full bg-white p-1 object-contain" loading="lazy" decoding="async" />
@@ -108,13 +108,13 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Herbe qui pousse au-dessus de la ligne du copyright */}
-          <div aria-hidden className="f-grass pointer-events-none mt-12 h-7" />
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-white/20 pt-6 text-xs text-white">
+          <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-white/20 pt-6 text-xs text-white">
             <p>© {new Date().getFullYear()} {site.nom}. {t('footer_droits')}</p>
             <button type="button" onClick={toTop} className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/10 px-4 py-2 hover:bg-white/20 transition-colors min-h-[40px]">{t('footer_haut')} <ArrowUp size={14} aria-hidden /></button>
           </div>
         </div>
+        {/* Herbe tout en bas de la page, qui pousse depuis le bord inférieur */}
+        <div aria-hidden className="f-grass pointer-events-none relative h-8 w-full" />
       </footer>
     </div>
   );
