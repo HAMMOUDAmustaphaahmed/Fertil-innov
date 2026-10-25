@@ -2,14 +2,13 @@
 // Une carotte de sol à horizons (humus → A → B → C) vue « aux rayons X » : racines de la plantule,
 // hyphes mycorhiziens lumineux, colonies bactériennes aux pointes racinaires, nodules à rhizobium,
 // nutriments (N, P, K) qui circulent des hyphes vers les racines, pluie qui s'infiltre, CO₂ capté par
-// les feuilles, ver de terre dans l'horizon A, loupe « ×1000 » sur une colonie. Étiquettes HTML projetées.
+// les feuilles, ver de terre dans l'horizon A. Étiquettes HTML projetées.
 // À l'arrivée, le bloc « germe » : les grains s'assemblent, les racines poussent, puis le vivant s'allume.
 // Sève lumineuse dans les racines, spores en orbite, plantule qui ondule. Une loupe de lumière suit le
 // pointeur ; un clic / toucher sur le sol envoie une onde qui le « réveille ».
 // Tourne au pointeur (souris / glissé tactile), se désagrège au défilement (api.set(progress)).
 // Sans WebGL : le paysage du hero reste seul.
 import { useEffect, useRef } from 'react';
-import MicroCanvas from './MicroCanvas';
 
 const VERT = /* glsl */ `
   uniform float uTime; uniform float uExplode; uniform float uSize; uniform float uPixel;
@@ -265,9 +264,6 @@ export default function RhizoScene({ api, t = (k) => k }) {
   const labels = useRef([]);
   const horizons = useRef([]);
   const hint = useRef(null);
-  const loupe = useRef(null);
-  const microApi = useRef(null);
-  useEffect(() => { microApi.current?.set(0.95); });
 
   useEffect(() => {
     const el = wrap.current;
@@ -375,11 +371,6 @@ export default function RhizoScene({ api, t = (k) => k }) {
         // Invite « touchez le sol » sous le bloc, jusqu'au premier clic / toucher
         hintAlpha += ((tapped ? 0 : alpha * Math.min(1, Math.max(0, time - 2.2))) - hintAlpha) * 0.08;
         if (hint.current) placeAt(hint.current, [0, w / h > 1.1 ? BOT + 0.08 : BOT - 0.32, D / 2], hintAlpha, w, h);
-        if (loupe.current && data.anchors.bact) {
-          v3.set(...data.anchors.bact); spin.localToWorld(v3); v3.project(camera);
-          loupe.current.style.transform = `translate(${((v3.x + 1) / 2) * w}px, ${((1 - v3.y) / 2) * h}px)`;
-          loupe.current.style.opacity = String(alpha);
-        }
         LABELS.forEach((L, i) => {
           const node = labels.current[i]; const a = data.anchors[L.key];
           if (!node || !a) return;
@@ -436,16 +427,6 @@ export default function RhizoScene({ api, t = (k) => k }) {
     <div ref={wrap} aria-hidden className="absolute inset-0">
       {/* Rayons de lumière au-dessus de la plantule */}
       <div className="hero-rays pointer-events-none absolute" />
-      {/* Loupe sur la colonie bactérienne : micro-organismes vivants */}
-      <div ref={loupe} className="pointer-events-none absolute left-0 top-0 opacity-0 will-change-transform">
-        <span className="absolute -left-2 -top-2 h-4 w-4 rounded-full border-2 border-fi-light/80" />
-        <span className="absolute right-1 top-1 h-px w-12 origin-right rotate-[35deg] bg-fi-light/60 md:w-16" />
-        <div className="absolute right-9 -top-[7.5rem] h-24 w-24 overflow-hidden rounded-full border-2 border-white/40 bg-[#1d140b] shadow-[0_0_0_6px_rgb(255_255_255/0.06),0_20px_50px_-10px_rgb(0_0_0/0.6)] md:right-12 md:-top-[10rem] md:h-32 md:w-32">
-          <MicroCanvas api={microApi} />
-          <span className="absolute inset-0 rounded-full shadow-[inset_0_0_30px_rgb(0_0_0/0.7)]" />
-          <span className="absolute left-1/2 top-2 -translate-x-1/2 text-[9px] font-semibold tracking-widest text-white/70">×1000</span>
-        </div>
-      </div>
       {/* Étiquettes projetées depuis la scène */}
       <div className="pointer-events-none absolute inset-0">
         {LABELS.map((L, i) => (
