@@ -4,7 +4,7 @@
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUp, Linkedin, MapPin, Phone, Mail } from 'lucide-react';
-import { gsap, useGSAP, prefersReducedMotion } from '../lib/gsap';
+import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from '../lib/gsap';
 import { useLang } from '../i18n/LangProvider';
 import { useSite, useImage } from '../site/SiteProvider';
 import { horairesAffichage } from '../data/infos';
@@ -19,7 +19,13 @@ export default function Footer() {
   const img = useImage();
   const e = site.entreprise;
   const services = site.listes.services.filter((s) => s.visible !== false);
-  const toTop = () => { const l = getLenis(); if (l) l.scrollTo(0); else window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  // Retour en haut : en fin de course, ScrollTrigger est resynchronisé et le hero vérifie son état (voir reconcile)
+  const toTop = () => {
+    const done = () => { ScrollTrigger.update(); window.dispatchEvent(new Event('fi:scrolled-top')); };
+    const l = getLenis();
+    if (l) l.scrollTo(0, { onComplete: done });
+    else { window.scrollTo({ top: 0, behavior: 'smooth' }); setTimeout(done, 1200); }
+  };
   const ref = useRef(null);
   const onContact = path.replace(/\/$/, '') === '/contact';
   // Description : la marque animée remplace le nom en tête de phrase, le reste suit

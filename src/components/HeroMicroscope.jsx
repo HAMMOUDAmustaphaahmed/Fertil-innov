@@ -68,17 +68,19 @@ export default function HeroMicroscope() {
     // l'état de départ des animations à la position de défilement courante et figerait le hero à mi-plongée)
     const sizeEye = () => { const b = q('.hero-micro')[0]; if (b) ref.current.style.setProperty('--eye-d', `${(Math.hypot(b.clientWidth, b.clientHeight) / Math.SQRT2) * 3}px`); };
     sizeEye(); window.addEventListener('resize', sizeEye);
+    // Canvas, scène 3D et grossissement suivent la progression
+    const follow = (p) => {
+      micro.current?.set(p);
+      soil.current?.set(p);
+      orb.current?.set?.(p);
+      const k = Math.min(1, Math.max(0, (p - 0.06) / 0.7));
+      if (mag) mag.textContent = `×${fmt.format(Math.round(Math.pow(1000, k) / (k > 0.4 ? 10 : 1)) * (k > 0.4 ? 10 : 1))}`;
+    };
     const tl = gsap.timeline({
       defaults: { ease: 'none' },
       scrollTrigger: {
         trigger: ref.current, start: 'top top', end: 'bottom bottom', scrub: 0.6,
-        onUpdate: (self) => {
-          micro.current?.set(self.progress);
-          soil.current?.set(self.progress);
-          orb.current?.set?.(self.progress);
-          const k = Math.min(1, Math.max(0, (self.progress - 0.06) / 0.7));
-          if (mag) mag.textContent = `×${fmt.format(Math.round(Math.pow(1000, k) / (k > 0.4 ? 10 : 1)) * (k > 0.4 ? 10 : 1))}`;
-        },
+        onUpdate: (self) => follow(self.progress),
       },
     });
     tl.to(q('.h-content'), { opacity: 0, y: -70, filter: 'blur(10px)', duration: 0.12 }, 0.02)
@@ -108,7 +110,24 @@ export default function HeroMicroscope() {
         .to(el, { opacity: 0, y: -50, filter: 'blur(14px)', duration: 0.07, ease: 'power2.in' }, i < 2 ? CH_AT[i] + 0.15 : 0.93);
     });
     tl.set({}, {}, 1);
-    return () => { window.removeEventListener('fi:loader-done', play); window.removeEventListener('resize', sizeEye); };
+
+    // Garde-fou : quand le défilement traverse toute la scène d'un coup et s'arrête pile sur son début
+    // (bouton « Retour en haut », ancre, saut), le scrub de ScrollTrigger peut rester figé à l'ancienne
+    // position (champ zoomé ×7 et invisible). Dès que le défilement s'arrête, on recale la timeline sur la
+    // position réelle de la page (pas sur l'état interne de ScrollTrigger, qui peut lui aussi être resté figé).
+    let idle = 0;
+    const reconcile = () => {
+      const st = tl.scrollTrigger; if (!st || st.end <= st.start) return;
+      const target = Math.min(1, Math.max(0, (window.scrollY - st.start) / (st.end - st.start)));
+      if (Math.abs(tl.progress() - target) < 0.01) return;
+      st.getTween?.()?.kill();
+      gsap.to(tl, { progress: target, duration: 0.6, ease: 'power2.out', overwrite: true, onUpdate: () => follow(tl.progress()) });
+    };
+    const onScroll = () => { clearTimeout(idle); idle = setTimeout(reconcile, 180); };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('fi:scrolled-top', reconcile); // fin du bouton « Retour en haut »
+    const boot = setTimeout(reconcile, 600);
+    return () => { window.removeEventListener('fi:loader-done', play); window.removeEventListener('resize', sizeEye); window.removeEventListener('scroll', onScroll); window.removeEventListener('fi:scrolled-top', reconcile); clearTimeout(idle); clearTimeout(boot); };
   }, { scope: ref, dependencies: [lang] });
 
   const title = t('hero_titre');
@@ -119,7 +138,8 @@ export default function HeroMicroscope() {
       {/* Fenêtre sombre arrondie sous la barre de navigation : rien du hero n'est masqué par l'en-tête */}
       <div className="sticky top-[var(--header-h)] mx-2 sm:mx-3 h-[calc(100svh-var(--header-h)-0.5rem)] flex items-end overflow-hidden rounded-[28px] bg-fi-deep text-white">
         {/* Échelle macro : champ au couchant + lueur autour de la motte de terre vivante en 3D */}
-        <div aria-hidden className="hero-land absolute inset-0 will-change-transform">
+        {/* Pas de will-change ici : zoomé ×7, Chrome dégraderait la résolution du calque et la garderait au retour (champ flou) */}
+        <div aria-hidden className="hero-land absolute inset-0">
           <FieldCanvas />
           <div className="hero-atmo absolute inset-0" />
         </div>
