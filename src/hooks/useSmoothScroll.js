@@ -1,6 +1,6 @@
 // Défilement fluide (Lenis) synchronisé avec GSAP ScrollTrigger. Client uniquement.
 import { useEffect } from 'react';
-import { gsap, ScrollTrigger, prefersReducedMotion } from '../lib/gsap';
+import { gsap, ScrollTrigger, prefersReducedMotion, prefersLessMotion } from '../lib/gsap';
 
 let lenis = null;
 export const getLenis = () => lenis;
@@ -8,7 +8,7 @@ export function setScrollLocked(locked) { if (!lenis) return; locked ? lenis.sto
 
 export function useSmoothScroll() {
   useEffect(() => {
-    if (prefersReducedMotion() || window.matchMedia('(pointer: coarse)').matches) return undefined;
+    if (prefersReducedMotion() || prefersLessMotion() || window.matchMedia('(pointer: coarse)').matches) return undefined;
     let cancelled = false;
     let tick;
     const sync = () => ScrollTrigger.update();

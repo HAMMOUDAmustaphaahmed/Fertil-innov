@@ -1,7 +1,7 @@
 // GET /api/admin/overview — données du tableau de bord (demandes, stats, site).
 // POST /api/admin/overview { action: 'statut', numero, statut, note } — action rapide.
 import { json, error, readJson } from '../_lib/http.js';
-import { isAdmin } from '../_lib/admin.js';
+import { isAdmin, sameOrigin } from '../_lib/admin.js';
 import { executeChefTool } from '../_lib/chef.js';
 import { getSettings } from '../_lib/settings.js';
 import { providerInfo } from '../_lib/llm.js';
@@ -27,6 +27,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   if (!isAdmin(request)) return error(401, 'Non autorisé.');
+  if (!sameOrigin(request)) return error(403, 'Requête refusée.');
   const body = await readJson(request);
   try {
     if (body?.action === 'statut') return json(await call('update_lead_status', { numero: body.numero, statut: body.statut, note: body.note }));

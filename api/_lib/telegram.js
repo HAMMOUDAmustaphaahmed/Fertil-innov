@@ -6,6 +6,7 @@
 //  - commandes, boutons et actions inline → réponses immédiates SANS modèle ;
 //  - texte libre / photos → le Chef (IA), avec accusé de réception si c'est long.
 
+import { ESPACE_PATH } from '../../src/data/infos.js';
 import { env } from './env.js';
 import { store } from './store.js';
 import { checkPassword } from './admin.js';
@@ -58,6 +59,8 @@ export const BOT_COMMANDS = [
   { command: 'photos', description: '🖼 Photos du site' },
   { command: 'annuler', description: '↩️ Annuler la dernière modification' },
   { command: 'stats', description: '📊 Statistiques' },
+  { command: 'acces', description: '🔐 Identifiants de l’espace de pilotage' },
+  { command: 'ia', description: '🤖 Assistant IA : état, marche / arrêt' },
   { command: 'visiteurs', description: '💬 Ce que demandent les visiteurs' },
   { command: 'deploy', description: '🚀 Régénérer les pages SEO' },
   { command: 'reset', description: 'Nouvelle conversation' },
@@ -81,7 +84,7 @@ export const AIDE = `🌱 Le Chef — votre assistant
 ↩️ <b>Annuler</b> : « annule » ou /annuler revient en arrière (5 niveaux).
 🚀 /deploy régénère les pages pour Google après de gros changements (les visiteurs voient déjà tout).
 
-Commandes : /site /demandes /semaine /textes /couleurs /police /horaires /coordonnees /chiffres /services /formations /faq /blog /equipe /partenaires /realisations /activites /photos /annuler /stats /visiteurs /deploy /reset`;
+Commandes : /site /demandes /semaine /textes /couleurs /police /horaires /coordonnees /chiffres /services /formations /faq /blog /equipe /partenaires /realisations /activites /photos /annuler /stats /visiteurs /deploy /reset /acces /ia`;
 
 export function toTelegramHtml(text) {
   let t = String(text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -139,12 +142,57 @@ async function sendLeads(chatId, title, periode, opts = {}) {
 async function sendStats(chatId) {
   const { executeChefTool } = await chef();
   const st = JSON.parse((await executeChefTool('stats', { jours: 7 })).result);
-  const lines = ['📊 7 derniers jours', '', `Demandes : ${st.demandes_total}`];
+  const lines = ['📊 7 derniers jours', ''];
+  const au = st.audience;
+  if (au && !au.erreur) {
+    lines.push(`Audience : ${au.visites} visites · ${au.pages_vues} pages vues`);
+    const top = Object.entries(au.pages || {}).slice(0, 5);
+    if (top.length) { lines.push('Pages les plus vues :'); for (const [k, v] of top) lines.push(`• ${v} × ${k}`); }
+    const src = Object.entries(au.provenances || {}).slice(0, 5);
+    if (src.length) lines.push(`Provenance : ${src.map(([k, v]) => `${k} ${v}`).join(' · ')}`);
+    lines.push('');
+  }
+  lines.push(`Demandes : ${st.demandes_total}`);
   for (const [k, v] of Object.entries(st.par_type || {})) lines.push(`• ${v} × ${k}`);
   if (Object.keys(st.par_statut || {}).length) { lines.push('', 'Par statut :'); for (const [k, v] of Object.entries(st.par_statut)) lines.push(`• ${v} ${k}`); }
   if (Object.keys(st.par_service || {}).length) { lines.push('', 'Par service :'); for (const [k, v] of Object.entries(st.par_service)) lines.push(`• ${v} × ${k}`); }
   lines.push('', `Petit Pois : ${st.petit_pois.requetes} requêtes · ${Number(st.petit_pois.tokens).toLocaleString('fr-FR')} tokens`);
   return send(chatId, lines.join('\n'));
+}
+
+// Identifiants de l'espace de pilotage : le bot n'échange jamais de mot de passe dans la conversation.
+// Il envoie un lien à usage unique (15 min) vers une page du site où le propriétaire choisit identifiant et mot de passe.
+async function sendAcces(chatId, key, name, origin) {
+  const { createSetupToken, accountForChat } = await import('./vault.js');
+  const s = await getSettings();
+  const base = (env.siteUrl || origin || s.entreprise?.siteUrl || '').replace(/\/$/, '');
+  if (!base) return send(chatId, '⚠️ Adresse du site inconnue : définissez PUBLIC_SITE_URL sur le serveur.');
+  const acc = await accountForChat(key);
+  const token = await createSetupToken({ chatId: key, name });
+  // Le jeton est placé après « # » : cette partie de l'adresse n'est jamais envoyée au serveur ni écrite dans ses journaux.
+  const link = `${base}${ESPACE_PATH}#acces=${token}`;
+  const head = acc ? `🔐 <b>Espace de pilotage</b>\nIdentifiant actuel : <code>${acc.login}</code>${acc.lastLoginAt ? `\nDernière connexion : ${new Date(acc.lastLoginAt).toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}` : ''}\n\nPour changer d’identifiant ou de mot de passe :` : '🔐 <b>Espace de pilotage</b>\nVous n’avez pas encore d’identifiants.\n\nPour les créer :';
+  return tg('sendMessage', {
+    chat_id: chatId, parse_mode: 'HTML', disable_web_page_preview: true,
+    text: `${head}\n${link}\n\nLien personnel, valable 15 minutes, utilisable une seule fois. Ne le transférez à personne.\nEnsuite, connectez-vous sur ${base}${ESPACE_PATH} : je vous enverrai ici un code à chaque connexion.`,
+  });
+}
+
+// État de l'assistant IA et interrupteur d'urgence : « /ia », « /ia off », « /ia on ».
+async function sendIa(chatId, key, text) {
+  const { setAiEnabled, accountForChat } = await import('./vault.js');
+  const { ensureAi, invalidateAi } = await import('./ai.js');
+  const arg = text.replace(/^\/ia\s*/i, '').trim().toLowerCase();
+  if (['on', 'off', 'marche', 'arret', 'arrêt'].includes(arg)) {
+    const on = arg === 'on' || arg === 'marche';
+    const acc = await accountForChat(key);
+    await setAiEnabled(on, { login: acc?.login || 'Telegram' });
+    invalidateAi();
+    await broadcast(on ? '🟢 Petit Pois a été remis en marche (commande /ia on).' : '🔴 Petit Pois a été coupé (commande /ia off). Les visiteurs voient le lien de contact à la place.');
+    return undefined;
+  }
+  await ensureAi({ fresh: true });
+  return send(chatId, `🤖 Assistant IA : ${env.aiEnabled ? '🟢 en marche' : '🔴 coupé'}\nFournisseur : ${env.provider} · modèle : ${env.model}\nRéglages : ${env.aiSource}\n\n/ia off pour le couper, /ia on pour le remettre en marche.\nLa clé et le modèle se règlent dans l’espace de pilotage (/acces).`);
 }
 
 async function sendImages(chatId) {
@@ -217,7 +265,14 @@ async function handleCallback(cb) {
   }
 }
 
-export async function handleUpdate(update) {
+export async function handleUpdate(update, { origin = '' } = {}) {
+  // Sécurité : le bot ne répond qu'en conversation privée. Dans un groupe, tous les membres verraient les demandes
+  // des clients, les codes de connexion et pourraient modifier le site.
+  const chatOf = update?.callback_query?.message?.chat || update?.message?.chat || update?.edited_message?.chat;
+  if (chatOf && chatOf.type && chatOf.type !== 'private') {
+    if (update?.message?.text && /^\//.test(update.message.text)) await tg('sendMessage', { chat_id: chatOf.id, text: 'Pour des raisons de sécurité, je ne réponds qu’en conversation privée.' });
+    return;
+  }
   if (update?.callback_query) return handleCallback(update.callback_query);
   const msg = update?.message || update?.edited_message;
   if (!msg || !msg.chat) return;
@@ -261,6 +316,8 @@ export async function handleUpdate(update) {
     if (is('demandes', '📩 Demandes', '📩 Demandes à traiter')) return sendLeads(chatId, '📩 Demandes à traiter', 'toutes');
     if (is('semaine', '🗓 Cette semaine')) return sendLeads(chatId, '🗓 7 derniers jours', 'semaine', { tous_statuts: true });
     if (is('stats', '📊 Stats')) return sendStats(chatId);
+    if (is('acces') || cmd === 'accès') return sendAcces(chatId, key, name, origin);
+    if (is('ia')) return sendIa(chatId, key, text);
     const menuOf = async (fn) => { const m = await fn(); return tg('sendMessage', { chat_id: chatId, text: m.text, parse_mode: 'HTML', reply_markup: m.reply_markup }); };
     if (is('site', '🌐 Modifier le site', '⚙️ Site')) return menuOf(siteMenu);
     if (is('textes')) return menuOf(textesMenu);

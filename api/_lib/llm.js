@@ -8,33 +8,106 @@
 import Anthropic from '@anthropic-ai/sdk';
 import Groq from 'groq-sdk';
 import { env, assertEnv } from './env.js';
+import { ensureAi } from './ai.js';
+import { PROVIDERS, compatOf, checkBaseUrl } from './providers.js';
 
-let anthropic;
-let groq;
+// Clients recréés quand la clé change (elle peut être modifiée depuis l'espace de pilotage, sans redémarrage).
+let anthropic; let anthropicKey;
+let groq; let groqKey;
+function anthropicClient() {
+  if (!anthropic || anthropicKey !== env.anthropicKey) { anthropicKey = env.anthropicKey; anthropic = new Anthropic({ apiKey: anthropicKey }); }
+  return anthropic;
+}
+// Fournisseurs compatibles OpenAI : on réutilise le client Groq (même format d'échange) en redirigeant ses appels
+// vers l'adresse du fournisseur, et en adaptant les rares paramètres qui diffèrent d'un fournisseur à l'autre.
+function compatFetch(compat) {
+  return async (url, init = {}) => {
+    const path = String(url).replace(/^https?:\/\/[^/]+\/openai\/v1/, '');
+    let body = init.body;
+    if (typeof body === 'string' && body.startsWith('{')) {
+      try {
+        const j = JSON.parse(body);
+        delete j.reasoning_effort; // propre à certains modèles Groq
+        if (compat.tokenParam === 'max_tokens' && j.max_completion_tokens !== undefined) { j.max_tokens = j.max_completion_tokens; delete j.max_completion_tokens; }
+        if (j.stream) j.stream_options = { include_usage: true }; // consommation de tokens en fin de flux
+        body = JSON.stringify(j);
+      } catch { /* corps inchangé */ }
+    }
+    return fetch(`${compat.baseUrl}${path}`, { ...init, body });
+  };
+}
+function openAiClient({ apiKey, compat, maxRetries = 3, timeout }) {
+  return new Groq({ apiKey, maxRetries, ...(timeout ? { timeout } : {}), ...(compat && !compat.groq ? { fetch: compatFetch(compat) } : {}) });
+}
+function groqClient() {
+  const sig = `${env.groqKey}|${env.compat?.baseUrl || ''}`;
+  if (!groq || groqKey !== sig) { groqKey = sig; groq = openAiClient({ apiKey: env.groqKey, compat: env.compat }); }
+  return groq;
+}
+
+const PING_TOOL = [{ type: 'function', function: { name: 'ping', description: 'Outil de test : à appeler une fois.', parameters: { type: 'object', properties: { ok: { type: 'boolean' } }, required: ['ok'] } } }];
 
 /**
- * Rend « nullable » toutes les propriétés facultatives d'un schéma d'outil : les modèles
- * renvoient souvent null pour un champ qu'ils ne connaissent pas, et Groq rejette alors
- * tout l'appel (tool_use_failed) — ce qui laissait la conversation sans réponse.
+ * Essai réel d'un réglage (fournisseur, clé, modèle) avant de l'enregistrer. Ne lève jamais.
+ * Deux vérifications : le modèle répond, et il sait appeler un outil — indispensable à Petit Pois, qui
+ * enregistre les demandes de devis par un appel d'outil.
  */
-export function nullableOptionals(tools) {
-  const fix = (schema) => {
-    if (!schema || typeof schema !== 'object') return schema;
-    const req = new Set(schema.required || []);
-    if (schema.properties) {
-      for (const [k, p] of Object.entries(schema.properties)) {
-        if (p && typeof p.type === 'string' && !req.has(k) && p.type !== 'null') p.type = [p.type, 'null'];
-        if (p?.type === 'object' || (Array.isArray(p?.type) && p.type.includes('object'))) fix(p);
-        if (p?.items) fix(p.items);
-      }
+export async function probe({ provider, apiKey, model, baseUrl }) {
+  const t0 = Date.now();
+  try {
+    let reply; let tools = false;
+    if (PROVIDERS[provider]?.format === 'anthropic') {
+      const client = new Anthropic({ apiKey, maxRetries: 0, timeout: 25_000 });
+      const res = await client.messages.create({ model, max_tokens: 30, messages: [{ role: 'user', content: 'Réponds par un seul mot : prêt' }] });
+      reply = res.content.find((b) => b.type === 'text')?.text || '';
+      tools = true; // tous les modèles Claude savent appeler des outils
+    } else {
+      const compat = compatOf(provider, baseUrl);
+      if (!compat) return { ok: false, ms: 0, erreur: checkBaseUrl(baseUrl).erreur || 'Fournisseur inconnu.' };
+      const client = openAiClient({ apiKey, compat, maxRetries: 0, timeout: 25_000 });
+      const extra = compat.groq && isReasoningModel(model) ? { reasoning_effort: 'low' } : {};
+      const res = await client.chat.completions.create({ model, max_completion_tokens: 200, temperature: 0, messages: [{ role: 'user', content: 'Réponds par un seul mot : prêt' }], ...extra });
+      reply = res.choices?.[0]?.message?.content || '';
+      try {
+        const r2 = await client.chat.completions.create({ model, max_completion_tokens: 300, temperature: 0, tools: PING_TOOL, tool_choice: 'auto', messages: [{ role: 'user', content: 'Appelle l’outil ping avec ok = true. Ne réponds rien d’autre.' }], ...extra });
+        tools = (r2.choices?.[0]?.message?.tool_calls || []).some((c) => c.function?.name === 'ping');
+      } catch { tools = false; }
     }
-    return schema;
-  };
-  return tools.map((t) => ({ ...t, input_schema: fix(JSON.parse(JSON.stringify(t.input_schema))) }));
+    const ms = Date.now() - t0;
+    if (!tools) return { ok: false, ms, reply: String(reply).trim().slice(0, 80), erreur: 'Ce modèle répond, mais il ne sait pas appeler d’outils : Petit Pois ne pourrait pas enregistrer les demandes de devis. Choisissez un autre modèle.' };
+    return { ok: true, ms, reply: String(reply).trim().slice(0, 80), outils: true };
+  } catch (e) {
+    const status = e?.status;
+    const why = status === 401 || status === 403 ? 'Clé refusée par le fournisseur.' : status === 404 ? 'Modèle ou adresse introuvable chez ce fournisseur.' : status === 429 ? 'Quota du fournisseur atteint (ou crédit épuisé).' : (e?.message || 'Erreur inconnue').slice(0, 160);
+    return { ok: false, ms: Date.now() - t0, erreur: why, statut: status || null };
+  }
+}
+
+/** Modèles réellement disponibles chez le fournisseur pour cette clé (liste demandée au fournisseur). Ne lève jamais. */
+export async function listModels({ provider, apiKey, baseUrl }) {
+  try {
+    const ctl = AbortSignal.timeout(15_000);
+    let url; let headers;
+    if (PROVIDERS[provider]?.format === 'anthropic') { url = 'https://api.anthropic.com/v1/models?limit=100'; headers = { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' }; }
+    else {
+      const compat = compatOf(provider, baseUrl);
+      if (!compat) return { ok: false, erreur: checkBaseUrl(baseUrl).erreur || 'Fournisseur inconnu.' };
+      url = `${compat.baseUrl}/models`; headers = { authorization: `Bearer ${apiKey}` };
+    }
+    const r = await fetch(url, { headers, signal: ctl });
+    if (!r.ok) return { ok: false, erreur: r.status === 401 || r.status === 403 ? 'Clé refusée par le fournisseur.' : `Le fournisseur a répondu ${r.status}.` };
+    const j = await r.json();
+    const list = (Array.isArray(j) ? j : j.data || j.models || []).map((m) => String(m.id || m.name || '').replace(/^models\//, '')).filter(Boolean);
+    // Les modèles qui ne servent pas à converser (images, voix, vecteurs, modération) sont écartés.
+    const chat = list.filter((id) => !/embed|whisper|tts|audio|image|dall-e|moderation|rerank|guard|vision-preview|transcribe|speech|imagen|veo|aqa/i.test(id));
+    return { ok: true, modeles: [...new Set(chat)].sort().slice(0, 300) };
+  } catch (e) {
+    return { ok: false, erreur: (e?.message || 'Erreur inconnue').slice(0, 160) };
+  }
 }
 
 export function providerInfo() {
-  return { provider: env.provider, model: env.model, guardModel: env.guardModel };
+  return { provider: env.providerId || env.provider, label: PROVIDERS[env.providerId || env.provider]?.label || env.provider, model: env.model, guardModel: env.guardModel, source: env.aiSource, enabled: env.aiEnabled };
 }
 
 /**
@@ -48,6 +121,7 @@ export function providerInfo() {
  * @returns {Promise<{content: Array, stop_reason: string, usage: object}>}
  */
 export async function runTurn(p) {
+  await ensureAi();
   if (env.provider !== 'groq') return anthropicTurn(p);
   const primary = p.model || env.model;
   try {
@@ -65,10 +139,10 @@ export async function runTurn(p) {
 
 /** Réponse courte non streamée (filtre de périmètre). */
 export async function complete({ system, user, maxTokens = 10, model }) {
+  await ensureAi();
   if (env.provider === 'groq') {
     assertEnv(['groqKey']);
-    groq ||= new Groq({ apiKey: env.groqKey, maxRetries: 3 });
-    const res = await groq.chat.completions.create({
+    const res = await groqClient().chat.completions.create({
       model: model || env.guardModel,
       max_completion_tokens: maxTokens,
       temperature: 0,
@@ -78,8 +152,7 @@ export async function complete({ system, user, maxTokens = 10, model }) {
     return res.choices?.[0]?.message?.content || '';
   }
   assertEnv(['anthropicKey']);
-  anthropic ||= new Anthropic({ apiKey: env.anthropicKey });
-  const res = await anthropic.messages.create({
+  const res = await anthropicClient().messages.create({
     model: model || env.guardModel,
     max_tokens: maxTokens,
     system,
@@ -94,7 +167,7 @@ export async function complete({ system, user, maxTokens = 10, model }) {
 async function anthropicTurn(p) {
   const { system, tools, messages, maxTokens, onText } = p;
   assertEnv(['anthropicKey']);
-  anthropic ||= new Anthropic({ apiKey: env.anthropicKey });
+  const anthropic = anthropicClient();
 
   // Deuxième point de cache : fin du dernier tour assistant, pour que la
   // conversation précédente soit relue depuis le cache au tour suivant.
@@ -166,7 +239,7 @@ async function groqTurn(p) {
   const { system, tools, messages, maxTokens, onText } = p;
   const model = p.model || env.model;
   assertEnv(['groqKey']);
-  groq ||= new Groq({ apiKey: env.groqKey, maxRetries: 3 }); // 3 essais avec attente, puis repli sur un autre modèle (runTurn)
+  const groq = groqClient(); // 3 essais avec attente, puis repli sur un autre modèle (runTurn)
 
   const stream = await groq.chat.completions.create({
     model,

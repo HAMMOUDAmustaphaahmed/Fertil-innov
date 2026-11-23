@@ -7,7 +7,7 @@
 //  - sections sombres : s'ouvrent comme une carte qui prend toute la largeur
 // Exclusions : hero d'accueil (.hero-scene), éléments [data-fx-off], contenus « sticky ».
 import { useEffect } from 'react';
-import { gsap, ScrollTrigger, prefersReducedMotion } from '../lib/gsap';
+import { gsap, ScrollTrigger, prefersReducedMotion, prefersLessMotion } from '../lib/gsap';
 import { rafThrottle } from '../lib/raf';
 
 const SKIP = '.hero-scene, [data-fx-off], .marquee, [class*="sticky"]';
@@ -42,7 +42,7 @@ export function usePageFx(ref) {
         });
         // Parallaxe seulement si le parent rogne et que l'image n'a pas déjà un zoom au survol
         const parent = img.parentElement;
-        if (parent && getComputedStyle(parent).overflow === 'hidden' && !/scale/.test(img.className)) {
+        if (!prefersLessMotion() && parent && getComputedStyle(parent).overflow === 'hidden' && !/scale/.test(img.className)) {
           gsap.fromTo(img, { yPercent: -6, scale: 1.14 }, { yPercent: 6, scale: 1.14, ease: 'none', scrollTrigger: { trigger: parent, start: 'top bottom', end: 'bottom top', scrub: true } });
         }
       });

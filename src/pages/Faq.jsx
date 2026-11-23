@@ -2,7 +2,7 @@
 // puis les fiches pédagogiques du guide (chacune garde son ancre et renvoie vers un service).
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import { ChevronDown, ArrowRight } from 'lucide-react';
 import SEO from '../components/SEO';
 import Icon from '../components/Icons';
@@ -59,9 +59,9 @@ export default function Faq() {
                   {/* La réponse reste dans le HTML (hidden) pour Google et les IA */}
                   <AnimatePresence initial={false}>
                     {isOpen && (
-                      <motion.div key="a" id={`faq-${f.id}`} initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }} className="overflow-hidden">
+                      <m.div key="a" id={`faq-${f.id}`} initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }} className="overflow-hidden">
                         <p className="px-5 md:px-6 pb-6 pl-[4.25rem] md:pl-[4.5rem] leading-relaxed text-fi-text/80 whitespace-pre-line">{L(f.reponse)}</p>
-                      </motion.div>
+                      </m.div>
                     )}
                   </AnimatePresence>
                   {!isOpen && <p hidden>{L(f.reponse)}</p>}

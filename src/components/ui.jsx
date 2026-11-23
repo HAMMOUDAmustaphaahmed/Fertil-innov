@@ -1,7 +1,7 @@
 // Petits composants partagés : en-têtes de section, compteurs animés, bandeau
 // partenaires, en-tête des pages intérieures, pastille ouvert/fermé.
 import { useEffect, useRef, useState } from 'react';
-import { gsap, useGSAP, prefersReducedMotion } from '../lib/gsap';
+import { gsap, useGSAP, prefersReducedMotion, prefersLessMotion } from '../lib/gsap';
 import { useLang } from '../i18n/LangProvider';
 import { useSite, imgSrc } from '../site/SiteProvider';
 import { isOpenNow } from '../data/infos';
@@ -76,7 +76,7 @@ export function PageHero({ title, text, children, image, kicker, variant }) {
     const st = { trigger: ref.current, start: 'top top', end: 'bottom top', scrub: true };
     if (q('.ph-img').length) {
       gsap.fromTo(q('.ph-img'), { scale: 1.25 }, { scale: 1.08, duration: 2.4, ease: 'power2.out' });
-      gsap.to(q('.ph-img'), { yPercent: 14, ease: 'none', scrollTrigger: st });
+      if (!prefersLessMotion()) gsap.to(q('.ph-img'), { yPercent: 14, ease: 'none', scrollTrigger: st });
     }
     gsap.to(q('.ph-ring'), { rotate: 120, ease: 'none', scrollTrigger: st });
     gsap.to(q('.ph-art'), { yPercent: 12, ease: 'none', scrollTrigger: { ...st, onUpdate: (self) => ref.current?.style.setProperty('--ph-p', self.progress.toFixed(3)) } });

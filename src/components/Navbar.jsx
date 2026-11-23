@@ -3,7 +3,7 @@
 // menu mobile plein écran avec liens numérotés en cascade.
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion, useScroll, useSpring } from 'framer-motion';
+import { AnimatePresence, m, useScroll, useSpring } from 'framer-motion';
 import { ChevronDown, ArrowRight, ArrowUpRight } from 'lucide-react';
 import { useLang, LANG_LABEL, localePath } from '../i18n/LangProvider';
 import { useSite, useImage } from '../site/SiteProvider';
@@ -57,7 +57,7 @@ function LangSwitch() {
       </button>
       <AnimatePresence>
         {open && (
-          <motion.ul role="listbox" initial={{ opacity: 0, y: -8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.96 }} transition={{ duration: 0.2, ease: EASE }}
+          <m.ul role="listbox" initial={{ opacity: 0, y: -8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.96 }} transition={{ duration: 0.2, ease: EASE }}
             className="absolute right-0 mt-3 w-44 origin-top-right rounded-2xl bg-white/95 backdrop-blur-xl shadow-leaf border border-white p-1.5 z-50">
             {LANGS.map((l) => (
               <li key={l} role="option" aria-selected={l === lang}>
@@ -67,7 +67,7 @@ function LangSwitch() {
                 </Link>
               </li>
             ))}
-          </motion.ul>
+          </m.ul>
         )}
       </AnimatePresence>
     </div>
@@ -117,7 +117,7 @@ export default function Navbar() {
 
   return (
     <>
-      <motion.div aria-hidden className="fixed left-0 right-0 top-0 z-[45] h-[3px] origin-left bg-gradient-to-r from-fi-loam via-fi-accent to-fi-primary" style={{ scaleX: progress }} />
+      <m.div aria-hidden className="fixed left-0 right-0 top-0 z-[45] h-[3px] origin-left bg-gradient-to-r from-fi-loam via-fi-accent to-fi-primary" style={{ scaleX: progress }} />
       <header className="fixed inset-x-0 top-0 z-40 pointer-events-none" style={{ height: 'var(--header-h)' }}>
         <a href="#main-content" className="pointer-events-auto sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-white focus:px-4 focus:py-2 focus:text-fi-dark">{lang === 'fr' ? 'Aller au contenu' : lang === 'en' ? 'Skip to content' : 'Ir al contenido'}</a>
         <div className={`px-2.5 sm:px-4 transition-[padding] duration-500 ${scrolled ? 'pt-1.5' : 'pt-2.5'}`}>
@@ -131,7 +131,7 @@ export default function Navbar() {
                 <NavLink key={to} to={p(to)} className={({ isActive }) => `group relative rounded-full px-3 py-2 text-[0.86rem] font-medium transition-colors ${isActive ? 'text-fi-dark' : 'text-fi-text/75 hover:text-fi-dark'}`}>
                   {({ isActive }) => (
                     <>
-                      {isActive && <motion.span layoutId="nav-active" className="absolute inset-0 rounded-full bg-white shadow-[0_4px_18px_-8px_rgb(var(--fi-primary)/0.6)]" transition={{ type: 'spring', stiffness: 380, damping: 32 }} />}
+                      {isActive && <m.span layoutId="nav-active" className="absolute inset-0 rounded-full bg-white shadow-[0_4px_18px_-8px_rgb(var(--fi-primary)/0.6)]" transition={{ type: 'spring', stiffness: 380, damping: 32 }} />}
                       <span className="relative">{t(key)}</span>
                       {!isActive && <span aria-hidden className="absolute bottom-1 left-3 right-3 h-px origin-left scale-x-0 bg-fi-primary transition-transform duration-300 group-hover:scale-x-100" />}
                     </>
@@ -159,30 +159,30 @@ export default function Navbar() {
 
       <AnimatePresence>
         {open && (
-          <motion.nav id="mobile-nav" aria-label="Navigation mobile" data-lenis-prevent
+          <m.nav id="mobile-nav" aria-label="Navigation mobile" data-lenis-prevent
             initial={{ clipPath: 'circle(0% at 100% 0%)' }} animate={{ clipPath: 'circle(150% at 100% 0%)' }} exit={{ clipPath: 'circle(0% at 100% 0%)' }} transition={{ duration: 0.7, ease: [0.76, 0, 0.24, 1] }}
             className="xl:hidden fixed inset-0 z-[39] overflow-y-auto bg-gradient-to-br from-[#efe3d0] via-fi-mint to-white"
             style={{ paddingTop: 'calc(var(--header-h) + 1rem)', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
             <svg aria-hidden className="pointer-events-none absolute -right-24 bottom-10 h-[70vmin] w-[70vmin] text-fi-primary/10" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="0.4">
               <circle cx="50" cy="50" r="48" /><circle cx="50" cy="50" r="36" strokeDasharray="1 3" /><circle cx="50" cy="50" r="22" />
             </svg>
-            <motion.ul className="wrap relative flex flex-col" initial="hide" animate="show" exit="hide"
+            <m.ul className="wrap relative flex flex-col" initial="hide" animate="show" exit="hide"
               variants={{ show: { transition: { staggerChildren: 0.045, delayChildren: 0.25 } }, hide: { transition: { staggerChildren: 0.02, staggerDirection: -1 } } }}>
               {[{ to: '/', key: 'nav_accueil', end: true }, ...LINKS].map(({ to, key, end }, i) => (
-                <motion.li key={to} variants={{ hide: { opacity: 0, y: 28 }, show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE } } }} className="border-b border-fi-dark/10">
+                <m.li key={to} variants={{ hide: { opacity: 0, y: 28 }, show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE } } }} className="border-b border-fi-dark/10">
                   <NavLink to={p(to)} end={end} className={({ isActive }) => `group flex items-baseline gap-4 py-3.5 font-display text-[1.9rem] leading-none tracking-tight transition-colors ${isActive ? 'text-fi-primary' : 'text-fi-dark'}`}>
                     <span className="w-7 text-xs font-sans font-semibold tabular-nums text-fi-primary/60">{String(i).padStart(2, '0')}</span>
                     {t(key)}
                     <ArrowRight size={20} aria-hidden className="ml-auto self-center opacity-30 transition-transform group-active:translate-x-1" />
                   </NavLink>
-                </motion.li>
+                </m.li>
               ))}
-              <motion.li variants={{ hide: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }} className="mt-8 grid gap-3 sm:grid-cols-2">
+              <m.li variants={{ hide: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }} className="mt-8 grid gap-3 sm:grid-cols-2">
                 <Link to={p('/contact')} className="btn-primary w-full">{t('nav_bouton')}</Link>
                 <button type="button" onClick={() => { setOpen(false); openPois(); }} className="btn-ghost w-full">{t('hero_bouton_2')}</button>
-              </motion.li>
-            </motion.ul>
-          </motion.nav>
+              </m.li>
+            </m.ul>
+          </m.nav>
         )}
       </AnimatePresence>
     </>

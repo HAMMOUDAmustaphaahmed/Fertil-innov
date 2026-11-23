@@ -25,6 +25,10 @@ export const ENTREPRISE = {
 // Horaires : [ouverture, fermeture] en heures décimales, null = fermé. Index = getDay() (0 = dimanche).
 export const HORAIRES_SEMAINE = { 0: null, 1: [8, 18], 2: [8, 18], 3: [8, 18], 4: [8, 18], 5: [8, 18], 6: null };
 
+// Adresse de l'espace propriétaire (connexion, tableau de bord, réglages de l'IA). Pour la changer : modifier cette
+// valeur, puis les deux endroits qui ne peuvent pas l'importer — index.html (script du loader) et public/robots.txt.
+export const ESPACE_PATH = '/pilotage';
+
 export const LANGS = ['fr', 'en', 'es'];
 export const DEFAULT_LANG = 'fr';
 

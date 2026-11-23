@@ -47,6 +47,17 @@ function supabaseStore() {
       if (error) console.error('refund_turn', error.message);
     },
     bumpCounter: (key, windowSeconds) => rpc('bump_counter', { p_key: key, p_window_seconds: windowSeconds }),
+    // Compteurs dont la clé est comprise entre deux bornes (mesure d'audience : « pv:<jour>… »), lus par pages de 1000.
+    async listCounters(fromKey, toKey) {
+      const out = [];
+      for (let start = 0; start < 20000; start += 1000) {
+        const { data, error } = await t('counters').select('key,count').gte('key', fromKey).lte('key', toKey).order('key').range(start, start + 999);
+        if (error) throw error;
+        out.push(...data);
+        if (data.length < 1000) break;
+      }
+      return out;
+    },
     async addUsage(u) {
       try {
         await rpc('add_usage', { p_input: u.input_tokens || 0, p_cache_read: u.cache_read_input_tokens || 0, p_cache_write: u.cache_creation_input_tokens || 0, p_output: u.output_tokens || 0 });
@@ -151,6 +162,19 @@ function supabaseStore() {
       const { error } = await t('site_settings').upsert({ id: 'main', data, updated_at: new Date().toISOString() });
       if (error) throw error;
     },
+    // Lignes privées de la table de configuration (coffre de l'espace de pilotage : voir vault.js).
+    // Jamais « main » : cette ligne-là est la configuration publique du site.
+    async getPrivate(id) {
+      if (id === 'main') throw new Error('Ligne réservée.');
+      const { data, error } = await t('site_settings').select('data').eq('id', id).maybeSingle();
+      if (error) throw error;
+      return data?.data || null;
+    },
+    async savePrivate(id, data) {
+      if (id === 'main') throw new Error('Ligne réservée.');
+      const { error } = await t('site_settings').upsert({ id, data, updated_at: new Date().toISOString() });
+      if (error) throw error;
+    },
     // Fichier public (images du site). Crée le bucket au premier usage.
     async uploadPublicFile(path, buffer, contentType) {
       const bucket = env.storageBucket;
@@ -171,7 +195,7 @@ function supabaseStore() {
 function memoryStore() {
   const sessions = new Map(); const messages = new Map(); const counters = new Map();
   const leads = new Map(); const chefChats = new Map(); const chefMsgs = new Map();
-  let settings = null; const usage = { tokens: 0, day: '' }; let nextId = 1;
+  let settings = null; const usage = { tokens: 0, day: '' }; let nextId = 1; const priv = new Map();
   const today = () => new Date().toISOString().slice(0, 10);
   return {
     kind: 'memory',
@@ -181,6 +205,7 @@ function memoryStore() {
     async refundTurn(id) { const s = sessions.get(id); if (s && s.message_count > 0) s.message_count -= 1; },
     async addStrike(id, limit) { const s = sessions.get(id); s.offtopic_count = (s.offtopic_count || 0) + 1; if (s.offtopic_count >= limit) s.status = 'blocked'; return s.offtopic_count; },
     async bumpCounter(key, windowSeconds) { const now = Date.now(); const c = counters.get(key); if (!c || now - c.start > windowSeconds * 1000) { counters.set(key, { count: 1, start: now }); return 1; } c.count += 1; return c.count; },
+    async listCounters(fromKey, toKey) { return [...counters.entries()].filter(([k]) => k >= fromKey && k <= toKey).map(([key, c]) => ({ key, count: c.count })); },
     async addUsage(u) { if (usage.day !== today()) { usage.day = today(); usage.tokens = 0; } usage.tokens += (u.input_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0) + (u.output_tokens || 0); },
     async todayTokens() { return usage.day === today() ? usage.tokens : 0; },
     async saveMessage(sessionId, row) { if (!messages.has(sessionId)) messages.set(sessionId, []); messages.get(sessionId).push({ id: nextId++, role: row.role, kind: row.kind, content: row.content, display_text: row.displayText ?? null, meta: row.meta ?? null, created_at: new Date().toISOString() }); },
@@ -201,6 +226,8 @@ function memoryStore() {
     async clearChefMessages(chatId) { chefMsgs.delete(chatId); },
     async getSettings() { return settings; },
     async saveSettings(data) { settings = data; },
+    async getPrivate(id) { return priv.has(id) ? JSON.parse(priv.get(id)) : null; },
+    async savePrivate(id, data) { priv.set(id, JSON.stringify(data)); },
     async uploadPublicFile() { throw new Error("Le stockage d'images nécessite Supabase (SUPABASE_URL)."); },
   };
 }

@@ -8,7 +8,9 @@ export default defineConfig(({ isSsrBuild }) => ({
     rollupOptions: isSsrBuild ? {} : {
       output: {
         manualChunks: {
-          motion: ['framer-motion', 'gsap', '@gsap/react'],
+          // Framer Motion n'est plus regroupé ici : son cœur léger reste avec l'application, ses fonctions
+          // d'animation (src/lib/motion-features.js) partent dans un fichier chargé à part.
+          motion: ['gsap', '@gsap/react'],
           vendor: ['react', 'react-dom', 'react-router-dom', 'react-helmet-async'],
         },
       },

@@ -1,0 +1,88 @@
+# Fertil'Innov Environnement — hébergement Apache (hébergeur mutualisé classique).
+# Copié dans dist/ par « npm run build:apache » ; le contenu de dist/ est ensuite déposé à la racine du site.
+# Équivalent des règles de vercel.json : adresses propres, redirections, en-têtes de sécurité, cache.
+#
+# Ce fichier sert les PAGES. Les fonctions /api/* (Petit Pois, formulaire de contact, espace propriétaire,
+# mesure d'audience) ont besoin de Node.js — trois possibilités, voir README « Hébergement hors Vercel » :
+#   A. l'hébergeur fait tourner Node (server.mjs / app.cjs) : c'est lui qui sert tout, ce fichier est inutile ;
+#   B. Apache sert les pages et transmet /api/* à un serveur Node ou à Vercel : décommenter le bloc « API » ;
+#   C. pages seules : le site s'affiche, mais le chat et le formulaire ne répondent pas.
+
+Options -MultiViews -Indexes
+DirectorySlash Off
+AddDefaultCharset utf-8
+
+<IfModule mod_mime.c>
+  AddType font/woff2 .woff2
+  AddType image/webp .webp
+  AddType application/manifest+json .webmanifest
+  AddType text/javascript .js .mjs
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # --- API (possibilité B) : transmettre /api/* à Node ou à Vercel. Nécessite mod_proxy autorisé par l'hébergeur. ---
+  # Serveur Node sur la même machine :
+  # RewriteRule ^api/(.*)$ http://127.0.0.1:3000/api/$1 [P,L]
+  # Fonctions restées sur Vercel :
+  # RewriteRule ^api/(.*)$ https://fertil-innov.vercel.app/api/$1 [P,L]
+
+  # --- Redirections (anciennes adresses du site WordPress, ancien « Guide des sols ») ---
+  RewriteRule ^en/homepage/?$ /en [R=301,L]
+  RewriteRule ^en/contact-us/?$ /en/contact [R=301,L]
+  RewriteRule ^sols/?$ /faq#guide [R=301,NE,L]
+  RewriteRule ^(en|es)/sols/?$ /$1/faq#guide [R=301,NE,L]
+
+  # --- Adresses propres : /services/index.html et /services.html → /services ---
+  RewriteCond %{THE_REQUEST} \s/+(.*?)/?index\.html[\s?] [NC]
+  RewriteRule ^ /%1 [R=301,L]
+  RewriteCond %{THE_REQUEST} \s/+(.+)\.html[\s?] [NC]
+  RewriteRule ^ /%1 [R=301,L]
+
+  # --- Pas de « / » final : /services/ → /services ---
+  RewriteCond %{REQUEST_URI} ^(.+)/$
+  RewriteRule ^ %1 [R=301,L]
+
+  # --- Page pré-rendue : /services → /services/index.html (sans changer l'adresse affichée) ---
+  RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI}/index.html -f
+  RewriteRule ^(.+)$ /$1/index.html [L]
+
+  # --- Adresse inconnue (sans extension, hors /api) : l'application affiche sa page « introuvable » ---
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_URI} !^/api/
+  RewriteCond %{REQUEST_URI} !\.[A-Za-z0-9]{2,5}$
+  RewriteRule ^ /index.html [L]
+</IfModule>
+
+# Fichiers cachés (.htaccess, .env…) jamais servis
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+
+<IfModule mod_headers.c>
+  # Sécurité (identique à vercel.json)
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  Header always set Content-Security-Policy "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
+  Header always set X-Frame-Options "DENY"
+  Header always set Cross-Origin-Opener-Policy "same-origin"
+  # HTTPS obligatoire pendant un an (à activer une fois le certificat en place) :
+  # Header always set Strict-Transport-Security "max-age=31536000"
+
+  # Toute autre adresse que le domaine officiel (sous-domaine de test…) n'est pas indexée par Google
+  Header always set X-Robots-Tag "noindex, nofollow" "expr=%{HTTP_HOST} != 'www.fertilinnov-environnement.com'"
+
+  # Cache : pages toujours revalidées ; fichiers /assets, /images, /fonts gardés un an
+  Header set Cache-Control "public, max-age=0, must-revalidate"
+  Header set Cache-Control "public, max-age=31536000, immutable" "expr=%{REQUEST_URI} =~ m#^/(assets|images|fonts)/#"
+</IfModule>
+
+# Compression des fichiers texte
+<IfModule mod_brotli.c>
+  AddOutputFilterByType BROTLI_COMPRESS text/html text/css text/javascript application/javascript application/json application/xml application/manifest+json image/svg+xml text/plain
+</IfModule>
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json application/xml application/manifest+json image/svg+xml text/plain
+</IfModule>

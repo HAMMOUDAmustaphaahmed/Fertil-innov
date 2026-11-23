@@ -7,6 +7,7 @@
 //   7. filtre de périmètre (petit modèle) → réponse fixe sans appeler Petit Pois si hors sujet
 // Les compteurs vivent en base : ni le refresh ni la navigation privée ne les remettent à zéro.
 
+import { ensureAi } from './_lib/ai.js';
 import { env, assertEnv } from './_lib/env.js';
 import { error, readJson, getIp, hashIp, siteOrigin } from './_lib/http.js';
 import { resolveSession, remainingFor } from './_lib/session.js';
@@ -40,6 +41,9 @@ function sse(events, setCookie) {
 
 export async function POST(request) {
   try {
+    await ensureAi();
+    // Assistant coupé depuis l'espace de pilotage : le widget affiche son message « indisponible » et le lien de contact.
+    if (!env.aiEnabled) return error(503, '', { code: 'budget' });
     assertEnv([env.provider === 'groq' ? 'groqKey' : 'anthropicKey']);
     const body = await readJson(request);
     const lang = LANGS.includes(body?.lang) ? body.lang : 'fr';

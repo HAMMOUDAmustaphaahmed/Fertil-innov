@@ -7,6 +7,7 @@
 
 import { store } from './store.js';
 import { env } from './env.js';
+import { audienceSince } from './audience.js';
 import { runTurn, looksLikeFakeAction, NUDGE_TEXT, nullableOptionals } from './llm.js';
 import { STATUS_LABEL, LEAD_STATUS, LEAD_TYPES, TYPE_LABEL } from './leads.js';
 import { sendCustomEmail } from './emails.js';
@@ -40,7 +41,7 @@ const RAW_CHEF_TOOLS = [
   { name: 'get_lead', description: "Détail d'une demande (FI-XXXXXX).", input_schema: { type: 'object', properties: { numero: { type: 'string' } }, required: ['numero'], additionalProperties: false } },
   { name: 'update_lead_status', description: `Change le statut d'une demande (${LEAD_STATUS.join('|')}) et/ou ajoute une note interne. perdue = confirmation requise.`, input_schema: { type: 'object', properties: { numero: { type: 'string' }, statut: { type: 'string', enum: LEAD_STATUS }, note: { type: 'string' } }, required: ['numero'], additionalProperties: false } },
   { name: 'send_email_to_client', description: 'Email à un client (numero de demande ou email). Après « oui » explicite. La langue du client est reprise de sa demande.', input_schema: { type: 'object', properties: { numero: { type: 'string' }, email: { type: 'string' }, sujet: { type: 'string' }, message: { type: 'string', description: 'texte complet, signé par l’entreprise' } }, required: ['sujet', 'message'], additionalProperties: false } },
-  { name: 'stats', description: 'Statistiques sur N jours (demandes par type/statut/service, activité de Petit Pois).', input_schema: { type: 'object', properties: { jours: { type: 'integer' } }, additionalProperties: false } },
+  { name: 'stats', description: 'Statistiques sur N jours : audience du site (visites, pages vues, pages les plus vues, provenances, appareils ; mesure sans cookie), demandes par type/statut/service, activité de Petit Pois.', input_schema: { type: 'object', properties: { jours: { type: 'integer' } }, additionalProperties: false } },
   { name: 'customer_insights', description: 'Derniers messages des visiteurs à Petit Pois (pour synthèse des besoins).', input_schema: { type: 'object', properties: { jours: { type: 'integer' } }, additionalProperties: false } },
   { name: 'get_settings', description: 'Configuration actuelle du site (résumé).', input_schema: { type: 'object', properties: {}, additionalProperties: false } },
   { name: 'set_info', description: 'Nom, nom court, slogan (français, traduit automatiquement), coordonnées, LinkedIn, GPS, laboratoire. Ne passer que les champs à changer.', input_schema: { type: 'object', properties: { nom: { type: 'string' }, nomCourt: { type: 'string' }, slogan: { type: 'string' }, adresse: { type: 'string' }, codePostal: { type: 'string' }, ville: { type: 'string' }, telephone: { type: 'string' }, mobile: { type: 'string' }, email: { type: 'string' }, linkedin: { type: 'string' }, latitude: { type: 'number' }, longitude: { type: 'number' }, labo_adresse: { type: 'string' }, labo_codePostal: { type: 'string' }, labo_ville: { type: 'string' } }, additionalProperties: false } },
@@ -189,7 +190,8 @@ export async function executeChefTool(name, input, ctx = {}) {
       const by = (k, f) => { const o = {}; for (const l of list) { const v = f(l); o[v] = (o[v] || 0) + 1; } return o; };
       const usage = await s.usageSince(addDays(today, -jours));
       const tokens = usage.reduce((n, u) => n + Number(u.input_tokens) + Number(u.cache_read_tokens) + Number(u.cache_write_tokens) + Number(u.output_tokens), 0);
-      return J({ periode_jours: jours, demandes_total: list.length, par_type: by('type', (l) => TYPE_LABEL.fr[l.type] || l.type), par_statut: by('status', (l) => STATUS_LABEL[l.status] || l.status), par_service: by('service', (l) => { const svc = services.find((x) => x.id === l.service); return svc ? L(svc.titre) : l.service || '—'; }), par_langue: by('lang', (l) => l.lang), par_source: by('source', (l) => l.source), petit_pois: { requetes: usage.reduce((n, u) => n + Number(u.requests), 0), tokens, modele: env.model } });
+      const audience = await audienceSince(jours).catch((e) => ({ erreur: e.message }));
+      return J({ periode_jours: jours, audience, demandes_total: list.length, par_type: by('type', (l) => TYPE_LABEL.fr[l.type] || l.type), par_statut: by('status', (l) => STATUS_LABEL[l.status] || l.status), par_service: by('service', (l) => { const svc = services.find((x) => x.id === l.service); return svc ? L(svc.titre) : l.service || '—'; }), par_langue: by('lang', (l) => l.lang), par_source: by('source', (l) => l.source), petit_pois: { requetes: usage.reduce((n, u) => n + Number(u.requests), 0), tokens, modele: env.model } });
     }
     case 'customer_insights': {
       const jours = Number(input?.jours) || 2;

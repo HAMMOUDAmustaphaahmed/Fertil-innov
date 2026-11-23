@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { Phone, Mail, MapPin, FlaskConical, Clock, CheckCircle2, ExternalLink, Linkedin } from 'lucide-react';
 import SEO from '../components/SEO';
 import { PageHero, StatusDot } from '../components/ui';
@@ -51,12 +51,12 @@ export default function Contact() {
         <div className="wrap grid gap-10 lg:grid-cols-12">
           <div className="lg:col-span-7">
             {status === 'ok' ? (
-              <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} className="card p-8 md:p-10 text-center" role="status">
+              <m.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} className="card p-8 md:p-10 text-center" role="status">
                 <CheckCircle2 size={56} className="mx-auto text-fi-primary" aria-hidden />
                 <h2 className="mt-4 text-display-sm">{t('contact_merci_titre')}</h2>
                 <p className="mt-2 font-mono text-sm text-fi-primary">{numero}</p>
                 <p className="mt-3 text-fi-text/75">{t('contact_merci_texte')}</p>
-              </motion.div>
+              </m.div>
             ) : (
               <form onSubmit={submit} className="card p-6 md:p-8 space-y-4" noValidate>
                 <input type="text" name="website" value={form.website} onChange={set('website')} tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />

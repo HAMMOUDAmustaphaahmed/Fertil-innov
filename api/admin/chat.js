@@ -1,7 +1,7 @@
 // POST /api/admin/chat { message } → réponse du Chef en streaming (SSE)
 // GET  /api/admin/chat → historique · DELETE → remise à zéro
 import { json, error, readJson } from '../_lib/http.js';
-import { isAdmin } from '../_lib/admin.js';
+import { isAdmin, sameOrigin } from '../_lib/admin.js';
 import { chefTurn } from '../_lib/chef.js';
 import { store } from '../_lib/store.js';
 
@@ -21,12 +21,14 @@ export async function GET(request) {
 
 export async function DELETE(request) {
   if (!isAdmin(request)) return error(401, 'Non autorisé.');
+  if (!sameOrigin(request)) return error(403, 'Requête refusée.');
   await store().clearChefMessages(CHAT_ID);
   return json({ ok: true });
 }
 
 export async function POST(request) {
   if (!isAdmin(request)) return error(401, 'Non autorisé.');
+  if (!sameOrigin(request)) return error(403, 'Requête refusée.');
   const body = await readJson(request);
   const text = String(body?.message || '').trim().slice(0, 2000);
   if (!text) return error(400, 'Message vide.');

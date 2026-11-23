@@ -17,11 +17,13 @@
 //  bubbles   (réserve)   : bulles de culture qui montent (certaines « ? »)
 //  radar     Contact     : radar et points de présence
 import { useEffect, useRef } from 'react';
-import { gsap } from '../lib/gsap';
+import { gsap, prefersLessMotion } from '../lib/gsap';
 import { useLang } from '../i18n/LangProvider';
 import { useSite } from '../site/SiteProvider';
 
-const reduced = () => false; // animations sur tous les appareils (voir lib/gsap.js)
+// Boucles décoratives et parallaxe des en-têtes : figées (image fixe) seulement si le visiteur a demandé
+// « réduire les animations » ; animées partout ailleurs (voir lib/gsap.js).
+const reduced = prefersLessMotion;
 
 /** Boucle d'animation qui ne tourne que lorsque l'élément est visible. */
 function useLoop(ref, draw) {
@@ -310,9 +312,10 @@ function Network() {
         ctx.beginPath(); ctx.arc(n.x * w, n.y * h, n.r * dpr, 0, Math.PI * 2); ctx.fill();
         if (n.big) { ctx.strokeStyle = 'rgba(139,195,74,0.35)'; ctx.beginPath(); ctx.arc(n.x * w, n.y * h, n.r * 2.2 * dpr, 0, Math.PI * 2); ctx.stroke(); }
       });
-      raf = visible ? requestAnimationFrame(draw) : 0;
+      raf = visible && !reduced() ? requestAnimationFrame(draw) : 0;
     };
-    size(); const ro = new ResizeObserver(size); ro.observe(cv);
+    // Image fixe (animations réduites) : on redessine après un redimensionnement, qui efface le canvas.
+    size(); const ro = new ResizeObserver(() => { size(); if (reduced()) draw(); }); ro.observe(cv);
     const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible && !raf && !reduced()) raf = requestAnimationFrame(draw); }); io.observe(cv);
     if (reduced()) draw(); else raf = requestAnimationFrame(draw);
     return () => { cancelAnimationFrame(raf); ro.disconnect(); io.disconnect(); };

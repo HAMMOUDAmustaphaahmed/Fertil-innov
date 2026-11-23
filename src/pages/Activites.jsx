@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import { X, ArrowRight, Check } from 'lucide-react';
 import SEO from '../components/SEO';
 import { PageHero } from '../components/ui';
@@ -64,8 +64,8 @@ export default function Activites() {
 
       <AnimatePresence>
         {active && (
-          <motion.div key="overlay" className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-fi-deep/70 backdrop-blur-sm p-0 sm:p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(null)}>
-            <motion.div role="dialog" aria-modal="true" aria-labelledby="act-title" onClick={(e) => e.stopPropagation()} initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }} transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          <m.div key="overlay" className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-fi-deep/70 backdrop-blur-sm p-0 sm:p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(null)}>
+            <m.div role="dialog" aria-modal="true" aria-labelledby="act-title" onClick={(e) => e.stopPropagation()} initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }} transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
               data-lenis-prevent className="w-full sm:max-w-3xl max-h-[92vh] overflow-y-auto overscroll-contain rounded-t-3xl sm:rounded-3xl bg-white shadow-leaf">
               <div className="relative">
                 <img src={pic(active)} alt="" width={1000} height={500} className="aspect-[2/1] w-full object-cover rounded-t-3xl" />
@@ -80,8 +80,8 @@ export default function Activites() {
                 </dl>
                 <Link to={p('/contact')} state={{ subject: 'devis' }} className="mt-6 btn-primary">{t('activites_devis')} <ArrowRight size={16} aria-hidden /></Link>
               </div>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         )}
       </AnimatePresence>
     </>

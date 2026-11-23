@@ -1,13 +1,14 @@
-import { Suspense, lazy, useEffect, useRef } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
+import { AnimatePresence, LazyMotion, MotionConfig, m } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import Chatbot from './components/Chatbot';
 import { LangProvider } from './i18n/LangProvider';
 import { useSmoothScroll } from './hooks/useSmoothScroll';
 import { useScrollToTop } from './hooks/useScrollToTop';
 import { usePageFx } from './hooks/usePageFx';
+import { POIS_EVENT } from './lib/pois';
+import { ESPACE_PATH } from './data/infos';
 import Home from './pages/Home';
 
 // Pages secondaires en lazy-loading (le pré-rendu les charge de toute façon côté serveur).
@@ -29,7 +30,7 @@ const Blog = lazyPage(() => import('./pages/Blog'));
 const Faq = lazyPage(() => import('./pages/Faq'));
 const Contact = lazyPage(() => import('./pages/Contact'));
 const Equipe = lazyPage(() => import('./pages/Equipe'));
-const Admin = lazy(() => import('./pages/Admin'));
+const Pilotage = lazy(() => import('./pages/Pilotage'));
 const NotFound = lazyPage(() => import('./pages/NotFound'));
 
 export const PAGES = [
@@ -55,6 +56,54 @@ export function preloadRoute(pathname) {
 }
 
 
+// Mesure d'audience sans cookie : une page vue par changement d'adresse, envoyée à /api/hit (voir api/_lib/audience.js).
+// Rien n'est lu ni écrit dans le navigateur ; les visiteurs qui ont activé « ne pas me pister » ne sont pas comptés.
+let firstHit = true;
+function useAudience(pathname, off) {
+  useEffect(() => {
+    if (off) return;
+    try {
+      if (navigator.webdriver || navigator.doNotTrack === '1' || navigator.globalPrivacyControl) return;
+      const body = JSON.stringify({ p: pathname, r: firstHit ? document.referrer : '', e: firstHit });
+      firstHit = false;
+      fetch('/api/hit', { method: 'POST', headers: { 'content-type': 'application/json' }, body, keepalive: true, credentials: 'omit' }).catch(() => {});
+    } catch { /* la mesure ne doit jamais gêner la navigation */ }
+  }, [pathname, off]);
+}
+
+// Fonctions d'animation de Framer Motion : chargées à part, le code principal ne garde que le composant léger « m ».
+const motionFeatures = () => import('./lib/motion-features').then((r) => r.default);
+
+// Petit Pois : son code est chargé après le premier affichage (navigateur au repos), ou tout de suite si le
+// visiteur clique sur un bouton « Parler à Petit Pois » avant — la commande est alors rejouée une fois le widget monté.
+function ChatbotLazy() {
+  const [Widget, setWidget] = useState(null);
+  const pending = useRef(null);
+  useEffect(() => {
+    let alive = true; let started = false;
+    const load = () => {
+      if (started) return;
+      started = true;
+      import('./components/Chatbot').then((mod) => { if (alive) setWidget(() => mod.default); }).catch(() => { started = false; });
+    };
+    const early = (e) => { pending.current = e.detail; load(); };
+    window.addEventListener(POIS_EVENT, early);
+    const idle = window.requestIdleCallback ? window.requestIdleCallback(load, { timeout: 2500 }) : setTimeout(load, 1200);
+    return () => {
+      alive = false;
+      window.removeEventListener(POIS_EVENT, early);
+      if (window.cancelIdleCallback) window.cancelIdleCallback(idle); else clearTimeout(idle);
+    };
+  }, []);
+  useEffect(() => {
+    if (!Widget || !pending.current) return;
+    // Les effets du widget (son écoute de POIS_EVENT) sont déjà en place : on lui rejoue la commande reçue trop tôt.
+    const detail = pending.current; pending.current = null;
+    window.dispatchEvent(new CustomEvent(POIS_EVENT, { detail }));
+  }, [Widget]);
+  return Widget ? <Widget /> : null;
+}
+
 function PageFallback() {
   return (
     <div className="min-h-[60vh] flex items-center justify-center">
@@ -74,7 +123,8 @@ function AppContent() {
   useSmoothScroll();
   useScrollToTop();
   const location = useLocation();
-  const isAdmin = location.pathname.startsWith('/admin');
+  const isAdmin = location.pathname === ESPACE_PATH || location.pathname.startsWith(`${ESPACE_PATH}/`) || location.pathname.startsWith('/admin');
+  useAudience(location.pathname, isAdmin);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -84,7 +134,7 @@ function AppContent() {
             (lazy) remplaçait toute la transition par le fallback, qui perdait alors son état — l'ancienne page restait
             affichée, ou la nouvelle restait invisible (opacité 0), par exemple au clic sur le logo. */}
         <AnimatePresence mode="wait" initial={false}>
-          <motion.div key={location.pathname} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}>
+          <m.div key={location.pathname} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}>
             <Suspense fallback={<PageFallback />}>
               <FxScope off={isAdmin}>
                 <Routes location={location}>
@@ -93,16 +143,18 @@ function AppContent() {
                   )))}
                   {/* Ancien « Guide des sols » : fusionné dans la FAQ (redirection 301 aussi dans vercel.json) */}
                   {PREFIXES.map((prefix) => <Route key={`${prefix}/sols`} path={`${prefix}/sols`} element={<Navigate to={`${prefix}/faq#guide`} replace />} />)}
-                  <Route path="/admin" element={<Admin />} />
+                  <Route path={ESPACE_PATH} element={<Pilotage />} />
+                  {/* Ancienne adresse de l'espace propriétaire */}
+                  <Route path="/admin" element={<Navigate to={ESPACE_PATH} replace />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </FxScope>
             </Suspense>
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </main>
       {!isAdmin && <Footer />}
-      {!isAdmin && <Chatbot />}
+      {!isAdmin && <ChatbotLazy />}
     </div>
   );
 }
@@ -115,10 +167,12 @@ export default function App() {
     window.dispatchEvent(new Event('fi:app-ready'));
   }, []);
   return (
-    <MotionConfig reducedMotion="never">
-      <LangProvider>
-        <AppContent />
-      </LangProvider>
-    </MotionConfig>
+    <LazyMotion features={motionFeatures} strict>
+      <MotionConfig reducedMotion="never">
+        <LangProvider>
+          <AppContent />
+        </LangProvider>
+      </MotionConfig>
+    </LazyMotion>
   );
 }

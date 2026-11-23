@@ -1,6 +1,7 @@
 // GET /api/session — ouvre (ou retrouve) la session de chat du visiteur.
 // Appelé uniquement quand le visiteur ouvre le widget. Renvoie l'historique et le quota restant.
 import { env } from './_lib/env.js';
+import { ensureAi } from './_lib/ai.js';
 import { json, error } from './_lib/http.js';
 import { resolveSession, remainingFor } from './_lib/session.js';
 import { store } from './_lib/store.js';
@@ -8,6 +9,8 @@ import { toDisplay } from './_lib/history.js';
 
 export async function GET(request) {
   try {
+    await ensureAi();
+    if (!env.aiEnabled) return error(503, '', { code: 'off' });
     const { session, setCookie, reason } = await resolveSession(request, { create: true });
     if (!session) return error(429, "Trop de nouvelles conversations depuis votre connexion aujourd'hui.", { code: reason || 'too_many_sessions' });
     const rows = await store().loadRows(session.id);

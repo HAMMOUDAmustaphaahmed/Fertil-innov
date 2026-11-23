@@ -68,9 +68,14 @@ export function applyFonts(preset) {
   if (!isBrowser) return;
   const f = FONT_PRESETS[preset] || FONT_PRESETS.bricolage;
   let link = document.getElementById('site-fonts');
-  if (!link) { link = document.createElement('link'); link.id = 'site-fonts'; link.rel = 'stylesheet'; document.head.appendChild(link); }
-  const href = `https://fonts.googleapis.com/css2?${f.css}&display=swap`;
-  if (link.href !== href) link.href = href;
+  if (f === FONT_PRESETS.bricolage) {
+    // Police par défaut : hébergée sur le site (@font-face dans index.css), rien à charger chez Google.
+    link?.remove();
+  } else {
+    if (!link) { link = document.createElement('link'); link.id = 'site-fonts'; link.rel = 'stylesheet'; document.head.appendChild(link); }
+    const href = `https://fonts.googleapis.com/css2?${f.css}&display=swap`;
+    if (link.href !== href) link.href = href;
+  }
   document.documentElement.style.setProperty('--font-display', `"${f.display}"`);
   document.documentElement.style.setProperty('--font-sans', `"${f.sans}"`);
 }

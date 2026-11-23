@@ -1,6 +1,8 @@
 // Lecture centralisée des variables d'environnement (Vercel → Settings → Environment Variables).
 // Les valeurs par défaut correspondent aux garde-fous décrits dans le README.
 
+import { compatOf } from './providers.js';
+
 const num = (v, d) => (v === undefined || v === '' ? d : Number(v));
 const provider = (process.env.LLM_PROVIDER || 'anthropic').toLowerCase();
 
@@ -51,14 +53,59 @@ export const env = {
 
   siteUrl: (process.env.PUBLIC_SITE_URL || '').replace(/\/$/, ''),
   cronSecret: process.env.CRON_SECRET,
-  deployHook: process.env.VERCEL_DEPLOY_HOOK_URL || '',
+  // Adresse appelée pour régénérer les pages pré-rendues : hook de déploiement Vercel, ou tout autre hook (DEPLOY_HOOK_URL).
+  deployHook: process.env.VERCEL_DEPLOY_HOOK_URL || process.env.DEPLOY_HOOK_URL || '',
 
   adminPassword: process.env.ADMIN_PASSWORD,
   telegramToken: process.env.TELEGRAM_BOT_TOKEN,
   telegramWebhookSecret: process.env.TELEGRAM_WEBHOOK_SECRET,
 
-  isProd: process.env.VERCEL_ENV === 'production',
+  // Production : déploiement Vercel de production, ou serveur autonome (server.mjs, NODE_ENV=production) hors Vercel.
+  isProd: process.env.VERCEL_ENV === 'production' || (!process.env.VERCEL && process.env.NODE_ENV === 'production'),
 };
+
+// ---------------------------------------------------------------------------
+// Réglages de l'IA modifiables sans toucher au serveur (espace de pilotage, voir vault.js et ai.js).
+// Les variables du serveur restent le réglage de secours : applyAi(null) y revient.
+// ---------------------------------------------------------------------------
+const AI_KEYS = ['provider', 'anthropicKey', 'groqKey', 'model', 'chefModel', 'fallbackModels', 'translateModel', 'guardModel',
+  'maxMessagesPerSession', 'maxMessagesPerIpPerDay', 'dailyTokenBudget', 'maxOutputTokens'];
+const BASE = Object.fromEntries(AI_KEYS.map((k) => [k, Array.isArray(env[k]) ? [...env[k]] : env[k]]));
+const MODELS = {
+  groq: { model: 'openai/gpt-oss-120b', chefModel: 'qwen/qwen3.8-27b', fallbackModels: ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b', 'openai/gpt-oss-20b'], translateModel: 'openai/gpt-oss-20b', guardModel: 'openai/gpt-oss-20b' },
+  anthropic: { model: 'claude-sonnet-5', chefModel: '', fallbackModels: [], translateModel: 'claude-haiku-4-5', guardModel: 'claude-haiku-4-5' },
+};
+export const defaultModels = (p) => MODELS[p === 'groq' ? 'groq' : 'anthropic'];
+export const baseAi = () => ({ provider: BASE.provider, model: BASE.model, hasKey: { anthropic: !!BASE.anthropicKey, groq: !!BASE.groqKey } });
+// providerId : fournisseur réellement utilisé (openai, mistral…). « provider » reste le FORMAT d'API attendu par le
+// reste du code : 'anthropic', ou 'groq' pour tout fournisseur compatible OpenAI. compat : adresse de ce fournisseur.
+env.aiEnabled = true; env.aiExtra = ''; env.aiSource = 'serveur'; env.providerId = env.provider; env.compat = null;
+
+export function applyAi(cfg) {
+  for (const k of AI_KEYS) env[k] = Array.isArray(BASE[k]) ? [...BASE[k]] : BASE[k];
+  env.aiEnabled = true; env.aiExtra = ''; env.aiSource = 'serveur'; env.providerId = env.provider; env.compat = null;
+  if (!cfg) return;
+  env.aiEnabled = cfg.enabled !== false;
+  env.aiExtra = cfg.extra || '';
+  const ownKey = cfg.apiKey && cfg.apiKeyProvider === cfg.provider;
+  const compat = cfg.provider ? compatOf(cfg.provider, cfg.baseUrl) : null;
+  if (cfg.provider === 'anthropic' || cfg.provider === 'groq') {
+    const keyField = cfg.provider === 'groq' ? 'groqKey' : 'anthropicKey';
+    // Changement de fournisseur : uniquement s'il existe une clé pour lui (saisie dans l'espace, ou déjà sur le serveur).
+    if (cfg.provider !== env.provider && (ownKey || BASE[keyField])) {
+      env.provider = cfg.provider; env.providerId = cfg.provider;
+      Object.assign(env, { ...defaultModels(cfg.provider), fallbackModels: [...defaultModels(cfg.provider).fallbackModels] });
+    }
+    if (ownKey && cfg.provider === env.provider) env[keyField] = cfg.apiKey;
+    if (cfg.provider === env.provider) { if (cfg.model) env.model = cfg.model; if (cfg.guardModel) env.guardModel = cfg.guardModel; }
+  } else if (compat && ownKey && cfg.model) {
+    // Fournisseur compatible OpenAI : un seul modèle pour tous les rôles (Petit Pois, le Chef, traduction, filtre).
+    env.provider = 'groq'; env.providerId = cfg.provider; env.compat = compat; env.groqKey = cfg.apiKey;
+    env.model = cfg.model; env.chefModel = cfg.model; env.translateModel = cfg.model; env.guardModel = cfg.guardModel || cfg.model; env.fallbackModels = [];
+  }
+  for (const k of ['maxMessagesPerSession', 'maxMessagesPerIpPerDay', 'dailyTokenBudget', 'maxOutputTokens']) if (Number.isFinite(cfg.limits?.[k])) env[k] = cfg.limits[k];
+  env.aiSource = 'espace de pilotage';
+}
 
 export function assertEnv(keys) {
   const missing = keys.filter((k) => !env[k]);

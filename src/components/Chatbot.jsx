@@ -2,7 +2,7 @@
 // Le navigateur n'appelle que /api/session et /api/chat (flux SSE) — aucune clé côté client.
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m as motion, AnimatePresence } from 'framer-motion'; // « m » : version allégée (voir LazyMotion dans App)
 import { X, Send, Phone } from 'lucide-react';
 import { useLang } from '../i18n/LangProvider';
 import { useSite, useImage } from '../site/SiteProvider';

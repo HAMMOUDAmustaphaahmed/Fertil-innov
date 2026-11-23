@@ -7,7 +7,9 @@ export function useScrollToTop() {
   const { pathname, hash } = useLocation();
   useEffect(() => {
     if (hash) {
-      const el = document.querySelector(hash);
+      // getElementById et non querySelector : la fin de l'adresse n'est pas toujours un sélecteur valide
+      // (« #acces=… » du lien de création d'identifiants faisait planter toute la page).
+      const el = document.getElementById(decodeURIComponent(hash.slice(1)));
       if (el) {
         const y = el.getBoundingClientRect().top + window.scrollY - 90;
         const l = getLenis();

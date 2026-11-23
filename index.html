@@ -8,22 +8,18 @@
     <link rel="icon" type="image/png" href="/images/favicon-16.png" sizes="16x16" />
     <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- Polices chargées sans bloquer le premier affichage (media=print → all une fois prêtes, par le script plus bas :
-         pas d'attribut onload, qu'interdirait la Content-Security-Policy) -->
-    <link id="site-fonts" rel="stylesheet" media="print" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Manrope:wght@400;500;600;700&display=swap" />
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Manrope:wght@400;500;600;700&display=swap" /></noscript>
+    <!-- Polices par défaut hébergées sur le site (voir @font-face dans src/index.css) : préchargées, sans serveur tiers.
+         Une autre police choisie via le Chef est chargée à la demande par SiteProvider (applyFonts). -->
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/bricolage-grotesque-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/manrope-latin.woff2" crossorigin />
     <title>Fertil'Innov Environnement | Ingénierie écologique & microbiologie des sols</title>
     <!--app-head-->
     <script>
       // Classe .js immédiate (évite le saut de mise en page) + loader « germination » à chaque chargement complet du site.
       (function () {
         var d = document.documentElement; d.classList.add('js');
-        var f = document.getElementById('site-fonts');
-        if (f) { var on = function () { f.media = 'all'; }; if (f.sheet) on(); else f.addEventListener('load', on); }
         try {
-          if (/^\/admin/.test(location.pathname)) return;
+          if (/^\/(pilotage|admin)/.test(location.pathname)) { d.classList.add('fi-espace'); return; } // espace propriétaire : pas de loader, et le gabarit de l'accueil reste masqué
           if (/bot|crawl|spider|slurp|facebookexternalhit|embedly|preview/i.test(navigator.userAgent)) return; // robots : page directement
         } catch (e) { return; }
         d.classList.add('fi-loading');
@@ -31,6 +27,8 @@
     </script>
     <style>
       @property --fi-r { syntax: '<length>'; inherits: false; initial-value: 0px; }
+      .fi-espace #root[data-prerendered="1"] { visibility: hidden; }
+      .fi-espace body { background: #f6f9fb; }
       #fi-loader { display: none; }
       .fi-loading { overflow: hidden; }
       .fi-loading #fi-loader, #fi-loader.out { display: flex; }
