@@ -388,7 +388,8 @@ const RING = 2 * Math.PI * 52; // circonférence de la jauge (r = 52)
 
 function Performance() {
   const { t } = useLang();
-  const { chiffres: c } = useSite();
+  const { chiffres: c, listes } = useSite();
+  const shown = (l) => (l || []).filter((x) => x.visible !== false).length;
   const ref = useRef(null);
   useReveal([], ref);
   const pct = (a, b) => Math.min(100, Math.round((a / b) * 100));
@@ -432,11 +433,17 @@ function Performance() {
             {/* Carbone */}
             <div className="lg:px-10">
               <p className="kicker !text-fi-accent flex items-center gap-2"><Icon name="globe" size="h-5 w-5" /> {t('perf_carbone')}</p>
-              <p className="mt-5 font-display text-6xl font-semibold"><Counter value={c.co2Tonnes} /> <span className="text-2xl text-white/60">t</span></p>
-              <p className="text-sm text-white/65">{t('perf_tonnes')}</p>
-              <p className="mt-5 text-sm text-white/80">≈ <strong className="text-fi-accent"><Counter value={c.arbresEquivalent} /></strong> {t('perf_arbres')}</p>
+              {/* Ce que nous mesurons sur chaque projet : aucun tonnage ni pourcentage annoncé (résultats propres à chaque site). */}
+              <ul className="mt-5 space-y-3.5">
+                {[['chiffres_rendement', 'chiffres_rendement_note'], ['chiffres_eau', 'chiffres_eau_note'], ['chiffres_biodiv', 'chiffres_biodiv_note'], ['chiffres_co2', 'chiffres_co2_note']].map(([k, n]) => (
+                  <li key={k} className="flex gap-3">
+                    <span aria-hidden className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-fi-accent" />
+                    <div><p className="font-display text-lg font-semibold leading-tight">{t(k)}</p><p className="text-sm text-white/60">{t(n)}</p></div>
+                  </li>
+                ))}
+              </ul>
               <div className="mt-6 grid grid-cols-3 gap-3 border-t border-white/10 pt-5">
-                {[{ v: c.formations, l: t('perf_formations') }, { v: c.partenaires, l: t('perf_partenaires') }, { v: c.arbresPlantes, l: t('perf_plantes') }].map((o) => (
+                {[{ v: shown(listes.formations), l: t('perf_formations') }, { v: shown(listes.partenaires), l: t('perf_partenaires') }, { v: shown(listes.services), l: t('perf_plantes') }].map((o) => (
                   <div key={o.l}><p className="font-display text-2xl font-semibold"><Counter value={o.v} /></p><p className="text-[11px] leading-tight text-white/55">{o.l}</p></div>
                 ))}
               </div>
