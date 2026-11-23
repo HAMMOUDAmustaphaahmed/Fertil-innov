@@ -165,7 +165,8 @@ async function sendStats(chatId) {
 async function sendAcces(chatId, key, name, origin) {
   const { createSetupToken, accountForChat } = await import('./vault.js');
   const s = await getSettings();
-  const base = (env.siteUrl || origin || s.entreprise?.siteUrl || '').replace(/\/$/, '');
+  // Le lien pointe vers le site auquel le bot est réellement branché (adresse du webhook), avant toute adresse configurée.
+  const base = (origin || env.siteUrl || s.entreprise?.siteUrl || '').replace(/\/$/, '');
   if (!base) return send(chatId, '⚠️ Adresse du site inconnue : définissez PUBLIC_SITE_URL sur le serveur.');
   const acc = await accountForChat(key);
   const token = await createSetupToken({ chatId: key, name });
@@ -192,7 +193,7 @@ async function sendIa(chatId, key, text) {
     return undefined;
   }
   await ensureAi({ fresh: true });
-  return send(chatId, `🤖 Assistant IA : ${env.aiEnabled ? '🟢 en marche' : '🔴 coupé'}\nFournisseur : ${env.provider} · modèle : ${env.model}\nRéglages : ${env.aiSource}\n\n/ia off pour le couper, /ia on pour le remettre en marche.\nLa clé et le modèle se règlent dans l’espace de pilotage (/acces).`);
+  return send(chatId, `🤖 Assistant IA : ${env.aiEnabled ? '🟢 en marche' : '🔴 coupé'}\nFournisseur : ${env.providerId || env.provider} · modèle : ${env.model}\nRéglages : ${env.aiSource}\n\n/ia off pour le couper, /ia on pour le remettre en marche.\nLa clé et le modèle se règlent dans l’espace de pilotage (/acces).`);
 }
 
 async function sendImages(chatId) {
@@ -304,19 +305,20 @@ export async function handleUpdate(update, { origin = '' } = {}) {
         await tg('sendMessage', { chat_id: chatId, text: `✅ Bienvenue ${name} ! Vous êtes connecté au Chef de ${s.nom}.\n\n${AIDE}`, parse_mode: 'HTML', reply_markup: KEYBOARD });
         return;
       }
+      await ensureCommandsRegistered(); // met à jour le menu des commandes du bot (nouvelles commandes après une mise à jour du site)
       return send(chatId, `Re-bonjour ${name} 👋 Je suis prêt. /aide pour tout voir.`);
     }
     if (!chat) return tg('sendMessage', { chat_id: chatId, text: `Ce bot est réservé à l'équipe de Fertil'Innov. Connectez-vous avec :\n/start VOTRE_MOT_DE_PASSE` });
 
     const cmd = /^\/(\w+)/.exec(text)?.[1]?.toLowerCase();
     const is = (c, ...labels) => cmd === c || labels.includes(text);
-    if (is('aide', '❓ Aide') || cmd === 'help') return tg('sendMessage', { chat_id: chatId, text: AIDE, parse_mode: 'HTML', reply_markup: KEYBOARD });
+    if (is('aide', '❓ Aide') || cmd === 'help') { await ensureCommandsRegistered(); return tg('sendMessage', { chat_id: chatId, text: AIDE, parse_mode: 'HTML', reply_markup: KEYBOARD }); }
     if (is('reset')) { await store().clearChefMessages(key); return send(chatId, '🧹 Conversation remise à zéro. Je vous écoute.'); }
     if (is('jour')) { const { briefingDuJour } = await chef(); await send(chatId, await briefingDuJour()); return sendLeads(chatId, '📩 À traiter', 'toutes', { statut: 'nouvelle' }); }
     if (is('demandes', '📩 Demandes', '📩 Demandes à traiter')) return sendLeads(chatId, '📩 Demandes à traiter', 'toutes');
     if (is('semaine', '🗓 Cette semaine')) return sendLeads(chatId, '🗓 7 derniers jours', 'semaine', { tous_statuts: true });
     if (is('stats', '📊 Stats')) return sendStats(chatId);
-    if (is('acces') || cmd === 'accès') return sendAcces(chatId, key, name, origin);
+    if (is('acces') || cmd === 'accès') { await ensureCommandsRegistered(); return sendAcces(chatId, key, name, origin); }
     if (is('ia')) return sendIa(chatId, key, text);
     const menuOf = async (fn) => { const m = await fn(); return tg('sendMessage', { chat_id: chatId, text: m.text, parse_mode: 'HTML', reply_markup: m.reply_markup }); };
     if (is('site', '🌐 Modifier le site', '⚙️ Site')) return menuOf(siteMenu);
