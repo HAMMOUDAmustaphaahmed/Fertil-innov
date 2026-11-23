@@ -8,7 +8,7 @@ import Hero from '../components/HeroMicroscope';
 import MicroCanvas from '../components/MicroCanvas';
 import { SectionHeader, Counter, PartnersMarquee } from '../components/ui';
 import { useLang } from '../i18n/LangProvider';
-import { useSite, useImage, imgSrc } from '../site/SiteProvider';
+import { useSite, useImage, imgSrc, useFacts, FACTS } from '../site/SiteProvider';
 import { useReveal } from '../hooks/useReveal';
 import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from '../lib/gsap';
 import { openPois, teasePois } from '../lib/pois';
@@ -151,7 +151,7 @@ function SampleCore({ steps, vertical = false }) {
 
 function Process() {
   const { t, L, p } = useLang();
-  const { processus, chiffres } = useSite();
+  const { processus } = useSite();
   const ref = useRef(null);
   useReveal([], ref);
   useGSAP(() => {
@@ -189,7 +189,6 @@ function Process() {
             <Link to={p('/services')} className="btn-primary">{t('pourquoi_bouton_1')}</Link>
             <Link to={p('/contact')} state={{ subject: 'devis' }} className="btn-ghost">{t('pourquoi_bouton_2')}</Link>
           </li>
-          <li className="pt-2 text-sm text-fi-text/60">{chiffres.annees} {t('perf_annees')}.</li>
         </ol>
       </div>
     </section>
@@ -218,7 +217,8 @@ const aimAt = (el, cx, cy) => {
 };
 function Realisations() {
   const { t, L } = useLang();
-  const { listes, chiffres } = useSite();
+  const { listes } = useSite();
+  const facts = useFacts();
   const list = vis(listes.realisations);
   const ref = useRef(null);
   const [active, setActive] = useState(0);
@@ -243,10 +243,8 @@ function Realisations() {
   const hover = (i) => { if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) open(i); };
 
   const counters = [
-    { v: chiffres.projets, suffix: '', k: 'compteur_projets' },
-    { v: chiffres.hectares, suffix: ' ha', k: 'compteur_ha' },
-    { v: chiffres.partenaires, suffix: '', k: 'chiffres_partenaires' },
-    { v: chiffres.annees, suffix: '', k: 'compteur_annees' },
+    // Compteurs tirés du contenu du site : identiques sur toutes les pages, vérifiables par le visiteur.
+    ...FACTS.map(([f, k]) => ({ v: facts[f], suffix: '', k })),
   ];
 
   return (
@@ -381,28 +379,25 @@ function Pourquoi() {
 }
 
 // ---------------------------------------------------------------------------
-// Performance : « tableau de bord du sol » — jauge circulaire, carbone, et progression annuelle
-// sous forme de tiges qui poussent (une feuille au sommet).
+// Performance : « preuves à l'appui » — une référence de terrain vérifiable (frise des étapes), les indicateurs
+// suivis sur chaque projet, et le déroulé d'un projet en quatre étapes (tiges qui poussent, une feuille au sommet).
+// Aucun chiffre d'activité non vérifié : les compteurs sont tirés du contenu du site (useFacts).
 // ---------------------------------------------------------------------------
-const RING = 2 * Math.PI * 52; // circonférence de la jauge (r = 52)
-
 function Performance() {
-  const { t } = useLang();
-  const { chiffres: c, listes } = useSite();
-  const shown = (l) => (l || []).filter((x) => x.visible !== false).length;
+  const { t, L } = useLang();
+  const { processus } = useSite();
+  const facts = useFacts();
   const ref = useRef(null);
   useReveal([], ref);
-  const pct = (a, b) => Math.min(100, Math.round((a / b) * 100));
-  const goal = pct(c.projets, c.projetsObjectif);
   useGSAP(() => {
     const q = gsap.utils.selector(ref);
-    const ring = q('.gauge-ring')[0];
     if (prefersReducedMotion()) { gsap.set(q('[data-bar]'), { width: (i, el) => el.dataset.bar }); return; }
-    gsap.fromTo(ring, { strokeDashoffset: RING }, { strokeDashoffset: RING * (1 - goal / 100), duration: 2, ease: 'power3.out', scrollTrigger: { trigger: ring, start: 'top 85%', once: true } });
     q('[data-bar]').forEach((b) => gsap.fromTo(b, { width: '0%' }, { width: b.dataset.bar, duration: 1.4, ease: 'power3.out', scrollTrigger: { trigger: b, start: 'top 92%', once: true } }));
     gsap.from(q('.stem'), { scaleY: 0, duration: 1.4, ease: 'power3.out', stagger: 0.12, transformOrigin: '50% 100%', scrollTrigger: { trigger: q('.stems')[0], start: 'top 85%', once: true } });
     gsap.from(q('.stem-leaf'), { scale: 0, rotate: -40, duration: 0.7, ease: 'back.out(3)', stagger: 0.12, delay: 0.9, scrollTrigger: { trigger: q('.stems')[0], start: 'top 85%', once: true } });
   }, { scope: ref });
+  // Frise de la référence : position et largeur de chaque phase sur 2019 → 2022 (4 ans)
+  const phases = [{ l: t('perf_ref_1'), d: '2019 – 2021', from: 0, w: 75 }, { l: t('perf_ref_2'), d: '2022', from: 75, w: 25 }];
 
   return (
     <section ref={ref} className="section">
@@ -411,26 +406,22 @@ function Performance() {
         <div className="reveal relative mt-12 overflow-hidden rounded-[2rem] bg-fi-deep p-6 text-white md:p-10">
           <div aria-hidden className="pointer-events-none absolute inset-0"><div className="grain h-full" /></div>
           <div className="relative grid gap-10 lg:grid-cols-3 lg:gap-0 lg:divide-x lg:divide-white/10">
-            {/* Objectifs */}
+            {/* Référence terrain */}
             <div className="lg:pr-10">
               <p className="kicker !text-fi-accent flex items-center gap-2"><Icon name="target" size="h-5 w-5" /> {t('perf_objectifs')}</p>
-              <div className="mt-5 flex items-center gap-6">
-                <svg viewBox="0 0 120 120" className="h-32 w-32 shrink-0 -rotate-90" aria-hidden>
-                  <circle cx="60" cy="60" r="52" fill="none" stroke="rgb(255 255 255 / 0.1)" strokeWidth="10" />
-                  <circle className="gauge-ring" cx="60" cy="60" r="52" fill="none" stroke="rgb(var(--fi-accent))" strokeWidth="10" strokeLinecap="round" strokeDasharray={RING} strokeDashoffset={RING * (1 - goal / 100)} />
-                </svg>
-                <p className="font-display text-5xl font-semibold"><Counter value={goal} suffix=" %" /></p>
-              </div>
+              <p className="mt-5 font-display text-3xl font-semibold leading-tight">{t('perf_ref_titre')}</p>
+              <p className="mt-1 text-sm text-white/65">{t('perf_ref_lieu')}</p>
               <div className="mt-6 space-y-4">
-                {[{ a: c.projets, b: c.projetsObjectif, l: t('perf_projets') }, { a: c.hectares, b: c.hectaresObjectif, l: t('perf_hectares') }].map((o) => (
+                {phases.map((o) => (
                   <div key={o.l}>
-                    <div className="flex justify-between text-sm"><span className="text-white/80">{o.l}</span><span className="tabular-nums text-white/60">{o.a} / {o.b}</span></div>
-                    <div className="mt-1.5 h-2 rounded-full bg-white/10 overflow-hidden"><div data-bar={`${pct(o.a, o.b)}%`} className="h-full rounded-full bg-gradient-to-r from-fi-secondary to-fi-accent" style={{ width: `${pct(o.a, o.b)}%` }} /></div>
+                    <div className="flex justify-between gap-3 text-sm"><span className="text-white/80">{o.l}</span><span className="shrink-0 tabular-nums text-white/60">{o.d}</span></div>
+                    <div className="mt-1.5 h-2 rounded-full bg-white/10 overflow-hidden"><div data-bar={`${o.w}%`} className="h-full rounded-full bg-gradient-to-r from-fi-secondary to-fi-accent" style={{ marginLeft: `${o.from}%`, width: `${o.w}%` }} /></div>
                   </div>
                 ))}
               </div>
+              <p className="mt-5 text-sm leading-relaxed text-white/70">{t('perf_ref_methode')}</p>
             </div>
-            {/* Carbone */}
+            {/* Indicateurs suivis */}
             <div className="lg:px-10">
               <p className="kicker !text-fi-accent flex items-center gap-2"><Icon name="globe" size="h-5 w-5" /> {t('perf_carbone')}</p>
               {/* Ce que nous mesurons sur chaque projet : aucun tonnage ni pourcentage annoncé (résultats propres à chaque site). */}
@@ -443,27 +434,27 @@ function Performance() {
                 ))}
               </ul>
               <div className="mt-6 grid grid-cols-3 gap-3 border-t border-white/10 pt-5">
-                {[{ v: shown(listes.formations), l: t('perf_formations') }, { v: shown(listes.partenaires), l: t('perf_partenaires') }, { v: shown(listes.services), l: t('perf_plantes') }].map((o) => (
+                {[{ v: facts.formations, l: t('perf_formations') }, { v: facts.partenaires, l: t('perf_partenaires') }, { v: facts.services, l: t('perf_plantes') }].map((o) => (
                   <div key={o.l}><p className="font-display text-2xl font-semibold"><Counter value={o.v} /></p><p className="text-[11px] leading-tight text-white/55">{o.l}</p></div>
                 ))}
               </div>
             </div>
-            {/* Progression : tiges */}
+            {/* Un projet, quatre étapes : tiges */}
             <div className="lg:pl-10">
               <p className="kicker !text-fi-accent flex items-center gap-2"><Icon name="growth" size="h-5 w-5" /> {t('perf_progression')}</p>
-              <div className="stems mt-5 flex h-48 items-end justify-between gap-3 border-b border-white/15 pb-0">
-                {c.progression.map((y) => (
-                  <div key={y.annee} className="flex h-full flex-1 flex-col items-center justify-end">
-                    <span className="mb-1 text-xs font-semibold tabular-nums text-white/80">{y.pct} %</span>
-                    <div className="relative flex w-full justify-center" style={{ height: `${y.pct}%` }}>
+              <ol className="stems mt-5 flex h-48 items-end justify-between gap-3 border-b border-white/15 pb-0">
+                {processus.map((s, i) => (
+                  <li key={s.id} className="flex h-full flex-1 flex-col items-center justify-end">
+                    <span className="mb-1 text-xs font-semibold tabular-nums text-white/80">{pad(i + 1)}</span>
+                    <div className="relative flex w-full justify-center" style={{ height: `${Math.round(((i + 1) / processus.length) * 82)}%` }}>
                       <svg className="stem-leaf absolute -top-3 left-1/2 h-5 w-8" viewBox="0 0 32 20" aria-hidden style={{ transformOrigin: '30% 100%' }}><path d="M16 18 C 10 8, 4 6, 0 6 C 4 14, 10 18, 16 18 Z M16 18 C 22 8, 28 4, 32 4 C 28 12, 22 18, 16 18 Z" fill="rgb(var(--fi-accent))" /></svg>
                       <span className="stem block h-full w-[3px] rounded-full bg-gradient-to-t from-fi-loam to-fi-accent" />
                     </div>
-                  </div>
+                  </li>
                 ))}
-              </div>
-              <div className="mt-2 flex justify-between gap-3 text-xs tabular-nums text-white/50">{c.progression.map((y) => <span key={y.annee} className="flex-1 text-center">{y.annee}</span>)}</div>
-              <p className="mt-5 text-sm text-white/60"><strong className="font-display text-2xl text-white">{c.annees}</strong> {t('perf_annees')}</p>
+              </ol>
+              <ol className="mt-2 flex justify-between gap-3 text-[11px] leading-tight text-white/60">{processus.map((s) => <li key={s.id} className="flex-1 text-center">{L(s.titre)}</li>)}</ol>
+              <p className="mt-5 text-sm text-white/60"><strong className="font-display text-2xl text-white">JEI</strong> {t('perf_annees')}</p>
             </div>
           </div>
         </div>

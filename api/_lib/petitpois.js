@@ -154,7 +154,7 @@ export async function executeTool(name, input, ctx = {}) {
         equipe: vis(s.listes.equipe).map((m) => `${m.nom} — ${L(m.role, lang)}`),
         partenaires: vis(s.listes.partenaires).slice(0, 12).map((p) => p.nom),
         actualites: vis(s.listes.blog).slice(0, 4).map((b) => ({ titre: L(b.titre, lang), date: b.date, lien: b.lien })),
-        chiffres: { projets: s.chiffres.projets, hectares: s.chiffres.hectares, annees: s.chiffres.annees, sites: s.chiffres.sites },
+        offre: { services: vis(s.listes.services).length, formations: vis(s.listes.formations).length, partenaires: vis(s.listes.partenaires).length },
         pages: Object.fromEntries(Object.entries(PAGES).map(([k, v]) => [k, pagePath(lang, v)])),
       }) };
     }

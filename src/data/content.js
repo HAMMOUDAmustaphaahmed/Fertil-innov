@@ -88,8 +88,8 @@ export const CONTENT = {
 
   // ---------- Accueil : performance ----------
   perf_kicker: K('accueil', 'Performance — petite ligne', 'Performance & impact', 'Performance & impact', 'Rendimiento e impacto'),
-  perf_titre: K('accueil', 'Performance — titre', 'Nos engagements, suivis en chiffres', 'Our commitments, tracked in numbers', 'Nuestros compromisos, seguidos en cifras'),
-  perf_objectifs: K('accueil', 'Performance — objectifs', 'Objectifs 2026', '2026 targets', 'Objetivos 2026'),
+  perf_titre: K('accueil', 'Performance — titre', 'Nos engagements, preuves à l’appui', 'Our commitments, backed by evidence', 'Nuestros compromisos, con pruebas'),
+  perf_objectifs: K('accueil', 'Performance — objectifs', 'Référence terrain', 'Field reference', 'Referencia de campo'),
   perf_projets: K('accueil', 'Performance — projets', 'projets', 'projects', 'proyectos'),
   perf_hectares: K('accueil', 'Performance — hectares', 'ha traités', 'ha treated', 'ha tratadas'),
   perf_carbone: K('accueil', 'Performance — carbone', 'Indicateurs suivis', 'Indicators we track', 'Indicadores seguidos'),
@@ -98,8 +98,14 @@ export const CONTENT = {
   perf_formations: K('accueil', 'Performance — formations', 'Formations au catalogue', 'Courses on offer', 'Formaciones en catálogo'),
   perf_partenaires: K('accueil', 'Performance — partenaires', 'Partenaires', 'Partners', 'Socios'),
   perf_plantes: K('accueil', 'Performance — services', 'Services proposés', 'Services offered', 'Servicios ofrecidos'),
-  perf_progression: K('accueil', 'Performance — progression', 'Progression annuelle des objectifs', 'Annual progress towards targets', 'Progresión anual de los objetivos'),
-  perf_annees: K('accueil', 'Performance — années d’expertise', 'ans d’expertise et d’engagement terrain', 'years of expertise and field commitment', 'años de experiencia y compromiso en campo'),
+  perf_ref_titre: K('accueil', 'Référence — titre', 'Haldes minières des Avinières', 'Les Avinières mine tailings', 'Escombreras mineras de Les Avinières'),
+  perf_ref_lieu: K('accueil', 'Référence — lieu et partenaire', 'Saint-Laurent-le-Minier (Gard), avec l’ADEME', 'Saint-Laurent-le-Minier (Gard, France), with ADEME', 'Saint-Laurent-le-Minier (Gard, Francia), con la ADEME'),
+  perf_ref_1: K('accueil', 'Référence — étape 1', 'Essais sur site', 'On-site trials', 'Ensayos in situ'),
+  perf_ref_2: K('accueil', 'Référence — étape 2', 'Mise en œuvre de la phytostabilisation', 'Phytostabilisation carried out', 'Aplicación de la fitoestabilización'),
+  perf_ref_methode: K('accueil', 'Référence — méthode', 'Végétalisation par les plantes métallicoles du site, pour limiter l’envol de poussières chargées en métaux.', 'Revegetation with the site’s own metal-tolerant plants, to limit metal-laden dust.', 'Revegetación con las plantas metalícolas del lugar, para limitar el polvo cargado de metales.'),
+  fait_realisations: K('global', 'Compteur — réalisations présentées', 'Réalisations présentées', 'Projects showcased', 'Proyectos presentados'),
+  perf_progression: K('accueil', 'Performance — progression', 'Un projet, quatre étapes', 'One project, four stages', 'Un proyecto, cuatro etapas'),
+  perf_annees: K('accueil', 'Performance — années d’expertise', 'Jeune Entreprise Innovante', 'Young Innovative Company', 'Joven Empresa Innovadora'),
 
   // ---------- Accueil : équipe ----------
   equipe_kicker: K('accueil', 'Équipe — petite ligne', 'Notre équipe', 'Our team', 'Nuestro equipo'),
@@ -156,7 +162,7 @@ export const CONTENT = {
   personnes: K('global', 'Unité — personnes', 'pers.', 'people', 'pers.'),
 
   // ---------- Chiffres ----------
-  chiffres_titre: K('chiffres', 'Page Chiffres — titre', 'Notre impact en chiffres', 'Our impact in numbers', 'Nuestro impacto en cifras'),
+  chiffres_titre: K('chiffres', 'Page Chiffres — titre', 'Fertil’Innov en chiffres', 'Fertil’Innov in numbers', 'Fertil’Innov en cifras'),
   chiffres_texte: K('chiffres', 'Page Chiffres — introduction', 'Des résultats concrets, mesurés et vérifiables sur le terrain.', 'Concrete results, measured and verifiable in the field.', 'Resultados concretos, medidos y verificables en campo.'),
   chiffres_satisfaction: K('chiffres', 'Chiffre — satisfaction', 'Taux de satisfaction', 'Satisfaction rate', 'Tasa de satisfacción'),
   chiffres_sites: K('chiffres', 'Chiffre — sites', 'Sites traités', 'Sites treated', 'Sitios tratados'),

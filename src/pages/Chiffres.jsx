@@ -3,18 +3,17 @@ import { ArrowRight } from 'lucide-react';
 import SEO from '../components/SEO';
 import { PageHero, Counter, SectionHeader } from '../components/ui';
 import { useLang } from '../i18n/LangProvider';
-import { useSite, imgSrc } from '../site/SiteProvider';
+import { useSite, imgSrc, useFacts, FACTS } from '../site/SiteProvider';
 import { useReveal } from '../hooks/useReveal';
 
 export default function Chiffres() {
   const { t, p, L } = useLang();
-  const { chiffres: c, listes } = useSite();
+  const { listes } = useSite();
+  const facts = useFacts();
   const ref = useReveal();
   const big = [
-    { v: c.annees, suffix: '', k: 'compteur_annees' },
-    { v: c.sites, suffix: '+', k: 'chiffres_sites' },
-    { v: c.projetsTotal, suffix: '', k: 'chiffres_projets' },
-    { v: c.partenaires, suffix: '', k: 'chiffres_partenaires' },
+    // Compteurs tirés du contenu du site (mêmes valeurs que sur l'accueil).
+    ...FACTS.map(([f, k]) => ({ v: facts[f], suffix: '', k })),
   ];
   const kpis = [
     // Indicateurs suivis sur chaque projet : aucun pourcentage n'est annoncé, les résultats dépendent du site

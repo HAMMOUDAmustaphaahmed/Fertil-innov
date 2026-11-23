@@ -128,6 +128,17 @@ export function useSite() {
   return useContext(SiteContext);
 }
 
+/**
+ * Compteurs tirés du contenu du site lui-même : nombre de services, de formations, de partenaires et de réalisations
+ * affichés. Toujours cohérents d'une page à l'autre, vérifiables par le visiteur, et à jour dès qu'une liste change.
+ */
+export function useFacts() {
+  const { listes } = useContext(SiteContext);
+  const n = (l) => (l || []).filter((x) => x.visible !== false).length;
+  return { services: n(listes.services), formations: n(listes.formations), partenaires: n(listes.partenaires), realisations: n(listes.realisations) };
+}
+export const FACTS = [['partenaires', 'chiffres_partenaires'], ['services', 'perf_plantes'], ['formations', 'perf_formations'], ['realisations', 'fait_realisations']];
+
 /** Props <img> pour un emplacement : src configuré + repli sur l'image d'origine si elle ne charge pas. */
 export function useImage() {
   const { images } = useContext(SiteContext);

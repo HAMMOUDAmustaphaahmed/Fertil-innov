@@ -19,7 +19,7 @@
 import { useEffect, useRef } from 'react';
 import { gsap, prefersLessMotion } from '../lib/gsap';
 import { useLang } from '../i18n/LangProvider';
-import { useSite } from '../site/SiteProvider';
+import { useSite, useFacts } from '../site/SiteProvider';
 
 // Boucles décoratives et parallaxe des en-têtes : figées (image fixe) seulement si le visiteur a demandé
 // « réduire les animations » ; animées partout ailleurs (voir lib/gsap.js).
@@ -530,14 +530,15 @@ function Wood() {
 // autour de la souris. Nos vrais chiffres flottent au-dessus, épinglés à des colonnes qui pulsent ;
 // ombres portées, rayon de soleil qui balaie le champ, pollen qui s'élève.
 const DF_LAYERS = [[0.05, [124, 179, 66]], [0.2, [43, 26, 13]], [0.3, [93, 63, 36]], [0.27, [138, 100, 64]], [1, [163, 154, 139]]];
-const DF_PINS = [[3, 8, 'projets', '', 'compteur_projets'], [8, 3, 'hectares', ' ha', 'compteur_ha'], [9, 9, 'satisfaction', ' %', 'compteur_satisfaction'], [5, 5, 'annees', '', 'compteur_annees']];
+// Chiffres épinglés : compteurs tirés du contenu du site (mêmes valeurs que sur l'accueil et la page Chiffres).
+const DF_PINS = [[3, 8, 'partenaires', '', 'chiffres_partenaires'], [8, 3, 'services', '', 'perf_plantes'], [9, 9, 'formations', '', 'perf_formations'], [5, 5, 'realisations', '', 'fait_realisations']];
 function DataField() {
   const ref = useRef(null);
   const pt = usePointer(ref);
   const { t: tr } = useLang();
-  const { chiffres } = useSite();
+  const facts = useFacts();
   const pins = useRef([]);
-  pins.current = DF_PINS.map(([i, j, k, suf, lab]) => ({ i, j, v: `${chiffres?.[k] ?? ''}${suf}`, l: tr(lab) })).filter((q) => q.v.trim());
+  pins.current = DF_PINS.map(([i, j, k, suf, lab]) => ({ i, j, v: `${facts?.[k] ?? ''}${suf}`, l: tr(lab) })).filter((q) => q.v.trim());
   const pollen = useRef(null);
   useLoop(ref, (t) => {
     const cv = ref.current; if (!cv) return;
