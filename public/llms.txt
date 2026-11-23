@@ -1,16 +1,17 @@
 # Fertil'Innov Environnement
 
-> Jeune Entreprise Innovante (JEI) française d'ingénierie écologique et de microbiologie des sols, basée à Grabels (Montpellier, Occitanie). Diagnostic microbiologique des sols (PCR/NGS), biofertilisation (mycorhizes, rhizobium, PGPR), remédiation écologique et phytomanagement de sites industriels, miniers et urbains, formations professionnelles. Certifiée ISO 14001, ISO 14064-2, conforme Agriculture Biologique UE. Site trilingue : français (/), anglais (/en), espagnol (/es).
+> Jeune Entreprise Innovante (JEI) française d'ingénierie écologique et de microbiologie des sols, basée à Grabels (Montpellier, Occitanie). Diagnostic microbiologique des sols (PCR/NGS), biofertilisation (mycorhizes, rhizobium, PGPR), remédiation écologique et phytomanagement de sites industriels, miniers et urbains, formations professionnelles. Site trilingue : français (/), anglais (/en), espagnol (/es).
 
-## Chiffres clés vérifiés
-- +40 % de rendement agricole moyen · −70 % d'eau d'irrigation (mycorhizes) · −80 % de polluants en 24 mois
-- 5 000+ souches microbiennes certifiées (partenariat INRAE / CBS) · 15+ brevets · 500+ diagnostics réalisés
-- Diagnostic complet en 1 à 2 mois · 98 % de satisfaction en formation · Devis sous 24 h
+## Références
+- Phytostabilisation des haldes minières des Avinières (Saint-Laurent-le-Minier, Gard) avec l'ADEME : essais sur site 2019-2021, mise en œuvre 2022
+- Publications scientifiques de la fondatrice dans la revue Plant and Soil (symbiose Anthyllis vulneraria – Mesorhizobium en sols miniers)
+- Jeune Entreprise Innovante (JEI) · souchothèque de souches caractérisées
+- Diagnostic complet en 1 à 2 mois · Devis sous 24 h
 
 ## Services
 - [Diagnostic microbiologique](https://www.fertilinnov-environnement.com/services#diagnostics) : analyse PCR/NGS de la flore microbienne, bilan matière organique, CEC, bioindicateurs, cartographie SIG.
 - [Microbiologie appliquée](https://www.fertilinnov-environnement.com/services#microbiologie) : biocontrôle, métagénomique, production de biofertilisants sur mesure, banque de souches.
-- [Biofertilisation intelligente](https://www.fertilinnov-environnement.com/services#biofertilisation) : symbioses racinaires, nutrition P-K-Fe, zéro intrant chimique.
+- [Biofertilisation intelligente](https://www.fertilinnov-environnement.com/services#biofertilisation) : symbioses racinaires, nutrition P-K-Fe, réduction des engrais de synthèse.
 - [Phytomanagement](https://www.fertilinnov-environnement.com/services#phytomanagement) : technosols fertiles, couverts végétaux, corridors écologiques, zones humides.
 - [Remédiation écologique](https://www.fertilinnov-environnement.com/services#remediation) : phytoextraction, phytostabilisation, bioaugmentation sur sites pollués.
 - [Formations](https://www.fertilinnov-environnement.com/formations) : analyse microbiologique des sols (2 j), biofertilisation et biocontrôle (3 j), phytoremédiation (2 j) — présentiel, en ligne ou sur site.

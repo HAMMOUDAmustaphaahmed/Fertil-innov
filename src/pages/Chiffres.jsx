@@ -11,16 +11,18 @@ export default function Chiffres() {
   const { chiffres: c, listes } = useSite();
   const ref = useReveal();
   const big = [
-    { v: c.satisfaction, suffix: ' %', k: 'chiffres_satisfaction' },
+    { v: c.annees, suffix: '', k: 'compteur_annees' },
     { v: c.sites, suffix: '+', k: 'chiffres_sites' },
     { v: c.projetsTotal, suffix: '', k: 'chiffres_projets' },
     { v: c.partenaires, suffix: '', k: 'chiffres_partenaires' },
   ];
   const kpis = [
-    { prefix: '+', v: c.rendement, suffix: ' %', k: 'chiffres_rendement', n: 'chiffres_rendement_note' },
-    { prefix: '−', v: c.eau, suffix: ' %', k: 'chiffres_eau', n: 'chiffres_eau_note' },
-    { prefix: '+', v: c.biodiversite, suffix: ' %', k: 'chiffres_biodiv', n: 'chiffres_biodiv_note' },
-    { prefix: '', v: c.co2Max, suffix: ' t', k: 'chiffres_co2', n: 'chiffres_co2_note' },
+    // Indicateurs suivis sur chaque projet : aucun pourcentage n'est annoncé, les résultats dépendent du site
+    // et se mesurent par comparaison (avant / après, témoin non traité).
+    { k: 'chiffres_rendement', n: 'chiffres_rendement_note' },
+    { k: 'chiffres_eau', n: 'chiffres_eau_note' },
+    { k: 'chiffres_biodiv', n: 'chiffres_biodiv_note' },
+    { k: 'chiffres_co2', n: 'chiffres_co2_note' },
   ];
   const real = listes.realisations.filter((r) => r.visible !== false);
   return (
@@ -39,9 +41,10 @@ export default function Chiffres() {
           </dl>
           <dl className="mt-6 grid gap-5 md:grid-cols-2">
             {kpis.map((k) => (
-              <div key={k.k} className="reveal card p-6 md:p-8 flex items-center gap-6 bg-fi-mint/50">
-                <dd className="font-display text-5xl font-semibold text-fi-dark tabular-nums shrink-0"><Counter value={k.v} prefix={k.prefix} suffix={k.suffix} /></dd>
-                <div><dt className="font-display text-lg font-semibold text-fi-dark">{t(k.k)}</dt><p className="text-sm text-fi-text/70">{t(k.n)}</p></div>
+              <div key={k.k} className="reveal card p-6 md:p-8 bg-fi-mint/50">
+                <p className="kicker mb-1">{t('chiffres_indicateur')}</p>
+                <dt className="font-display text-lg font-semibold text-fi-dark">{t(k.k)}</dt>
+                <dd className="mt-1 text-sm text-fi-text/70">{t(k.n)}</dd>
               </div>
             ))}
           </dl>

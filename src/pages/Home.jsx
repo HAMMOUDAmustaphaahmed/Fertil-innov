@@ -100,7 +100,7 @@ function Services() {
                   <div className="relative flex flex-col p-7 md:p-10">
                     <p className={`font-display text-sm font-semibold tabular-nums ${dark ? 'text-fi-accent' : 'text-fi-primary'}`}>{pad(s.i + 1)} <span className="opacity-40">/ {pad(all.length)}</span></p>
                     <h3 className={`mt-6 text-display-md ${dark ? '!text-white' : ''}`}>{dark ? t('nav_formations') : L(s.titre)}</h3>
-                    <p className={`mt-4 max-w-md text-[1.02rem] leading-relaxed ${dark ? 'text-white/75' : 'text-fi-text/75'}`}>{dark ? `${t('formations_texte')} 98 % ${t('formations_satisfaction')}.` : L(s.resume)}</p>
+                    <p className={`mt-4 max-w-md text-[1.02rem] leading-relaxed ${dark ? 'text-white/75' : 'text-fi-text/75'}`}>{dark ? t('formations_texte') : L(s.resume)}</p>
                     <span className={`mt-auto pt-8 inline-flex items-center gap-3 text-sm font-semibold ${dark ? 'text-fi-accent' : 'text-fi-dark'}`}>
                       <span className={`inline-flex h-11 w-11 items-center justify-center rounded-full transition-transform duration-500 group-hover:rotate-45 ${dark ? 'bg-fi-accent text-fi-deep' : 'bg-fi-dark text-white'}`}><ArrowUpRight size={18} aria-hidden /></span>
                       {t('decouvrir')}
@@ -245,7 +245,7 @@ function Realisations() {
   const counters = [
     { v: chiffres.projets, suffix: '', k: 'compteur_projets' },
     { v: chiffres.hectares, suffix: ' ha', k: 'compteur_ha' },
-    { v: chiffres.satisfaction, suffix: ' %', k: 'compteur_satisfaction' },
+    { v: chiffres.partenaires, suffix: '', k: 'chiffres_partenaires' },
     { v: chiffres.annees, suffix: '', k: 'compteur_annees' },
   ];
 
